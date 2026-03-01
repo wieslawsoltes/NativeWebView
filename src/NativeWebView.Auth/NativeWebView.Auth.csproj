@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>NativeWebView.Auth</AssemblyName>
+    <RootNamespace>NativeWebView.Auth</RootNamespace>
+    <PackageId>NativeWebView.Auth</PackageId>
+    <Description>Authentication broker facade for NativeWebView.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../NativeWebView.Core/NativeWebView.Core.csproj" />
+  </ItemGroup>
+</Project>

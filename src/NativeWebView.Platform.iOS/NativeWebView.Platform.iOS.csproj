@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>NativeWebView.Platform.iOS</AssemblyName>
+    <RootNamespace>NativeWebView.Platform.iOS</RootNamespace>
+    <PackageId>NativeWebView.Platform.iOS</PackageId>
+    <Description>Platform backend stubs for NativeWebView on iOS.</Description>
+    <DefineConstants>$(DefineConstants);NATIVEWEBVIEW_PLATFORM_IOS</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../NativeWebView.Core/NativeWebView.Core.csproj" />
+    <ProjectReference Include="../NativeWebView.Interop/NativeWebView.Interop.csproj" />
+  </ItemGroup>
+</Project>

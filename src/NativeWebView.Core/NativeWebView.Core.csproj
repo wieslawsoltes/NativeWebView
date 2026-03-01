@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>NativeWebView.Core</AssemblyName>
+    <RootNamespace>NativeWebView.Core</RootNamespace>
+    <PackageId>NativeWebView.Core</PackageId>
+    <Description>Core contracts and backend abstractions for NativeWebView.</Description>
+  </PropertyGroup>
+</Project>

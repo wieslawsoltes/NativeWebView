@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>NativeWebView.Interop</AssemblyName>
+    <RootNamespace>NativeWebView.Interop</RootNamespace>
+    <PackageId>NativeWebView.Interop</PackageId>
+    <Description>Native interop handles and provider contracts for NativeWebView.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../NativeWebView.Core/NativeWebView.Core.csproj" />
+  </ItemGroup>
+</Project>

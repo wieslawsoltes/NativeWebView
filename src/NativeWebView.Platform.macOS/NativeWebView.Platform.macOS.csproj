@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>NativeWebView.Platform.macOS</AssemblyName>
+    <RootNamespace>NativeWebView.Platform.macOS</RootNamespace>
+    <PackageId>NativeWebView.Platform.macOS</PackageId>
+    <Description>Platform backend stubs for NativeWebView on macOS.</Description>
+    <DefineConstants>$(DefineConstants);NATIVEWEBVIEW_PLATFORM_MACOS</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../NativeWebView.Core/NativeWebView.Core.csproj" />
+    <ProjectReference Include="../NativeWebView.Interop/NativeWebView.Interop.csproj" />
+  </ItemGroup>
+</Project>

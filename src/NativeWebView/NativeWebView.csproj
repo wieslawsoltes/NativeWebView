@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>NativeWebView</AssemblyName>
+    <RootNamespace>NativeWebView</RootNamespace>
+    <PackageId>NativeWebView</PackageId>
+    <Description>Avalonia control facade for NativeWebView.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../NativeWebView.Core/NativeWebView.Core.csproj" />
+    <ProjectReference Include="../NativeWebView.Interop/NativeWebView.Interop.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" />
+  </ItemGroup>
+</Project>

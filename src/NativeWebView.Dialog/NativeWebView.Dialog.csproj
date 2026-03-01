@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>NativeWebView.Dialog</AssemblyName>
+    <RootNamespace>NativeWebView.Dialog</RootNamespace>
+    <PackageId>NativeWebView.Dialog</PackageId>
+    <Description>Dialog host facade for NativeWebView.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../NativeWebView.Core/NativeWebView.Core.csproj" />
+    <ProjectReference Include="../NativeWebView.Interop/NativeWebView.Interop.csproj" />
+  </ItemGroup>
+</Project>
