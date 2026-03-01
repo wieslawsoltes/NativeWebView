@@ -31,6 +31,7 @@ public partial class MainWindow : Window
     private string? _lastSavedFramePath;
     private string? _lastSavedFrameMetadataPath;
     private string? _lastLoadedFrameMetadataSummary;
+    private bool? _manualCompositedPassthroughOverride;
 
     public MainWindow()
     {
@@ -125,6 +126,8 @@ public partial class MainWindow : Window
 
         WebViewControl.RenderMode = NativeWebViewRenderMode.Embedded;
         WebViewControl.RenderFramesPerSecond = 30;
+        WebViewControl.SetCompositedPassthroughOverride(null);
+        _manualCompositedPassthroughOverride = null;
         ManagedOverlayPanel.IsVisible = false;
         ManagedOverlayTextBox.Text = string.Empty;
     }
@@ -349,6 +352,7 @@ public partial class MainWindow : Window
             .Append("UserAgentString: ").AppendLine(WebViewControl.UserAgentString ?? "<null>")
             .Append("RenderMode: ").AppendLine(WebViewControl.RenderMode.ToString())
             .Append("RenderFramesPerSecond: ").AppendLine(WebViewControl.RenderFramesPerSecond.ToString(CultureInfo.InvariantCulture))
+            .Append("CompositedPassthroughOverride: ").AppendLine(FormatPassthroughOverride(WebViewControl.MacOsCompositedPassthroughOverride))
             .Append("SupportsRenderMode(Embedded): ").AppendLine(WebViewControl.SupportsRenderMode(NativeWebViewRenderMode.Embedded).ToString(CultureInfo.InvariantCulture))
             .Append("SupportsRenderMode(GpuSurface): ").AppendLine(WebViewControl.SupportsRenderMode(NativeWebViewRenderMode.GpuSurface).ToString(CultureInfo.InvariantCulture))
             .Append("SupportsRenderMode(Offscreen): ").AppendLine(WebViewControl.SupportsRenderMode(NativeWebViewRenderMode.Offscreen).ToString(CultureInfo.InvariantCulture))
@@ -432,6 +436,16 @@ public partial class MainWindow : Window
     private static string FormatException(Exception ex)
     {
         return $"{ex.GetType().Name}: {ex.Message}";
+    }
+
+    private static string FormatPassthroughOverride(bool? value)
+    {
+        return value switch
+        {
+            true => "ForcedOn",
+            false => "ForcedOff",
+            null => "Auto",
+        };
     }
 
     private static bool TryParseUri(string? raw, out Uri uri)
@@ -796,6 +810,22 @@ public partial class MainWindow : Window
     private void ManagedOverlayActionButtonOnClick(object? sender, RoutedEventArgs e)
     {
         AddLog($"Managed overlay action invoked. Text='{ManagedOverlayTextBox.Text ?? "<null>"}'");
+    }
+
+    private void ToggleCompositedPassthroughOverrideMenuItemOnClick(object? sender, RoutedEventArgs e)
+    {
+        _manualCompositedPassthroughOverride = _manualCompositedPassthroughOverride switch
+        {
+            null => true,
+            true => false,
+            false => null,
+        };
+
+        RunWebViewAction("Set Composited Passthrough Override", () =>
+        {
+            WebViewControl.SetCompositedPassthroughOverride(_manualCompositedPassthroughOverride);
+            AddLog($"Composited passthrough override: {FormatPassthroughOverride(_manualCompositedPassthroughOverride)}");
+        });
     }
 
     private void ShowWebViewPanelMenuItemOnClick(object? sender, RoutedEventArgs e)

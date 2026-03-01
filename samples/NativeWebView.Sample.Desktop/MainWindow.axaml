@@ -167,6 +167,12 @@
                     <TextBlock VerticalAlignment="Center" Text="Toggle Managed Overlay" />
                   </StackPanel>
                 </Button>
+                <Button Classes="menu-action" Click="ToggleCompositedPassthroughOverrideMenuItemOnClick">
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <fi:SymbolIcon Symbol="Video" />
+                    <TextBlock VerticalAlignment="Center" Text="Cycle Passthrough Override" />
+                  </StackPanel>
+                </Button>
 
                 <Button x:Name="OpenDevToolsButton" Classes="menu-action" Click="OpenDevToolsButtonOnClick">
                   <StackPanel Orientation="Horizontal" Spacing="8">
