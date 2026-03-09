@@ -8,7 +8,7 @@ internal static class LinuxPlatformDiagnostics
     {
         var issues = new List<NativeWebViewDiagnosticIssue>();
 
-        if (!OperatingSystem.IsLinux())
+        if (!NativeWebViewDiagnosticsHostPlatformOverride.IsEffectiveHostPlatform(NativeWebViewPlatform.Linux))
         {
             issues.Add(new NativeWebViewDiagnosticIssue(
                 code: "linux.host.mismatch",

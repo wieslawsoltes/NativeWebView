@@ -8,7 +8,7 @@ internal static class MacOSPlatformDiagnostics
     {
         var issues = new List<NativeWebViewDiagnosticIssue>();
 
-        if (!OperatingSystem.IsMacOS())
+        if (!NativeWebViewDiagnosticsHostPlatformOverride.IsEffectiveHostPlatform(NativeWebViewPlatform.MacOS))
         {
             issues.Add(new NativeWebViewDiagnosticIssue(
                 code: "macos.host.mismatch",

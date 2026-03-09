@@ -8,7 +8,7 @@ internal static class WindowsPlatformDiagnostics
     {
         var issues = new List<NativeWebViewDiagnosticIssue>();
 
-        if (!OperatingSystem.IsWindows())
+        if (!NativeWebViewDiagnosticsHostPlatformOverride.IsEffectiveHostPlatform(NativeWebViewPlatform.Windows))
         {
             issues.Add(new NativeWebViewDiagnosticIssue(
                 code: "windows.host.mismatch",

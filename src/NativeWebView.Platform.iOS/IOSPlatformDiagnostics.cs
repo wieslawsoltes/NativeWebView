@@ -8,7 +8,7 @@ internal static class IOSPlatformDiagnostics
     {
         var issues = new List<NativeWebViewDiagnosticIssue>();
 
-        if (!OperatingSystem.IsIOS())
+        if (!NativeWebViewDiagnosticsHostPlatformOverride.IsEffectiveHostPlatform(NativeWebViewPlatform.IOS))
         {
             issues.Add(new NativeWebViewDiagnosticIssue(
                 code: "ios.host.mismatch",

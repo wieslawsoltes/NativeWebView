@@ -94,7 +94,7 @@ run_case() {
   local log_file="$output_dir/${case_name}.log"
 
   set +e
-  "$repo_root/scripts/run-platform-diagnostics-report.sh" "$@" > "$log_file" 2>&1
+  "${contract_env[@]}" "$repo_root/scripts/run-platform-diagnostics-report.sh" "$@" > "$log_file" 2>&1
   local actual_exit_code=$?
   set -e
 
@@ -146,7 +146,13 @@ if [[ "$no_build" == "true" ]]; then
   common_args+=(--no-build)
 fi
 
-"$repo_root/scripts/run-platform-diagnostics-report.sh" \
+contract_host_platform_override="${NATIVEWEBVIEW_DIAGNOSTICS_HOST_PLATFORM_OVERRIDE:-Unknown}"
+contract_env=(
+  env
+  "NATIVEWEBVIEW_DIAGNOSTICS_HOST_PLATFORM=$contract_host_platform_override"
+)
+
+"${contract_env[@]}" "$repo_root/scripts/run-platform-diagnostics-report.sh" \
   "${common_args[@]}" \
   --output "$preflight_report" \
   --blocking-baseline-output "$pass_baseline" \

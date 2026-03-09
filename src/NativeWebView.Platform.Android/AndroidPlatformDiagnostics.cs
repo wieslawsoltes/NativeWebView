@@ -8,7 +8,7 @@ internal static class AndroidPlatformDiagnostics
     {
         var issues = new List<NativeWebViewDiagnosticIssue>();
 
-        if (!OperatingSystem.IsAndroid())
+        if (!NativeWebViewDiagnosticsHostPlatformOverride.IsEffectiveHostPlatform(NativeWebViewPlatform.Android))
         {
             issues.Add(new NativeWebViewDiagnosticIssue(
                 code: "android.host.mismatch",

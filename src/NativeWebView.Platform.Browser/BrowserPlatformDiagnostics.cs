@@ -8,7 +8,7 @@ internal static class BrowserPlatformDiagnostics
     {
         var issues = new List<NativeWebViewDiagnosticIssue>();
 
-        if (!OperatingSystem.IsBrowser())
+        if (!NativeWebViewDiagnosticsHostPlatformOverride.IsEffectiveHostPlatform(NativeWebViewPlatform.Browser))
         {
             issues.Add(new NativeWebViewDiagnosticIssue(
                 code: "browser.host.mismatch",
