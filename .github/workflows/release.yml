@@ -1,15 +1,25 @@
-name: release
+name: Release
 
 on:
   push:
-    tags:
-      - v*
+    tags: ['v*']
 
 permissions:
   contents: write
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  CI: true
+
 jobs:
   publish:
+    name: Pack, Publish, and Release
     runs-on: ubuntu-latest
 
     steps:
@@ -19,7 +29,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Resolve version from tag
         run: echo "PACKAGE_VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
@@ -51,11 +61,16 @@ jobs:
       - name: Pack release
         run: dotnet pack NativeWebView.sln -c Release --no-build -o artifacts/packages -p:ContinuousIntegrationBuild=true -p:Version=${{ env.PACKAGE_VERSION }}
 
+      - name: Validate package artifacts
+        run: bash ./scripts/validate-nuget-packages.sh --package-dir artifacts/packages --version "${{ env.PACKAGE_VERSION }}" --markdown-output artifacts/packages/package-validation.md
+
       - name: Upload package artifacts
         uses: actions/upload-artifact@v4
         with:
           name: packages-${{ env.PACKAGE_VERSION }}
-          path: artifacts/packages/*
+          if-no-files-found: error
+          path: |
+            artifacts/packages/*
 
       - name: Build release notes
         run: ./scripts/build-release-notes.sh --version "${{ env.PACKAGE_VERSION }}" --output artifacts/release-notes.md
@@ -77,6 +92,13 @@ jobs:
             fi
           } >> artifacts/release-notes.md
 
+      - name: Append package validation summary to release notes
+        run: |
+          if [[ -f artifacts/packages/package-validation.md ]]; then
+            echo >> artifacts/release-notes.md
+            cat artifacts/packages/package-validation.md >> artifacts/release-notes.md
+          fi
+
       - name: Upload release notes artifact
         uses: actions/upload-artifact@v4
         with:
@@ -96,6 +118,15 @@ jobs:
             artifacts/diagnostics/release-blocking-regression-${{ env.PACKAGE_VERSION }}.json
             artifacts/diagnostics/release-gate-evaluation-${{ env.PACKAGE_VERSION }}.md
             artifacts/diagnostics/exit-code-contract-${{ env.PACKAGE_VERSION }}/*
+
+      - name: Publish release summary
+        if: always()
+        run: |
+          if [[ -f artifacts/packages/package-validation.md ]]; then
+            cat artifacts/packages/package-validation.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Package validation summary was not generated." >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Push .nupkg to NuGet
         if: ${{ secrets.NUGET_API_KEY != '' }}

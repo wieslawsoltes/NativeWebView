@@ -7,6 +7,8 @@
     <NoWarn>$(NoWarn);CS1591</NoWarn>
     <Deterministic>true</Deterministic>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true' or '$(CI)' == '1' or '$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
 
     <RepositoryUrl>https://github.com/wieslawsoltes/NativeWebVIew</RepositoryUrl>
@@ -14,7 +16,9 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Authors>Wieslaw Soltes</Authors>
     <Company>Wieslaw Soltes</Company>
+    <Copyright>Copyright (c) 2026 Wieslaw Soltes</Copyright>
     <VersionPrefix>0.1.0</VersionPrefix>
+    <VersionSuffix></VersionSuffix>
     <PackageProjectUrl>https://github.com/wieslawsoltes/NativeWebVIew</PackageProjectUrl>
     <PackageTags>Avalonia;WebView;NativeWebView;WebView2;WKWebView;WebKitGTK</PackageTags>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>

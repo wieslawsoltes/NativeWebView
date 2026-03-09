@@ -3,7 +3,9 @@
     <AssemblyName>NativeWebView</AssemblyName>
     <RootNamespace>NativeWebView</RootNamespace>
     <PackageId>NativeWebView</PackageId>
-    <Description>Avalonia control facade for NativeWebView.</Description>
+    <Description>Avalonia control library for hosting platform-native web views with embedded, GPU-surface, and offscreen render modes.</Description>
+    <PackageTags>$(PackageTags);Control;NativeControlHost;Airspace;Rendering</PackageTags>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

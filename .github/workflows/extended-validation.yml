@@ -1,4 +1,4 @@
-name: extended-validation
+name: Extended Validation
 
 on:
   workflow_dispatch:
@@ -8,8 +8,21 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: extended-validation-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  PYTHON_VERSION: '3.12'
+  NODE_VERSION: '20'
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  CI: true
+
 jobs:
   browser-playwright:
+    name: Browser Playwright Smoke
     runs-on: ubuntu-latest
 
     steps:
@@ -19,12 +32,12 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ env.NODE_VERSION }}
           cache: npm
           cache-dependency-path: tests/NativeWebView.Playwright/package-lock.json
 
@@ -42,6 +55,7 @@ jobs:
             tests/NativeWebView.Playwright/test-results
 
   ios-contract-smoke:
+    name: iOS Contract Smoke
     runs-on: macos-latest
 
     steps:
@@ -51,7 +65,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore
         run: dotnet restore NativeWebView.sln
@@ -71,6 +85,7 @@ jobs:
           path: ${{ env.HOME }}/Library/Logs/CoreSimulator/**
 
   android-contract-smoke:
+    name: Android Contract Smoke
     runs-on: ubuntu-latest
 
     steps:
@@ -80,7 +95,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore
         run: dotnet restore NativeWebView.sln

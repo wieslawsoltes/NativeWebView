@@ -1,11 +1,10 @@
-name: docs
+name: Docs
 
 on:
   push:
-    branches:
-      - main
-      - master
+    branches: [main, master]
   pull_request:
+    branches: [main, master]
 
 permissions:
   contents: read
@@ -16,8 +15,12 @@ concurrency:
   group: docs-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  PYTHON_VERSION: '3.12'
+
 jobs:
   build:
+    name: Build Docs
     runs-on: ubuntu-latest
 
     steps:
@@ -27,7 +30,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install docs dependencies
         run: |
@@ -44,6 +47,7 @@ jobs:
           path: site
 
   deploy:
+    name: Deploy Docs
     if: github.event_name == 'push'
     needs: build
     runs-on: ubuntu-latest

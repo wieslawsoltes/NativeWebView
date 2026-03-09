@@ -3,7 +3,9 @@
     <AssemblyName>NativeWebView.Platform.Android</AssemblyName>
     <RootNamespace>NativeWebView.Platform.Android</RootNamespace>
     <PackageId>NativeWebView.Platform.Android</PackageId>
-    <Description>Platform backend stubs for NativeWebView on Android.</Description>
+    <Description>Android backend registration, diagnostics, and android.webkit.WebView integration for NativeWebView.</Description>
+    <PackageTags>$(PackageTags);Android;WebView</PackageTags>
+    <IsPackable>true</IsPackable>
     <DefineConstants>$(DefineConstants);NATIVEWEBVIEW_PLATFORM_ANDROID</DefineConstants>
   </PropertyGroup>
 

@@ -3,7 +3,9 @@
     <AssemblyName>NativeWebView.Dialog</AssemblyName>
     <RootNamespace>NativeWebView.Dialog</RootNamespace>
     <PackageId>NativeWebView.Dialog</PackageId>
-    <Description>Dialog host facade for NativeWebView.</Description>
+    <Description>Dialog and window hosting facade for launching native web content with NativeWebView.</Description>
+    <PackageTags>$(PackageTags);Dialog;Windowing</PackageTags>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

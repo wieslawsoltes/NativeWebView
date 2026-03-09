@@ -3,7 +3,9 @@
     <AssemblyName>NativeWebView.Platform.Windows</AssemblyName>
     <RootNamespace>NativeWebView.Platform.Windows</RootNamespace>
     <PackageId>NativeWebView.Platform.Windows</PackageId>
-    <Description>Platform backend stubs for NativeWebView on Windows.</Description>
+    <Description>Windows backend registration, diagnostics, dialog support, and WebView2 integration for NativeWebView.</Description>
+    <PackageTags>$(PackageTags);Windows;WebView2</PackageTags>
+    <IsPackable>true</IsPackable>
     <DefineConstants>$(DefineConstants);NATIVEWEBVIEW_PLATFORM_WINDOWS</DefineConstants>
   </PropertyGroup>
 

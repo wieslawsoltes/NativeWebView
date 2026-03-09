@@ -1,17 +1,27 @@
-name: ci
+name: CI
 
 on:
   push:
-    branches:
-      - main
-      - master
+    branches: [main, master]
   pull_request:
+    branches: [main, master]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
 
+env:
+  DOTNET_VERSION: '8.0.x'
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  CI: true
+
 jobs:
   quality:
+    name: Quality
     runs-on: ubuntu-latest
 
     steps:
@@ -21,7 +31,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore
         run: dotnet restore NativeWebView.sln
@@ -33,14 +43,12 @@ jobs:
         run: ./scripts/validate-changelog-fragments.sh
 
   build-test:
+    name: Build & Test (${{ matrix.os }})
     needs: quality
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - ubuntu-latest
-          - macos-latest
-          - windows-latest
+        os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -50,26 +58,28 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore
         run: dotnet restore NativeWebView.sln
 
       - name: Build
-        run: dotnet build NativeWebView.sln -c Debug --no-restore
+        run: dotnet build NativeWebView.sln -c Release --no-restore -p:ContinuousIntegrationBuild=true
 
       - name: Test
-        run: dotnet test NativeWebView.sln -c Debug --no-build --logger "trx;LogFileName=test-results.trx"
+        run: dotnet test NativeWebView.sln -c Release --no-build --logger "trx;LogFileName=test-results.trx" --results-directory ./test-results
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results-${{ matrix.os }}
+          if-no-files-found: warn
           path: |
-            **/TestResults/*.trx
+            test-results/
 
   package:
+    name: Pack & Validate
     needs: build-test
     runs-on: ubuntu-latest
 
@@ -80,7 +90,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore
         run: dotnet restore NativeWebView.sln
@@ -136,11 +146,26 @@ jobs:
       - name: Pack
         run: dotnet pack NativeWebView.sln -c Release --no-build -o artifacts/packages -p:ContinuousIntegrationBuild=true
 
+      - name: Validate package artifacts
+        run: bash ./scripts/validate-nuget-packages.sh --package-dir artifacts/packages --markdown-output artifacts/packages/package-validation.md
+
+      - name: Publish package summary
+        if: always()
+        run: |
+          if [[ -f artifacts/packages/package-validation.md ]]; then
+            echo >> "$GITHUB_STEP_SUMMARY"
+            cat artifacts/packages/package-validation.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Package validation summary was not generated." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Upload package artifacts
         uses: actions/upload-artifact@v4
         with:
           name: packages
-          path: artifacts/packages/*
+          if-no-files-found: error
+          path: |
+            artifacts/packages/*
 
       - name: Upload diagnostics report artifact
         uses: actions/upload-artifact@v4

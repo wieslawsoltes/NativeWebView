@@ -3,6 +3,8 @@
     <AssemblyName>NativeWebView.Core</AssemblyName>
     <RootNamespace>NativeWebView.Core</RootNamespace>
     <PackageId>NativeWebView.Core</PackageId>
-    <Description>Core contracts and backend abstractions for NativeWebView.</Description>
+    <Description>Core contracts, capability models, controllers, diagnostics, and backend abstractions for NativeWebView.</Description>
+    <PackageTags>$(PackageTags);Abstractions;Diagnostics;Contracts</PackageTags>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 </Project>

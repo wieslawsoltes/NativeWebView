@@ -3,7 +3,9 @@
     <AssemblyName>NativeWebView.Platform.macOS</AssemblyName>
     <RootNamespace>NativeWebView.Platform.macOS</RootNamespace>
     <PackageId>NativeWebView.Platform.macOS</PackageId>
-    <Description>Platform backend stubs for NativeWebView on macOS.</Description>
+    <Description>macOS backend registration, diagnostics, dialog support, and WKWebView integration for NativeWebView.</Description>
+    <PackageTags>$(PackageTags);macOS;WKWebView;AppKit</PackageTags>
+    <IsPackable>true</IsPackable>
     <DefineConstants>$(DefineConstants);NATIVEWEBVIEW_PLATFORM_MACOS</DefineConstants>
   </PropertyGroup>
 

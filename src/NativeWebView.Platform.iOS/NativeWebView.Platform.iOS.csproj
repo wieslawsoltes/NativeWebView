@@ -3,7 +3,9 @@
     <AssemblyName>NativeWebView.Platform.iOS</AssemblyName>
     <RootNamespace>NativeWebView.Platform.iOS</RootNamespace>
     <PackageId>NativeWebView.Platform.iOS</PackageId>
-    <Description>Platform backend stubs for NativeWebView on iOS.</Description>
+    <Description>iOS backend registration, diagnostics, and WKWebView-based NativeWebView integration.</Description>
+    <PackageTags>$(PackageTags);iOS;WKWebView;UIKit</PackageTags>
+    <IsPackable>true</IsPackable>
     <DefineConstants>$(DefineConstants);NATIVEWEBVIEW_PLATFORM_IOS</DefineConstants>
   </PropertyGroup>
 

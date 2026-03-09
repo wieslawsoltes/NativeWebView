@@ -3,7 +3,9 @@
     <AssemblyName>NativeWebView.Auth</AssemblyName>
     <RootNamespace>NativeWebView.Auth</RootNamespace>
     <PackageId>NativeWebView.Auth</PackageId>
-    <Description>Authentication broker facade for NativeWebView.</Description>
+    <Description>Cross-platform web authentication broker facade for OAuth and sign-in flows built on NativeWebView.</Description>
+    <PackageTags>$(PackageTags);Authentication;OAuth;OIDC;Broker</PackageTags>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

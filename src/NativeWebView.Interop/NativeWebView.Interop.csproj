@@ -3,7 +3,9 @@
     <AssemblyName>NativeWebView.Interop</AssemblyName>
     <RootNamespace>NativeWebView.Interop</RootNamespace>
     <PackageId>NativeWebView.Interop</PackageId>
-    <Description>Native interop handles and provider contracts for NativeWebView.</Description>
+    <Description>Native handle contracts, platform interop types, and provider-facing surface abstractions for NativeWebView.</Description>
+    <PackageTags>$(PackageTags);Interop;Handles;Native</PackageTags>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

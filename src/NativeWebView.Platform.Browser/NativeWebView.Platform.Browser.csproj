@@ -3,7 +3,9 @@
     <AssemblyName>NativeWebView.Platform.Browser</AssemblyName>
     <RootNamespace>NativeWebView.Platform.Browser</RootNamespace>
     <PackageId>NativeWebView.Platform.Browser</PackageId>
-    <Description>Platform backend stubs for NativeWebView on Browser.</Description>
+    <Description>Browser backend registration, diagnostics, and host integration for NativeWebView in browser targets.</Description>
+    <PackageTags>$(PackageTags);Browser;WASM;WebAssembly</PackageTags>
+    <IsPackable>true</IsPackable>
     <DefineConstants>$(DefineConstants);NATIVEWEBVIEW_PLATFORM_BROWSER</DefineConstants>
   </PropertyGroup>
 
