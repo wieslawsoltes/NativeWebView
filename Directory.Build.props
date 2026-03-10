@@ -18,7 +18,7 @@
     <Company>Wieslaw Soltes</Company>
     <Copyright>Copyright (c) 2026 Wieslaw Soltes</Copyright>
     <VersionPrefix>0.1.0</VersionPrefix>
-    <VersionSuffix></VersionSuffix>
+    <VersionSuffix>alpha.1</VersionSuffix>
     <PackageProjectUrl>https://github.com/wieslawsoltes/NativeWebVIew</PackageProjectUrl>
     <PackageTags>Avalonia;WebView;NativeWebView;WebView2;WKWebView;WebKitGTK</PackageTags>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
