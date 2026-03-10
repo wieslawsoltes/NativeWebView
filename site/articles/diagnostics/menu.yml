@@ -1,0 +1,5 @@
+diagnostics:
+  - {path: readme.md, title: "Diagnostics and Operations"}
+  - {path: platform-prerequisites.md, title: "Platform Prerequisites"}
+  - {path: platform-diagnostics-report.md, title: "Platform Diagnostics Report"}
+  - {path: ci-and-release.md, title: "CI and Release"}

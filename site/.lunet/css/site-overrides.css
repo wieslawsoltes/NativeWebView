@@ -1,0 +1,272 @@
+/* NativeWebView brand polish on top of Lunet template defaults. */
+
+:root {
+  --nwv-accent: #2563eb;
+  --nwv-accent-strong: #1d4ed8;
+  --nwv-accent-soft: #e8f0ff;
+  --nwv-highlight: #7dd3fc;
+  --nwv-card-radius: 14px;
+  --nwv-shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.08);
+  --nwv-shadow-strong: 0 16px 40px rgba(15, 23, 42, 0.16);
+}
+
+:root[data-bs-theme="dark"] {
+  --nwv-accent: #60a5fa;
+  --nwv-accent-strong: #93c5fd;
+  --nwv-accent-soft: rgba(37, 99, 235, 0.18);
+  --nwv-highlight: #93c5fd;
+  --nwv-shadow-soft: 0 12px 30px rgba(0, 0, 0, 0.28);
+  --nwv-shadow-strong: 0 16px 38px rgba(0, 0, 0, 0.4);
+}
+
+body {
+  min-height: 100vh;
+  background-image: radial-gradient(circle at top right, color-mix(in srgb, var(--nwv-accent) 11%, transparent), transparent 40%);
+}
+
+#lunet {
+  max-width: 1460px;
+}
+
+#lunet .lunet-logo {
+  width: auto;
+  height: 74px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.12));
+}
+
+#lunet .navbar {
+  margin-bottom: 1rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--bs-border-color) 82%, transparent);
+  backdrop-filter: saturate(125%) blur(6px);
+}
+
+#lunet .navbar .nav-link {
+  border-radius: 999px;
+  padding: 0.35rem 0.8rem;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+#lunet .navbar .nav-link:hover {
+  background: color-mix(in srgb, var(--nwv-accent) 14%, transparent);
+}
+
+#lunet li.nav-item.active {
+  border-bottom: none;
+}
+
+#lunet li.nav-item.active > .nav-item-row > .nav-link {
+  color: var(--nwv-accent-strong);
+  background: color-mix(in srgb, var(--nwv-accent) 16%, transparent);
+}
+
+#lunet .navbar .lunet-search .input-group {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--bs-border-color) 75%, transparent);
+  border-radius: 0.7rem;
+}
+
+#lunet .lunet-theme-toggle {
+  border-radius: 0.7rem;
+}
+
+#lunet .navbar-right .btn-info {
+  border-radius: 0.7rem;
+  border-color: color-mix(in srgb, var(--nwv-accent) 45%, var(--bs-border-color));
+  background: color-mix(in srgb, var(--nwv-accent) 28%, transparent);
+  color: var(--bs-body-color);
+}
+
+#lunet .navbar-right .btn-info:hover {
+  background: color-mix(in srgb, var(--nwv-accent) 40%, transparent);
+}
+
+#lunet .menu,
+#lunet .breadcrumb {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+#lunet .menu .menu {
+  margin-top: 0.35rem;
+  margin-left: 0.8rem;
+  padding-left: 0.8rem;
+  border-left: 1px solid color-mix(in srgb, var(--bs-border-color) 75%, transparent);
+}
+
+#lunet .menu-item {
+  margin: 0.1rem 0;
+}
+
+#lunet .menu-link,
+#lunet .breadcrumb-link {
+  text-decoration: none;
+}
+
+#lunet .menu-link:hover,
+#lunet .breadcrumb-link:hover {
+  text-decoration: underline;
+  text-decoration-style: dotted;
+}
+
+#lunet .menu-item.active > .menu-item-row > .menu-link {
+  font-weight: 600;
+  color: var(--nwv-accent-strong);
+}
+
+#docs-sidebar-menu.menu-sidebar,
+#docs-sidebar-toc.menu-sidebar {
+  max-height: calc(100vh - 6.25rem);
+  overflow: auto;
+  padding-bottom: 1rem;
+  border: 1px solid color-mix(in srgb, var(--bs-border-color) 80%, transparent);
+  border-radius: var(--nwv-card-radius);
+  box-shadow: var(--nwv-shadow-soft);
+}
+
+#docs-sidebar-menu .offcanvas-body,
+#docs-sidebar-toc {
+  background: color-mix(in srgb, var(--bs-body-bg) 92%, var(--nwv-accent-soft));
+}
+
+#docs-sidebar-toc .js-toc {
+  font-size: 0.92rem;
+}
+
+#docs-sidebar-toc .toc-list {
+  margin: 0;
+  padding-left: 0.85rem;
+  list-style: none;
+}
+
+#docs-sidebar-toc .toc-link {
+  text-decoration: none;
+  color: var(--bs-body-color);
+}
+
+#docs-sidebar-toc .is-active-link {
+  font-weight: 700;
+  color: var(--nwv-accent-strong);
+}
+
+#lunet .lunet-articles .js-toc-content,
+#lunet .lunet-api .js-toc-content {
+  background: color-mix(in srgb, var(--bs-body-bg) 94%, var(--nwv-accent-soft));
+  border: 1px solid color-mix(in srgb, var(--bs-border-color) 80%, transparent);
+  border-radius: var(--nwv-card-radius);
+  padding: 1.25rem 1.3rem 1.4rem;
+  box-shadow: var(--nwv-shadow-soft);
+}
+
+#lunet h1 {
+  letter-spacing: -0.02em;
+}
+
+#lunet h2 {
+  margin-top: 1.6rem;
+}
+
+#lunet h1,
+#lunet h2,
+#lunet h3 {
+  scroll-margin-top: 7rem;
+}
+
+#lunet blockquote {
+  border-radius: 0.6rem;
+  border-left-width: 4px;
+}
+
+#lunet pre[class*="language-"] {
+  border: 1px solid color-mix(in srgb, var(--bs-border-color) 80%, transparent);
+  border-radius: 0.8rem;
+}
+
+#lunet :focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--nwv-highlight) 70%, white);
+  outline-offset: 2px;
+}
+
+.lunet-home .container {
+  max-width: 1120px;
+}
+
+.nwv-hero {
+  border: 1px solid color-mix(in srgb, var(--bs-border-color) 80%, transparent);
+  border-radius: 18px;
+  padding: clamp(1.4rem, 2vw, 2rem);
+  background-image: linear-gradient(140deg, color-mix(in srgb, var(--nwv-accent) 18%, transparent), transparent 42%);
+  box-shadow: var(--nwv-shadow-strong);
+}
+
+.nwv-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.6rem;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--nwv-accent-strong);
+}
+
+.nwv-hero .lead {
+  max-width: 72ch;
+}
+
+.nwv-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-top: 1rem;
+}
+
+.nwv-hero-actions .btn-primary {
+  background: var(--nwv-accent);
+  border-color: var(--nwv-accent);
+}
+
+.nwv-hero-actions .btn-primary:hover {
+  background: var(--nwv-accent-strong);
+  border-color: var(--nwv-accent-strong);
+}
+
+.nwv-link-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.8rem;
+  margin-top: 0.7rem;
+}
+
+.nwv-link-grid--wide {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+.nwv-link-card {
+  display: block;
+  border: 1px solid color-mix(in srgb, var(--bs-border-color) 80%, transparent);
+  border-radius: 12px;
+  padding: 0.78rem 0.9rem;
+  text-decoration: none;
+  color: inherit;
+  background: color-mix(in srgb, var(--bs-body-bg) 92%, var(--nwv-accent-soft));
+  box-shadow: var(--nwv-shadow-soft);
+  transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
+}
+
+.nwv-link-card:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--nwv-accent) 45%, var(--bs-border-color));
+  box-shadow: var(--nwv-shadow-strong);
+}
+
+.nwv-link-card-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 700;
+}
+
+.nwv-link-card p {
+  margin: 0.55rem 0 0;
+  color: var(--bs-secondary-color);
+}

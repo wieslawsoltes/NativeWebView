@@ -1,0 +1,8 @@
+platforms:
+  - {path: readme.md, title: "Platforms"}
+  - {path: windows.md, title: "Windows"}
+  - {path: macos.md, title: "macOS"}
+  - {path: linux.md, title: "Linux"}
+  - {path: ios.md, title: "iOS"}
+  - {path: android.md, title: "Android"}
+  - {path: browser.md, title: "Browser"}

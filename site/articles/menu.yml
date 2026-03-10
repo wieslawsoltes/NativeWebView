@@ -1,0 +1,8 @@
+articles:
+  - {path: readme.md, title: "Articles"}
+  - {path: getting-started/readme.md, title: "Getting Started", folder: true}
+  - {path: controls/readme.md, title: "Controls and Facades", folder: true}
+  - {path: rendering/readme.md, title: "Rendering and Interop", folder: true}
+  - {path: platforms/readme.md, title: "Platforms", folder: true}
+  - {path: diagnostics/readme.md, title: "Diagnostics and Operations", folder: true}
+  - {path: reference/readme.md, title: "Reference", folder: true}

@@ -1,0 +1,6 @@
+reference:
+  - {path: readme.md, title: "Reference"}
+  - {path: package-layout.md, title: "Package Layout"}
+  - {path: platform-support-matrix.md, title: "Platform Support Matrix"}
+  - {path: lunet-docs-pipeline.md, title: "Lunet Docs Pipeline"}
+  - {path: license.md, title: "License"}

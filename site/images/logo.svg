@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="nwv-gradient" x1="96" y1="80" x2="424" y2="432" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#0F172A"/>
+    </linearGradient>
+    <linearGradient id="nwv-screen" x1="144" y1="136" x2="368" y2="376" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E0F2FE"/>
+      <stop offset="1" stop-color="#BFDBFE"/>
+    </linearGradient>
+  </defs>
+  <rect x="72" y="72" width="368" height="272" rx="40" fill="url(#nwv-gradient)"/>
+  <rect x="112" y="112" width="288" height="192" rx="24" fill="url(#nwv-screen)"/>
+  <path d="M152 392H360" stroke="#0F172A" stroke-width="28" stroke-linecap="round"/>
+  <path d="M208 440H304" stroke="#0F172A" stroke-width="28" stroke-linecap="round"/>
+  <path d="M184 184L248 248L184 312" stroke="#1D4ED8" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M328 184L264 248L328 312" stroke="#0F172A" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -1,0 +1,5 @@
+rendering:
+  - {path: readme.md, title: "Rendering and Interop"}
+  - {path: render-modes.md, title: "Render Modes"}
+  - {path: environment-and-controller-options.md, title: "Environment and Controller Options"}
+  - {path: native-handle-interop.md, title: "Native Handle Interop"}

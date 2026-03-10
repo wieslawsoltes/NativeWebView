@@ -1,0 +1,5 @@
+controls:
+  - {path: readme.md, title: "Controls and Facades"}
+  - {path: nativewebview.md, title: "NativeWebView"}
+  - {path: nativewebdialog.md, title: "NativeWebDialog"}
+  - {path: webauthenticationbroker.md, title: "WebAuthenticationBroker"}
