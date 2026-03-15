@@ -37,4 +37,5 @@ Use `NATIVEWEBVIEW_WEBVIEW2_RUNTIME_PATH` when you need an explicit runtime path
 ## Proxy Notes
 
 - WebView2 can be configured via environment options and Chromium proxy arguments.
+- `NativeWebViewWindowsProxyArgumentsBuilder` converts shared proxy options into `AdditionalBrowserArguments` payloads for WebView2-style integrations.
 - The current repo Windows backend remains a contract stub, so per-instance proxy settings are not yet applied at runtime.

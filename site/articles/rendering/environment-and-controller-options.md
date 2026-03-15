@@ -50,6 +50,19 @@ Use this event to configure profile, private-mode, and script-locale behavior wh
 | Android | AndroidX `ProxyController` | Unsupported for per-instance use because the official override is app-wide, not per-WebView. |
 | Browser | Host browser integration | Unsupported because the hosted browser target does not expose per-instance engine proxy control in the current implementation. |
 
+Use `NativeWebViewProxyPlatformSupportMatrix.Get(platform)` when you need the same support verdict in code rather than documentation.
+
+## Translation Helpers
+
+The core package now exposes backend-translation helpers for platforms that have official runtime APIs but do not yet have real runtime backends in this repo:
+
+- `NativeWebViewWindowsProxyArgumentsBuilder.Build(...)` / `Merge(...)`
+  Converts `NativeWebViewProxyOptions` into Chromium/WebView2 command-line arguments for `AdditionalBrowserArguments`.
+- `NativeWebViewLinuxProxySettingsBuilder.Build(...)`
+  Converts `NativeWebViewProxyOptions` into a WebKitGTK-style default-proxy URI plus ignore-host list.
+
+These helpers are groundwork for future backends or custom integrations; they do not by themselves make the current Windows or Linux repo backends runtime-capable.
+
 ## Example
 
 ```csharp
