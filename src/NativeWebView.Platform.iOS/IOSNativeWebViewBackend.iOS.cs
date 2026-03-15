@@ -819,6 +819,9 @@ public sealed class IOSNativeWebViewBackend
             AutoresizingMask = UIViewAutoresizing.FlexibleWidth | UIViewAutoresizing.FlexibleHeight,
             BackgroundColor = UIColor.Clear,
         };
+
+        parentView.AddSubview(_containerView);
+        _containerView.Frame = parentView.Bounds;
     }
 
     private void DetachFromNativeParentCore()

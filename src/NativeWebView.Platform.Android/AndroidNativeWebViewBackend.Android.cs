@@ -840,6 +840,8 @@ public sealed class AndroidNativeWebViewBackend
     {
         var parentView = Object.GetObject<View>((IntPtr)parentHandle.Handle, JniHandleOwnership.DoNotTransfer)
             ?? throw new InvalidOperationException("Failed to resolve the Android parent view handle.");
+        var parentGroup = parentView as ViewGroup
+            ?? throw new InvalidOperationException("Android native control attachment requires a ViewGroup parent handle.");
 
         _parentView = parentView;
         _containerView = new FrameLayout(parentView.Context)
@@ -850,6 +852,7 @@ public sealed class AndroidNativeWebViewBackend
         };
 
         _containerView.SetBackgroundColor(Color.Transparent);
+        parentGroup.AddView(_containerView);
     }
 
     private void DetachFromNativeParentCore()
