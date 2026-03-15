@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="iOS | NativeWebView">
-<meta name="twitter:description" content="iOS Backend Package: NativeWebView.Platform.iOS Platform enum: NativeWebViewPlatform.IOS Native engine: WKWebView Supported Areas Embedded view GPU surface rendering Offscreen rendering Authentication broker Context menu and zoom New window interception Environment and controller options Native handles Cookie manager and command manager Unsupported in the Current Implementation Dialog backend Desktop-only print UI and DevTools behaviors Registration factory.UseNativeWebViewIOS(); Copyright © 2026, Wieslaw Soltes aka wieslawsoltes - Content licensed under the MIT license...">
+<meta name="twitter:description" content="iOS Backend Package: NativeWebView.Platform.iOS Platform enum: NativeWebViewPlatform.IOS Native engine: WKWebView Supported Areas Embedded view GPU surface rendering Offscreen rendering Authentication broker Context menu and zoom New window interception Environment and controller options Native handles Cookie manager and command manager Unsupported in the Current Implementation Dialog backend Desktop-only print UI and DevTools behaviors Registration factory.UseNativeWebViewIOS(); Proxy Notes WKWebsiteDataStore.proxyConfigurations is available on iOS 17+. The current repo iOS backend remains a contract...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta name="twitter:image:alt" content="iOS | NativeWebView">
 <meta property="og:title" content="iOS | NativeWebView">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/NativeWebView">
-<meta property="og:description" content="iOS Backend Package: NativeWebView.Platform.iOS Platform enum: NativeWebViewPlatform.IOS Native engine: WKWebView Supported Areas Embedded view GPU surface rendering Offscreen rendering Authentication broker Context menu and zoom New window interception Environment and controller options Native handles Cookie manager and command manager Unsupported in the Current Implementation Dialog backend Desktop-only print UI and DevTools behaviors Registration factory.UseNativeWebViewIOS(); Copyright © 2026, Wieslaw Soltes aka wieslawsoltes - Content licensed under the MIT license...">
+<meta property="og:description" content="iOS Backend Package: NativeWebView.Platform.iOS Platform enum: NativeWebViewPlatform.IOS Native engine: WKWebView Supported Areas Embedded view GPU surface rendering Offscreen rendering Authentication broker Context menu and zoom New window interception Environment and controller options Native handles Cookie manager and command manager Unsupported in the Current Implementation Dialog backend Desktop-only print UI and DevTools behaviors Registration factory.UseNativeWebViewIOS(); Proxy Notes WKWebsiteDataStore.proxyConfigurations is available on iOS 17+. The current repo iOS backend remains a contract...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta property="og:image:alt" content="iOS | NativeWebView">
   </head>
@@ -186,6 +186,11 @@
 <h2 id="registration">Registration</h2>
 <pre><code class="language-csharp">factory.UseNativeWebViewIOS();
 </code></pre>
+<h2 id="proxy-notes">Proxy Notes</h2>
+<ul>
+<li><code>WKWebsiteDataStore.proxyConfigurations</code> is available on <code>iOS 17+</code>.</li>
+<li>The current repo iOS backend remains a contract stub, so per-instance proxy settings are not yet applied at runtime.</li>
+</ul>
 
       </div>
   </div>

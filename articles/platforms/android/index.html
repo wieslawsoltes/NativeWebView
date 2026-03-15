@@ -188,6 +188,11 @@
 </code></pre>
 <h2 id="diagnostics-notes">Diagnostics Notes</h2>
 <p>Diagnostics use <code>ANDROID_API_LEVEL</code> for minimum API-level enforcement (<code>24+</code>).</p>
+<h2 id="proxy-notes">Proxy Notes</h2>
+<ul>
+<li>AndroidX <code>ProxyController</code> applies proxy overrides process-wide for the app, not per <code>WebView</code> instance.</li>
+<li>Per-instance proxy configuration is therefore not supported on Android in the current implementation.</li>
+</ul>
 
       </div>
   </div>

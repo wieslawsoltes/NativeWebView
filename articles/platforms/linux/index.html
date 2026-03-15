@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="Linux | NativeWebView">
-<meta name="twitter:description" content="Linux Backend Package: NativeWebView.Platform.Linux Platform enum: NativeWebViewPlatform.Linux Native engine: WebKitGTK Supported Areas Embedded view GPU surface rendering Offscreen rendering Dialog Authentication broker Context menu and zoom Printing New window and resource request interception Environment and controller options Native handles Cookie manager and command manager Registration factory.UseNativeWebViewLinux(); Diagnostics Notes NATIVEWEBVIEW_WEBKITGTK_VERSION can be used to assert the expected installed WebKitGTK major line during diagnostics. Copyright © 2026, Wieslaw Soltes aka...">
+<meta name="twitter:description" content="Linux Backend Package: NativeWebView.Platform.Linux Platform enum: NativeWebViewPlatform.Linux Native engine: WebKitGTK Supported Areas Embedded view GPU surface rendering Offscreen rendering Dialog Authentication broker Context menu and zoom Printing New window and resource request interception Environment and controller options Native handles Cookie manager and command manager Registration factory.UseNativeWebViewLinux(); Diagnostics Notes NATIVEWEBVIEW_WEBKITGTK_VERSION can be used to assert the expected installed WebKitGTK major line during diagnostics. Proxy Notes WebKitGTK exposes website data manager proxy...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta name="twitter:image:alt" content="Linux | NativeWebView">
 <meta property="og:title" content="Linux | NativeWebView">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/NativeWebView">
-<meta property="og:description" content="Linux Backend Package: NativeWebView.Platform.Linux Platform enum: NativeWebViewPlatform.Linux Native engine: WebKitGTK Supported Areas Embedded view GPU surface rendering Offscreen rendering Dialog Authentication broker Context menu and zoom Printing New window and resource request interception Environment and controller options Native handles Cookie manager and command manager Registration factory.UseNativeWebViewLinux(); Diagnostics Notes NATIVEWEBVIEW_WEBKITGTK_VERSION can be used to assert the expected installed WebKitGTK major line during diagnostics. Copyright © 2026, Wieslaw Soltes aka...">
+<meta property="og:description" content="Linux Backend Package: NativeWebView.Platform.Linux Platform enum: NativeWebViewPlatform.Linux Native engine: WebKitGTK Supported Areas Embedded view GPU surface rendering Offscreen rendering Dialog Authentication broker Context menu and zoom Printing New window and resource request interception Environment and controller options Native handles Cookie manager and command manager Registration factory.UseNativeWebViewLinux(); Diagnostics Notes NATIVEWEBVIEW_WEBKITGTK_VERSION can be used to assert the expected installed WebKitGTK major line during diagnostics. Proxy Notes WebKitGTK exposes website data manager proxy...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta property="og:image:alt" content="Linux | NativeWebView">
   </head>
@@ -185,6 +185,12 @@
 </code></pre>
 <h2 id="diagnostics-notes">Diagnostics Notes</h2>
 <p><code>NATIVEWEBVIEW_WEBKITGTK_VERSION</code> can be used to assert the expected installed WebKitGTK major line during diagnostics.</p>
+<h2 id="proxy-notes">Proxy Notes</h2>
+<ul>
+<li>WebKitGTK exposes website data manager proxy settings.</li>
+<li><code>NativeWebViewLinuxProxySettingsBuilder</code> converts shared proxy options into a WebKitGTK-style default proxy URI plus ignore-host list.</li>
+<li>The current repo Linux backend remains a contract stub, so per-instance proxy settings are not yet applied at runtime.</li>
+</ul>
 
       </div>
   </div>

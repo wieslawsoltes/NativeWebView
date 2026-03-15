@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="NativeWebDialog | NativeWebView">
-<meta name="twitter:description" content="NativeWebDialog NativeWebDialog is the desktop dialog or window facade for browser workflows that do not belong inside the main Avalonia visual tree. Availability Windows: supported. macOS: supported. Linux: supported. iOS, Android, Browser: unsupported by design in the current implementation. Main Properties Property Purpose IsVisible, CurrentUrl Dialog visibility and current URL. CanGoBack, CanGoForward Navigation history state. IsDevToolsEnabled, IsContextMenuEnabled, IsStatusBarEnabled, IsZoomControlEnabled Desktop browser UI toggles where supported. ZoomFactor, HeaderString, UserAgentString Runtime dialog...">
+<meta name="twitter:description" content="NativeWebDialog NativeWebDialog is the desktop dialog or window facade for browser workflows that do not belong inside the main Avalonia visual tree. Availability Windows: supported. macOS: supported. Linux: supported. iOS, Android, Browser: unsupported by design in the current implementation. Main Properties Property Purpose IsVisible, CurrentUrl Dialog visibility and current URL. InstanceConfiguration Per-instance environment/controller defaults, including proxy settings on supported runtimes. CanGoBack, CanGoForward Navigation history state. IsDevToolsEnabled, IsContextMenuEnabled, IsStatusBarEnabled...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta name="twitter:image:alt" content="NativeWebDialog | NativeWebView">
 <meta property="og:title" content="NativeWebDialog | NativeWebView">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/NativeWebView">
-<meta property="og:description" content="NativeWebDialog NativeWebDialog is the desktop dialog or window facade for browser workflows that do not belong inside the main Avalonia visual tree. Availability Windows: supported. macOS: supported. Linux: supported. iOS, Android, Browser: unsupported by design in the current implementation. Main Properties Property Purpose IsVisible, CurrentUrl Dialog visibility and current URL. CanGoBack, CanGoForward Navigation history state. IsDevToolsEnabled, IsContextMenuEnabled, IsStatusBarEnabled, IsZoomControlEnabled Desktop browser UI toggles where supported. ZoomFactor, HeaderString, UserAgentString Runtime dialog...">
+<meta property="og:description" content="NativeWebDialog NativeWebDialog is the desktop dialog or window facade for browser workflows that do not belong inside the main Avalonia visual tree. Availability Windows: supported. macOS: supported. Linux: supported. iOS, Android, Browser: unsupported by design in the current implementation. Main Properties Property Purpose IsVisible, CurrentUrl Dialog visibility and current URL. InstanceConfiguration Per-instance environment/controller defaults, including proxy settings on supported runtimes. CanGoBack, CanGoForward Navigation history state. IsDevToolsEnabled, IsContextMenuEnabled, IsStatusBarEnabled...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta property="og:image:alt" content="NativeWebDialog | NativeWebView">
   </head>
@@ -176,6 +176,10 @@
 <td>Dialog visibility and current URL.</td>
 </tr>
 <tr>
+<td><code>InstanceConfiguration</code></td>
+<td>Per-instance environment/controller defaults, including proxy settings on supported runtimes.</td>
+</tr>
+<tr>
 <td><code>CanGoBack</code>, <code>CanGoForward</code></td>
 <td>Navigation history state.</td>
 </tr>
@@ -217,6 +221,11 @@ using NativeWebView.Core;
 NativeWebViewRuntime.EnsureCurrentPlatformRegistered();
 
 using var dialog = new NativeWebDialog();
+dialog.InstanceConfiguration.EnvironmentOptions.Proxy = new NativeWebViewProxyOptions
+{
+    Server = &quot;http://localhost:8888&quot;,
+    BypassList = &quot;localhost;127.0.0.1&quot;
+};
 dialog.Show(new NativeWebDialogShowOptions
 {
     Title = &quot;NativeWebView Sample Dialog&quot;,
@@ -228,6 +237,7 @@ dialog.Navigate(&quot;https://example.com/dialog&quot;);
 <h2 id="notes">Notes</h2>
 <ul>
 <li>Dialog backends remain capability-driven just like the embedded control.</li>
+<li>In the current repo implementation, per-instance proxy application is effective on macOS 14+ only.</li>
 <li>Print UI and DevTools depend on the platform backend.</li>
 <li>Unsupported mobile/browser targets return unsupported backend contracts instead of silently no-op behavior.</li>
 </ul>

@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="Environment and Controller Options | NativeWebView">
-<meta name="twitter:description" content="Environment and Controller Options NativeWebView exposes two option-request events during initialization so applications can adjust backend defaults before the platform engine is created. Environment Options Event Event: CoreWebView2EnvironmentRequested Option model: BrowserExecutableFolder UserDataFolder Language AdditionalBrowserArguments TargetCompatibleBrowserVersion AllowSingleSignOnUsingOSPrimaryAccount Use this event to mutate environment defaults before initialization completes. Controller Options Event Event: CoreWebView2ControllerOptionsRequested Option model: ProfileName IsInPrivateModeEnabled ScriptLocale Use this event to configure profile, private-mode, and script-locale behavior where the backend supports...">
+<meta name="twitter:description" content="Environment and Controller Options NativeWebView exposes two option-request events during initialization so applications can adjust backend defaults before the platform engine is created. For multi-instance hosting, use NativeWebView.InstanceConfiguration to seed per-instance defaults before these public handlers run. Environment Options Event Event: CoreWebView2EnvironmentRequested Option model: BrowserExecutableFolder UserDataFolder CacheFolder CookieDataFolder SessionDataFolder Language AdditionalBrowserArguments TargetCompatibleBrowserVersion AllowSingleSignOnUsingOSPrimaryAccount Proxy.Server Proxy.BypassList Proxy.AutoConfigUrl Use this event to mutate environment defaults before initialization completes....">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta name="twitter:image:alt" content="Environment and Controller Options | NativeWebView">
 <meta property="og:title" content="Environment and Controller Options | NativeWebView">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/NativeWebView">
-<meta property="og:description" content="Environment and Controller Options NativeWebView exposes two option-request events during initialization so applications can adjust backend defaults before the platform engine is created. Environment Options Event Event: CoreWebView2EnvironmentRequested Option model: BrowserExecutableFolder UserDataFolder Language AdditionalBrowserArguments TargetCompatibleBrowserVersion AllowSingleSignOnUsingOSPrimaryAccount Use this event to mutate environment defaults before initialization completes. Controller Options Event Event: CoreWebView2ControllerOptionsRequested Option model: ProfileName IsInPrivateModeEnabled ScriptLocale Use this event to configure profile, private-mode, and script-locale behavior where the backend supports...">
+<meta property="og:description" content="Environment and Controller Options NativeWebView exposes two option-request events during initialization so applications can adjust backend defaults before the platform engine is created. For multi-instance hosting, use NativeWebView.InstanceConfiguration to seed per-instance defaults before these public handlers run. Environment Options Event Event: CoreWebView2EnvironmentRequested Option model: BrowserExecutableFolder UserDataFolder CacheFolder CookieDataFolder SessionDataFolder Language AdditionalBrowserArguments TargetCompatibleBrowserVersion AllowSingleSignOnUsingOSPrimaryAccount Proxy.Server Proxy.BypassList Proxy.AutoConfigUrl Use this event to mutate environment defaults before initialization completes....">
 <meta property="og:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta property="og:image:alt" content="Environment and Controller Options | NativeWebView">
   </head>
@@ -154,17 +154,23 @@
         </div>
 <!-- lunet:summarize -->
 <h1 id="environment-and-controller-options">Environment and Controller Options</h1>
-<p><code>NativeWebView</code> exposes two option-request events during initialization so applications can adjust backend defaults before the platform engine is created.</p>
+<p><code>NativeWebView</code> exposes two option-request events during initialization so applications can adjust backend defaults before the platform engine is created. For multi-instance hosting, use <code>NativeWebView.InstanceConfiguration</code> to seed per-instance defaults before these public handlers run.</p>
 <h2 id="environment-options-event">Environment Options Event</h2>
 <p>Event: <code>CoreWebView2EnvironmentRequested</code></p>
 <p>Option model:</p>
 <ul>
 <li><code>BrowserExecutableFolder</code></li>
 <li><code>UserDataFolder</code></li>
+<li><code>CacheFolder</code></li>
+<li><code>CookieDataFolder</code></li>
+<li><code>SessionDataFolder</code></li>
 <li><code>Language</code></li>
 <li><code>AdditionalBrowserArguments</code></li>
 <li><code>TargetCompatibleBrowserVersion</code></li>
 <li><code>AllowSingleSignOnUsingOSPrimaryAccount</code></li>
+<li><code>Proxy.Server</code></li>
+<li><code>Proxy.BypassList</code></li>
+<li><code>Proxy.AutoConfigUrl</code></li>
 </ul>
 <p>Use this event to mutate environment defaults before initialization completes.</p>
 <h2 id="controller-options-event">Controller Options Event</h2>
@@ -176,8 +182,71 @@
 <li><code>ScriptLocale</code></li>
 </ul>
 <p>Use this event to configure profile, private-mode, and script-locale behavior where the backend supports it.</p>
+<h2 id="per-instance-proxy-support-matrix">Per-Instance Proxy Support Matrix</h2>
+<table class="table">
+<thead>
+<tr>
+<th>Platform</th>
+<th>Native engine capability</th>
+<th>Current repo status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>macOS</td>
+<td><code>WKWebsiteDataStore.proxyConfigurations</code> (<code>macOS 14+</code>)</td>
+<td>Implemented for <code>NativeWebView</code> and <code>NativeWebDialog</code> with explicit <code>http</code>, <code>https</code>, and <code>socks5</code> proxy servers plus bypass domains.</td>
+</tr>
+<tr>
+<td>Windows</td>
+<td>WebView2 environment arguments / Chromium proxy flags</td>
+<td>Not yet runtime-applied because the current Windows backend remains a contract stub.</td>
+</tr>
+<tr>
+<td>Linux</td>
+<td>WebKitGTK website data manager proxy settings</td>
+<td>Not yet runtime-applied because the current Linux backend remains a contract stub.</td>
+</tr>
+<tr>
+<td>iOS</td>
+<td><code>WKWebsiteDataStore.proxyConfigurations</code> (<code>iOS 17+</code>)</td>
+<td>Not yet runtime-applied because the current iOS backend remains a contract stub.</td>
+</tr>
+<tr>
+<td>Android</td>
+<td>AndroidX <code>ProxyController</code></td>
+<td>Unsupported for per-instance use because the official override is app-wide, not per-WebView.</td>
+</tr>
+<tr>
+<td>Browser</td>
+<td>Host browser integration</td>
+<td>Unsupported because the hosted browser target does not expose per-instance engine proxy control in the current implementation.</td>
+</tr>
+</tbody>
+</table>
+<p>Use <code>NativeWebViewProxyPlatformSupportMatrix.Get(platform)</code> when you need the same support verdict in code rather than documentation.</p>
+<h2 id="translation-helpers">Translation Helpers</h2>
+<p>The core package now exposes backend-translation helpers for platforms that have official runtime APIs but do not yet have real runtime backends in this repo:</p>
+<ul>
+<li><code>NativeWebViewWindowsProxyArgumentsBuilder.Build(...)</code> / <code>Merge(...)</code>
+Converts <code>NativeWebViewProxyOptions</code> into Chromium/WebView2 command-line arguments for <code>AdditionalBrowserArguments</code>.</li>
+<li><code>NativeWebViewLinuxProxySettingsBuilder.Build(...)</code>
+Converts <code>NativeWebViewProxyOptions</code> into a WebKitGTK-style default-proxy URI plus ignore-host list.</li>
+</ul>
+<p>These helpers are groundwork for future backends or custom integrations; they do not by themselves make the current Windows or Linux repo backends runtime-capable.</p>
 <h2 id="example">Example</h2>
-<pre><code class="language-csharp">WebViewControl.CoreWebView2EnvironmentRequested += (_, e) =&gt;
+<pre><code class="language-csharp">WebViewControl.InstanceConfiguration.EnvironmentOptions.UserDataFolder = &quot;./artifacts/sample-a/userdata&quot;;
+WebViewControl.InstanceConfiguration.EnvironmentOptions.CacheFolder = &quot;./artifacts/sample-a/cache&quot;;
+WebViewControl.InstanceConfiguration.EnvironmentOptions.CookieDataFolder = &quot;./artifacts/sample-a/cookies&quot;;
+WebViewControl.InstanceConfiguration.EnvironmentOptions.SessionDataFolder = &quot;./artifacts/sample-a/session&quot;;
+WebViewControl.InstanceConfiguration.EnvironmentOptions.Proxy = new NativeWebViewProxyOptions
+{
+    Server = &quot;http://localhost:8888&quot;,
+    BypassList = &quot;localhost;127.0.0.1&quot;
+};
+WebViewControl.InstanceConfiguration.ControllerOptions.ProfileName = &quot;sample-a&quot;;
+
+WebViewControl.CoreWebView2EnvironmentRequested += (_, e) =&gt;
 {
     e.Options.Language ??= &quot;en-US&quot;;
     e.Options.UserDataFolder ??= &quot;./artifacts/sample-webview-userdata&quot;;
@@ -191,6 +260,10 @@ WebViewControl.CoreWebView2ControllerOptionsRequested += (_, e) =&gt;
 </code></pre>
 <h2 id="notes">Notes</h2>
 <ul>
+<li><code>InstanceConfiguration</code> is copied per control instance, so multiple <code>NativeWebView</code> controls can start from the same template and then diverge safely.</li>
+<li>Exact <code>UserDataFolder</code> / <code>CacheFolder</code> / <code>CookieDataFolder</code> / <code>SessionDataFolder</code> semantics are backend-specific. In the current repo, unsupported runtime backends still surface these values as contracts, and the macOS proxy runtime path uses them as part of isolated data-store identity rather than direct physical directory mapping.</li>
+<li>On macOS, assign proxy settings before the control is attached or before a dialog is shown so the native <code>WKWebView</code> can be created with a dedicated data store.</li>
+<li><code>Proxy.AutoConfigUrl</code> remains contract-only in the current repo implementation; the macOS runtime path applies explicit server proxies only.</li>
 <li>Events are raised once per backend initialization in the current implementation.</li>
 <li>Platforms that cannot apply some values may still expose the event for compatibility.</li>
 <li>Keep event handlers deterministic because these values become part of environment reproducibility and CI diagnostics.</li>

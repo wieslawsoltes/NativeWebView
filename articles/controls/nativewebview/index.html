@@ -183,6 +183,10 @@
 <td>Indicates whether backend initialization completed.</td>
 </tr>
 <tr>
+<td><code>InstanceConfiguration</code></td>
+<td>Per-instance environment/controller defaults, including proxy and storage directories.</td>
+</tr>
+<tr>
 <td><code>CanGoBack</code>, <code>CanGoForward</code></td>
 <td>Navigation history state.</td>
 </tr>
@@ -237,6 +241,8 @@
 <p>Backends advertise support through <code>Features</code>. When a backend does not support an operation, capability flags expose that in advance and the method call throws <code>PlatformNotSupportedException</code> if invoked anyway.</p>
 <h2 id="typical-initialization-pattern">Typical Initialization Pattern</h2>
 <pre><code class="language-csharp">NativeWebViewRuntime.EnsureCurrentPlatformRegistered();
+WebViewControl.InstanceConfiguration.EnvironmentOptions.UserDataFolder = &quot;./artifacts/webview-a&quot;;
+WebViewControl.InstanceConfiguration.ControllerOptions.ProfileName = &quot;webview-a&quot;;
 await WebViewControl.InitializeAsync();
 WebViewControl.Navigate(&quot;https://example.com&quot;);
 </code></pre>
@@ -254,6 +260,13 @@ WebViewControl.Navigate(&quot;https://example.com&quot;);
 <p>Render statistics expose capture counters and last-frame metadata, including attempt, success, failure, and skip counts together with last failure details.</p>
 <p>Sidecar metadata includes <code>FrameId</code>, <code>CapturedAtUtc</code>, <code>RenderMode</code>, <code>Origin</code>, <code>PixelDataLength</code>, and <code>PixelDataSha256</code>.
 Use <code>NativeWebViewRenderFrameMetadataSerializer.ReadFromFileAsync</code> to load the sidecar JSON and <code>TryVerifyIntegrity</code> to validate captured frames against the stored integrity fields.</p>
+<h2 id="proxy-notes">Proxy Notes</h2>
+<ul>
+<li>Check <code>Features.Supports(NativeWebViewFeature.ProxyConfiguration)</code> before relying on runtime proxy application.</li>
+<li>In the current repo implementation, per-instance proxy application is effective on macOS 14+ only.</li>
+<li>The macOS runtime path supports explicit <code>http</code>, <code>https</code>, and <code>socks5</code> proxy servers plus bypass domains.</li>
+<li><code>Proxy.AutoConfigUrl</code> is not applied by the current macOS integration.</li>
+</ul>
 <h2 id="related">Related</h2>
 <ul>
 <li><a href="/NativeWebView/articles/rendering/render-modes">Render Modes</a></li>

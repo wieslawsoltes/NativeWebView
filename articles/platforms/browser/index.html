@@ -187,6 +187,11 @@
 </code></pre>
 <h2 id="diagnostics-notes">Diagnostics Notes</h2>
 <p>Set <code>NATIVEWEBVIEW_BROWSER_POPUP_SUPPORT=false</code> or <code>0</code> to force the popup-support warning path during diagnostics testing.</p>
+<h2 id="proxy-notes">Proxy Notes</h2>
+<ul>
+<li>Browser targets run inside the host browser’s networking stack.</li>
+<li>The current implementation does not expose per-instance proxy control for browser-hosted <code>NativeWebView</code> instances.</li>
+</ul>
 
       </div>
   </div>

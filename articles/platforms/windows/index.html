@@ -185,6 +185,12 @@
 </code></pre>
 <h2 id="diagnostics-notes">Diagnostics Notes</h2>
 <p>Use <code>NATIVEWEBVIEW_WEBVIEW2_RUNTIME_PATH</code> when you need an explicit runtime path override. If it is set, the path must exist.</p>
+<h2 id="proxy-notes">Proxy Notes</h2>
+<ul>
+<li>WebView2 can be configured via environment options and Chromium proxy arguments.</li>
+<li><code>NativeWebViewWindowsProxyArgumentsBuilder</code> converts shared proxy options into <code>AdditionalBrowserArguments</code> payloads for WebView2-style integrations.</li>
+<li>The current repo Windows backend remains a contract stub, so per-instance proxy settings are not yet applied at runtime.</li>
+</ul>
 
       </div>
   </div>

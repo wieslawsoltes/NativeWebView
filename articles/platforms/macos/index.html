@@ -185,6 +185,13 @@
 </code></pre>
 <h2 id="composition-notes">Composition Notes</h2>
 <p>macOS supports composited hosting paths and passthrough decisions for scenarios such as hardware-accelerated video playback. Review <a href="/NativeWebView/articles/rendering/render-modes">Render Modes</a> before forcing capture-based composition across all content types.</p>
+<h2 id="proxy-notes">Proxy Notes</h2>
+<ul>
+<li>Per-instance proxy application is implemented for <code>NativeWebView</code> and <code>NativeWebDialog</code> on <code>macOS 14+</code>.</li>
+<li>The current runtime path uses a dedicated persistent <code>WKWebsiteDataStore</code> identity derived from the instance configuration.</li>
+<li>Explicit <code>http</code>, <code>https</code>, and <code>socks5</code> proxy servers plus bypass domains are supported.</li>
+<li>PAC (<code>AutoConfigUrl</code>) is not applied by the current macOS integration.</li>
+</ul>
 
       </div>
   </div>

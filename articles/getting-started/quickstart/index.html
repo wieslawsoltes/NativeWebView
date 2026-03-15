@@ -184,6 +184,19 @@ if (!WebViewControl.SupportsRenderMode(WebViewControl.RenderMode))
 
 WebViewControl.Navigate(&quot;https://example.com&quot;);
 </code></pre>
+<p>If you host multiple views and need isolated browser state, assign per-instance defaults before initialization:</p>
+<pre><code class="language-csharp">WebViewControl.InstanceConfiguration.EnvironmentOptions.UserDataFolder = &quot;./artifacts/view-a/user-data&quot;;
+WebViewControl.InstanceConfiguration.EnvironmentOptions.CacheFolder = &quot;./artifacts/view-a/cache&quot;;
+WebViewControl.InstanceConfiguration.EnvironmentOptions.CookieDataFolder = &quot;./artifacts/view-a/cookies&quot;;
+WebViewControl.InstanceConfiguration.EnvironmentOptions.SessionDataFolder = &quot;./artifacts/view-a/session&quot;;
+WebViewControl.InstanceConfiguration.EnvironmentOptions.Proxy = new NativeWebViewProxyOptions
+{
+    Server = &quot;http://localhost:8888&quot;,
+    BypassList = &quot;localhost;127.0.0.1&quot;
+};
+WebViewControl.InstanceConfiguration.ControllerOptions.ProfileName = &quot;view-a&quot;;
+</code></pre>
+<p>Runtime note: per-instance proxy application is currently implemented on macOS 14+ for <code>NativeWebView</code> and <code>NativeWebDialog</code>. Other targets keep the configuration contract but do not yet apply proxy settings in the current repo implementation.</p>
 <h2 id="3-validate-diagnostics-before-navigation">3. Validate Diagnostics Before Navigation</h2>
 <pre><code class="language-csharp">var diagnostics = NativeWebViewRuntime.GetCurrentPlatformDiagnostics();
 NativeWebViewDiagnosticsValidator.EnsureReady(diagnostics);
@@ -226,6 +239,8 @@ if (!factory.TryCreateNativeWebViewBackend(NativeWebViewPlatform.Windows, out va
 }
 
 using var webView = new NativeWebView(backend);
+webView.InstanceConfiguration.EnvironmentOptions.UserDataFolder = &quot;./artifacts/manual-backend-userdata&quot;;
+webView.InstanceConfiguration.ControllerOptions.ProfileName = &quot;manual-backend-profile&quot;;
 await webView.InitializeAsync();
 webView.Navigate(&quot;https://example.com&quot;);
 </code></pre>
