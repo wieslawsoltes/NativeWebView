@@ -36,3 +36,8 @@ factory.UseNativeWebViewAndroid();
 ## Diagnostics Notes
 
 Diagnostics use `ANDROID_API_LEVEL` for minimum API-level enforcement (`24+`).
+
+## Proxy Notes
+
+- AndroidX `ProxyController` applies proxy overrides process-wide for the app, not per `WebView` instance.
+- Per-instance proxy configuration is therefore not supported on Android in the current implementation.

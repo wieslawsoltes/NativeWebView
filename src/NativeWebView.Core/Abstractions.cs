@@ -39,7 +39,8 @@ public enum NativeWebViewFeature
     WebMessageChannel = 1 << 19,
     GpuSurfaceRendering = 1 << 20,
     OffscreenRendering = 1 << 21,
-    RenderFrameCapture = 1 << 22
+    RenderFrameCapture = 1 << 22,
+    ProxyConfiguration = 1 << 23
 }
 
 [Flags]
@@ -94,11 +95,240 @@ public enum NativeWebViewPrintStatus
     NotSupported
 }
 
+public sealed class NativeWebViewProxyOptions
+{
+    public string? Server { get; set; }
+
+    public string? BypassList { get; set; }
+
+    public string? AutoConfigUrl { get; set; }
+
+    public NativeWebViewProxyOptions Clone()
+    {
+        return new NativeWebViewProxyOptions
+        {
+            Server = Server,
+            BypassList = BypassList,
+            AutoConfigUrl = AutoConfigUrl,
+        };
+    }
+
+    public void ApplyTo(NativeWebViewProxyOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+
+        options.Server = Server;
+        options.BypassList = BypassList;
+        options.AutoConfigUrl = AutoConfigUrl;
+    }
+}
+
+public enum NativeWebViewProxyKind
+{
+    HttpConnect = 0,
+    Socks5,
+    AutoConfigUrl
+}
+
+public sealed class NativeWebViewResolvedProxyConfiguration
+{
+    internal NativeWebViewResolvedProxyConfiguration(
+        NativeWebViewProxyKind kind,
+        string host,
+        int port,
+        bool useTls,
+        string? username,
+        string? password,
+        string? autoConfigUrl,
+        IReadOnlyList<string> excludedDomains)
+    {
+        Kind = kind;
+        Host = host;
+        Port = port;
+        UseTls = useTls;
+        Username = username;
+        Password = password;
+        AutoConfigUrl = autoConfigUrl;
+        ExcludedDomains = excludedDomains;
+    }
+
+    public NativeWebViewProxyKind Kind { get; }
+
+    public string Host { get; }
+
+    public int Port { get; }
+
+    public bool UseTls { get; }
+
+    public string? Username { get; }
+
+    public string? Password { get; }
+
+    public string? AutoConfigUrl { get; }
+
+    public IReadOnlyList<string> ExcludedDomains { get; }
+}
+
+public static class NativeWebViewProxyConfigurationResolver
+{
+    public static NativeWebViewResolvedProxyConfiguration? Resolve(NativeWebViewProxyOptions? options)
+    {
+        if (options is null)
+        {
+            return null;
+        }
+
+        var server = options.Server?.Trim();
+        var autoConfigUrl = options.AutoConfigUrl?.Trim();
+
+        if (string.IsNullOrWhiteSpace(server) && string.IsNullOrWhiteSpace(autoConfigUrl))
+        {
+            return null;
+        }
+
+        if (!string.IsNullOrWhiteSpace(server) && !string.IsNullOrWhiteSpace(autoConfigUrl))
+        {
+            throw new ArgumentException("Specify either Server or AutoConfigUrl, not both.", nameof(options));
+        }
+
+        var excludedDomains = ParseBypassList(options.BypassList);
+        if (!string.IsNullOrWhiteSpace(autoConfigUrl))
+        {
+            if (!Uri.TryCreate(autoConfigUrl, UriKind.Absolute, out var pacUri) ||
+                pacUri is null ||
+                (pacUri.Scheme != Uri.UriSchemeHttp && pacUri.Scheme != Uri.UriSchemeHttps))
+            {
+                throw new ArgumentException(
+                    "AutoConfigUrl must be an absolute HTTP or HTTPS URI.",
+                    nameof(options));
+            }
+
+            return new NativeWebViewResolvedProxyConfiguration(
+                NativeWebViewProxyKind.AutoConfigUrl,
+                host: string.Empty,
+                port: 0,
+                useTls: false,
+                username: null,
+                password: null,
+                autoConfigUrl: pacUri.AbsoluteUri,
+                excludedDomains: excludedDomains);
+        }
+
+        var normalizedServer = server!.Contains("://", StringComparison.Ordinal)
+            ? server
+            : $"http://{server}";
+
+        if (!Uri.TryCreate(normalizedServer, UriKind.Absolute, out var serverUri) || serverUri is null)
+        {
+            throw new ArgumentException("Server must be a valid host[:port] or absolute proxy URI.", nameof(options));
+        }
+
+        if (string.IsNullOrWhiteSpace(serverUri.Host))
+        {
+            throw new ArgumentException("Server must include a host name.", nameof(options));
+        }
+
+        if (!string.IsNullOrEmpty(serverUri.Query) || !string.IsNullOrEmpty(serverUri.Fragment))
+        {
+            throw new ArgumentException("Server must not include query or fragment components.", nameof(options));
+        }
+
+        if (!string.IsNullOrEmpty(serverUri.AbsolutePath) && serverUri.AbsolutePath != "/")
+        {
+            throw new ArgumentException("Server must not include a path component.", nameof(options));
+        }
+
+        var (kind, defaultPort, useTls) = serverUri.Scheme.ToLowerInvariant() switch
+        {
+            "http" => (NativeWebViewProxyKind.HttpConnect, 80, false),
+            "https" => (NativeWebViewProxyKind.HttpConnect, 443, true),
+            "socks" => (NativeWebViewProxyKind.Socks5, 1080, false),
+            "socks5" => (NativeWebViewProxyKind.Socks5, 1080, false),
+            _ => throw new NotSupportedException(
+                $"Proxy scheme '{serverUri.Scheme}' is not supported. Use http, https, socks, or socks5.")
+        };
+
+        var username = default(string);
+        var password = default(string);
+        if (!string.IsNullOrWhiteSpace(serverUri.UserInfo))
+        {
+            var separator = serverUri.UserInfo.IndexOf(':');
+            if (separator < 0)
+            {
+                username = Uri.UnescapeDataString(serverUri.UserInfo);
+            }
+            else
+            {
+                username = Uri.UnescapeDataString(serverUri.UserInfo[..separator]);
+                password = Uri.UnescapeDataString(serverUri.UserInfo[(separator + 1)..]);
+            }
+        }
+
+        return new NativeWebViewResolvedProxyConfiguration(
+            kind,
+            serverUri.Host,
+            serverUri.IsDefaultPort ? defaultPort : serverUri.Port,
+            useTls,
+            username,
+            password,
+            autoConfigUrl: null,
+            excludedDomains);
+    }
+
+    private static IReadOnlyList<string> ParseBypassList(string? bypassList)
+    {
+        if (string.IsNullOrWhiteSpace(bypassList))
+        {
+            return Array.Empty<string>();
+        }
+
+        var tokens = bypassList.Split([';', ',', '\r', '\n', '\t'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (tokens.Length == 0)
+        {
+            return Array.Empty<string>();
+        }
+
+        var excludedDomains = new List<string>(tokens.Length);
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var token in tokens)
+        {
+            var normalized = token.Trim();
+            if (normalized.Length == 0)
+            {
+                continue;
+            }
+
+            if (normalized.StartsWith("*.", StringComparison.Ordinal))
+            {
+                normalized = normalized[2..];
+            }
+            else if (normalized.StartsWith(".", StringComparison.Ordinal))
+            {
+                normalized = normalized[1..];
+            }
+
+            if (seen.Add(normalized))
+            {
+                excludedDomains.Add(normalized);
+            }
+        }
+
+        return excludedDomains;
+    }
+}
+
 public sealed class NativeWebViewEnvironmentOptions
 {
     public string? BrowserExecutableFolder { get; set; }
 
     public string? UserDataFolder { get; set; }
+
+    public string? CacheFolder { get; set; }
+
+    public string? CookieDataFolder { get; set; }
+
+    public string? SessionDataFolder { get; set; }
 
     public string? Language { get; set; }
 
@@ -107,6 +337,31 @@ public sealed class NativeWebViewEnvironmentOptions
     public string? TargetCompatibleBrowserVersion { get; set; }
 
     public bool AllowSingleSignOnUsingOSPrimaryAccount { get; set; }
+
+    public NativeWebViewProxyOptions? Proxy { get; set; }
+
+    public NativeWebViewEnvironmentOptions Clone()
+    {
+        var clone = new NativeWebViewEnvironmentOptions();
+        ApplyTo(clone);
+        return clone;
+    }
+
+    public void ApplyTo(NativeWebViewEnvironmentOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+
+        options.BrowserExecutableFolder = BrowserExecutableFolder;
+        options.UserDataFolder = UserDataFolder;
+        options.CacheFolder = CacheFolder;
+        options.CookieDataFolder = CookieDataFolder;
+        options.SessionDataFolder = SessionDataFolder;
+        options.Language = Language;
+        options.AdditionalBrowserArguments = AdditionalBrowserArguments;
+        options.TargetCompatibleBrowserVersion = TargetCompatibleBrowserVersion;
+        options.AllowSingleSignOnUsingOSPrimaryAccount = AllowSingleSignOnUsingOSPrimaryAccount;
+        options.Proxy = Proxy?.Clone();
+    }
 }
 
 public sealed class NativeWebViewControllerOptions
@@ -116,6 +371,55 @@ public sealed class NativeWebViewControllerOptions
     public bool IsInPrivateModeEnabled { get; set; }
 
     public string? ScriptLocale { get; set; }
+
+    public NativeWebViewControllerOptions Clone()
+    {
+        var clone = new NativeWebViewControllerOptions();
+        ApplyTo(clone);
+        return clone;
+    }
+
+    public void ApplyTo(NativeWebViewControllerOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+
+        options.ProfileName = ProfileName;
+        options.IsInPrivateModeEnabled = IsInPrivateModeEnabled;
+        options.ScriptLocale = ScriptLocale;
+    }
+}
+
+public sealed class NativeWebViewInstanceConfiguration
+{
+    public NativeWebViewEnvironmentOptions EnvironmentOptions { get; set; } = new();
+
+    public NativeWebViewControllerOptions ControllerOptions { get; set; } = new();
+
+    public NativeWebViewInstanceConfiguration Clone()
+    {
+        return new NativeWebViewInstanceConfiguration
+        {
+            EnvironmentOptions = EnvironmentOptions?.Clone() ?? new NativeWebViewEnvironmentOptions(),
+            ControllerOptions = ControllerOptions?.Clone() ?? new NativeWebViewControllerOptions(),
+        };
+    }
+
+    public void ApplyEnvironmentOptions(NativeWebViewEnvironmentOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        (EnvironmentOptions ?? new NativeWebViewEnvironmentOptions()).ApplyTo(options);
+    }
+
+    public void ApplyControllerOptions(NativeWebViewControllerOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        (ControllerOptions ?? new NativeWebViewControllerOptions()).ApplyTo(options);
+    }
+}
+
+public interface INativeWebViewInstanceConfigurationTarget
+{
+    void ApplyInstanceConfiguration(NativeWebViewInstanceConfiguration configuration);
 }
 
 public sealed class NativeWebViewPrintSettings

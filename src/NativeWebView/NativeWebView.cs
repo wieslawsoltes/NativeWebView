@@ -41,6 +41,7 @@ public class NativeWebView : NativeControlHost, IDisposable
     private readonly NativeWebViewController _controller;
     private readonly NativeWebViewRenderStatisticsTracker _renderStatisticsTracker = new();
 
+    private NativeWebViewInstanceConfiguration _instanceConfiguration;
     private MacOSNativeWebViewHost? _macOSHost;
     private DispatcherTimer? _framePump;
     private WriteableBitmap? _gpuSurfaceBitmap;
@@ -61,13 +62,27 @@ public class NativeWebView : NativeControlHost, IDisposable
         AvaloniaProperty.Register<NativeWebView, int>(nameof(RenderFramesPerSecond), DefaultRenderFramesPerSecond);
 
     public NativeWebView()
-        : this(CreateDefaultBackend())
+        : this(CreateDefaultBackend(), instanceConfiguration: null)
+    {
+    }
+
+    public NativeWebView(NativeWebViewInstanceConfiguration instanceConfiguration)
+        : this(CreateDefaultBackend(), instanceConfiguration)
     {
     }
 
     public NativeWebView(INativeWebViewBackend backend)
+        : this(backend, instanceConfiguration: null)
+    {
+    }
+
+    public NativeWebView(INativeWebViewBackend backend, NativeWebViewInstanceConfiguration? instanceConfiguration)
     {
         _controller = new NativeWebViewController(backend);
+        _instanceConfiguration = instanceConfiguration?.Clone() ?? new NativeWebViewInstanceConfiguration();
+        _controller.CoreWebView2EnvironmentRequested += OnCoreWebView2EnvironmentRequestedInternal;
+        _controller.CoreWebView2ControllerOptionsRequested += OnCoreWebView2ControllerOptionsRequestedInternal;
+        ApplyInstanceConfigurationToBackend();
     }
 
     public NativeWebViewPlatform Platform => _controller.Platform;
@@ -75,6 +90,17 @@ public class NativeWebView : NativeControlHost, IDisposable
     public IWebViewPlatformFeatures Features => _controller.Features;
 
     public NativeWebComponentState LifecycleState => _controller.State;
+
+    public NativeWebViewInstanceConfiguration InstanceConfiguration
+    {
+        get => _instanceConfiguration;
+        set
+        {
+            ArgumentNullException.ThrowIfNull(value);
+            _instanceConfiguration = value.Clone();
+            ApplyInstanceConfigurationToBackend();
+        }
+    }
 
     public NativeWebViewRenderMode RenderMode
     {
@@ -615,7 +641,7 @@ public class NativeWebView : NativeControlHost, IDisposable
         if (_controller.Platform == NativeWebViewPlatform.MacOS && OperatingSystem.IsMacOS())
         {
             _macOSHost?.Dispose();
-            _macOSHost = new MacOSNativeWebViewHost(parent);
+            _macOSHost = new MacOSNativeWebViewHost(parent, _instanceConfiguration);
 
             _macOSHost.SetUserAgent(_controller.UserAgentString);
 
@@ -697,10 +723,30 @@ public class NativeWebView : NativeControlHost, IDisposable
         StopFramePump();
         DisposeRenderSurfaces();
 
+        _controller.CoreWebView2EnvironmentRequested -= OnCoreWebView2EnvironmentRequestedInternal;
+        _controller.CoreWebView2ControllerOptionsRequested -= OnCoreWebView2ControllerOptionsRequestedInternal;
         _macOSHost?.Dispose();
         _macOSHost = null;
 
         _controller.Dispose();
+    }
+
+    private void ApplyInstanceConfigurationToBackend()
+    {
+        if (_controller.TryGetBackend<INativeWebViewInstanceConfigurationTarget>(out var target))
+        {
+            target.ApplyInstanceConfiguration(_instanceConfiguration.Clone());
+        }
+    }
+
+    private void OnCoreWebView2EnvironmentRequestedInternal(object? sender, CoreWebViewEnvironmentRequestedEventArgs e)
+    {
+        _instanceConfiguration.ApplyEnvironmentOptions(e.Options);
+    }
+
+    private void OnCoreWebView2ControllerOptionsRequestedInternal(object? sender, CoreWebViewControllerOptionsRequestedEventArgs e)
+    {
+        _instanceConfiguration.ApplyControllerOptions(e.Options);
     }
 
     private void ApplyRenderModeState(bool forceRefresh)

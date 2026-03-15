@@ -6,6 +6,7 @@ namespace NativeWebView.Dialog;
 public sealed class NativeWebDialog : IDisposable
 {
     private readonly NativeWebDialogController _controller;
+    private NativeWebViewInstanceConfiguration _instanceConfiguration;
 
     public NativeWebDialog()
         : this(CreateDefaultBackend())
@@ -15,6 +16,8 @@ public sealed class NativeWebDialog : IDisposable
     public NativeWebDialog(INativeWebDialogBackend backend)
     {
         _controller = new NativeWebDialogController(backend);
+        _instanceConfiguration = new NativeWebViewInstanceConfiguration();
+        ApplyInstanceConfigurationToBackend();
     }
 
     public NativeWebViewPlatform Platform => _controller.Platform;
@@ -22,6 +25,17 @@ public sealed class NativeWebDialog : IDisposable
     public IWebViewPlatformFeatures Features => _controller.Features;
 
     public NativeWebComponentState LifecycleState => _controller.State;
+
+    public NativeWebViewInstanceConfiguration InstanceConfiguration
+    {
+        get => _instanceConfiguration;
+        set
+        {
+            ArgumentNullException.ThrowIfNull(value);
+            _instanceConfiguration = value.Clone();
+            ApplyInstanceConfigurationToBackend();
+        }
+    }
 
     public bool IsVisible => _controller.IsVisible;
 
@@ -111,6 +125,7 @@ public sealed class NativeWebDialog : IDisposable
 
     public void Show(NativeWebDialogShowOptions? options = null)
     {
+        ApplyInstanceConfigurationToBackend();
         _controller.Show(options);
     }
 
@@ -131,11 +146,13 @@ public sealed class NativeWebDialog : IDisposable
 
     public void Navigate(string url)
     {
+        ApplyInstanceConfigurationToBackend();
         _controller.Navigate(url);
     }
 
     public void Navigate(Uri uri)
     {
+        ApplyInstanceConfigurationToBackend();
         _controller.Navigate(uri);
     }
 
@@ -243,6 +260,14 @@ public sealed class NativeWebDialog : IDisposable
     public void Dispose()
     {
         _controller.Dispose();
+    }
+
+    private void ApplyInstanceConfigurationToBackend()
+    {
+        if (_controller.TryGetBackend<INativeWebViewInstanceConfigurationTarget>(out var target))
+        {
+            target.ApplyInstanceConfiguration(_instanceConfiguration.Clone());
+        }
     }
 
     private static INativeWebDialogBackend CreateDefaultBackend()

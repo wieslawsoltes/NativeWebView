@@ -126,6 +126,12 @@ public partial class MainWindow : Window
 
         WebViewControl.RenderMode = NativeWebViewRenderMode.Embedded;
         WebViewControl.RenderFramesPerSecond = 30;
+        WebViewControl.InstanceConfiguration.EnvironmentOptions.UserDataFolder = "./artifacts/sample-webview-userdata";
+        WebViewControl.InstanceConfiguration.EnvironmentOptions.CacheFolder = "./artifacts/sample-webview-cache";
+        WebViewControl.InstanceConfiguration.EnvironmentOptions.CookieDataFolder = "./artifacts/sample-webview-cookies";
+        WebViewControl.InstanceConfiguration.EnvironmentOptions.SessionDataFolder = "./artifacts/sample-webview-session";
+        WebViewControl.InstanceConfiguration.ControllerOptions.ProfileName = "sample-profile";
+        WebViewControl.InstanceConfiguration.ControllerOptions.ScriptLocale = "en-US";
         WebViewControl.SetCompositedPassthroughOverride(null);
         _manualCompositedPassthroughOverride = null;
         ManagedOverlayPanel.IsVisible = false;

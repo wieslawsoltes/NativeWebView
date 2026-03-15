@@ -32,3 +32,8 @@ title: "iOS"
 ```csharp
 factory.UseNativeWebViewIOS();
 ```
+
+## Proxy Notes
+
+- `WKWebsiteDataStore.proxyConfigurations` is available on `iOS 17+`.
+- The current repo iOS backend remains a contract stub, so per-instance proxy settings are not yet applied at runtime.

@@ -35,3 +35,8 @@ factory.UseNativeWebViewBrowser();
 ## Diagnostics Notes
 
 Set `NATIVEWEBVIEW_BROWSER_POPUP_SUPPORT=false` or `0` to force the popup-support warning path during diagnostics testing.
+
+## Proxy Notes
+
+- Browser targets run inside the host browser’s networking stack.
+- The current implementation does not expose per-instance proxy control for browser-hosted `NativeWebView` instances.

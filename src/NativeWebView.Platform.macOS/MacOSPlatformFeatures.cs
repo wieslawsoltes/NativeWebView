@@ -4,8 +4,7 @@ namespace NativeWebView.Platform.macOS;
 
 internal static class MacOSPlatformFeatures
 {
-    public static readonly IWebViewPlatformFeatures Instance = new WebViewPlatformFeatures(
-        NativeWebViewPlatform.MacOS,
+    private const NativeWebViewFeature BaseFeatures =
         NativeWebViewFeature.EmbeddedView |
         NativeWebViewFeature.Dialog |
         NativeWebViewFeature.AuthenticationBroker |
@@ -24,5 +23,12 @@ internal static class MacOSPlatformFeatures
         NativeWebViewFeature.WebMessageChannel |
         NativeWebViewFeature.GpuSurfaceRendering |
         NativeWebViewFeature.OffscreenRendering |
-        NativeWebViewFeature.RenderFrameCapture);
+        NativeWebViewFeature.RenderFrameCapture;
+
+    public static IWebViewPlatformFeatures Instance => new WebViewPlatformFeatures(
+        NativeWebViewPlatform.MacOS,
+        BaseFeatures |
+        (OperatingSystem.IsMacOSVersionAtLeast(14)
+            ? NativeWebViewFeature.ProxyConfiguration
+            : NativeWebViewFeature.None));
 }

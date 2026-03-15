@@ -22,6 +22,7 @@ title: "NativeWebView"
 | --- | --- |
 | `Source`, `CurrentUrl` | Current navigation target and current URL. |
 | `IsInitialized` | Indicates whether backend initialization completed. |
+| `InstanceConfiguration` | Per-instance environment/controller defaults, including proxy and storage directories. |
 | `CanGoBack`, `CanGoForward` | Navigation history state. |
 | `IsDevToolsEnabled`, `IsContextMenuEnabled`, `IsStatusBarEnabled`, `IsZoomControlEnabled` | Capability-backed runtime toggles. |
 | `ZoomFactor`, `HeaderString`, `UserAgentString` | Browser behavior configuration. |
@@ -62,6 +63,8 @@ Backends advertise support through `Features`. When a backend does not support a
 
 ```csharp
 NativeWebViewRuntime.EnsureCurrentPlatformRegistered();
+WebViewControl.InstanceConfiguration.EnvironmentOptions.UserDataFolder = "./artifacts/webview-a";
+WebViewControl.InstanceConfiguration.ControllerOptions.ProfileName = "webview-a";
 await WebViewControl.InitializeAsync();
 WebViewControl.Navigate("https://example.com");
 ```
@@ -82,6 +85,13 @@ Render statistics expose capture counters and last-frame metadata, including att
 
 Sidecar metadata includes `FrameId`, `CapturedAtUtc`, `RenderMode`, `Origin`, `PixelDataLength`, and `PixelDataSha256`.
 Use `NativeWebViewRenderFrameMetadataSerializer.ReadFromFileAsync` to load the sidecar JSON and `TryVerifyIntegrity` to validate captured frames against the stored integrity fields.
+
+## Proxy Notes
+
+- Check `Features.Supports(NativeWebViewFeature.ProxyConfiguration)` before relying on runtime proxy application.
+- In the current repo implementation, per-instance proxy application is effective on macOS 14+ only.
+- The macOS runtime path supports explicit `http`, `https`, and `socks5` proxy servers plus bypass domains.
+- `Proxy.AutoConfigUrl` is not applied by the current macOS integration.
 
 ## Related
 

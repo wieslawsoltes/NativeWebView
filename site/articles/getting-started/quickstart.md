@@ -39,6 +39,23 @@ if (!WebViewControl.SupportsRenderMode(WebViewControl.RenderMode))
 WebViewControl.Navigate("https://example.com");
 ```
 
+If you host multiple views and need isolated browser state, assign per-instance defaults before initialization:
+
+```csharp
+WebViewControl.InstanceConfiguration.EnvironmentOptions.UserDataFolder = "./artifacts/view-a/user-data";
+WebViewControl.InstanceConfiguration.EnvironmentOptions.CacheFolder = "./artifacts/view-a/cache";
+WebViewControl.InstanceConfiguration.EnvironmentOptions.CookieDataFolder = "./artifacts/view-a/cookies";
+WebViewControl.InstanceConfiguration.EnvironmentOptions.SessionDataFolder = "./artifacts/view-a/session";
+WebViewControl.InstanceConfiguration.EnvironmentOptions.Proxy = new NativeWebViewProxyOptions
+{
+    Server = "http://localhost:8888",
+    BypassList = "localhost;127.0.0.1"
+};
+WebViewControl.InstanceConfiguration.ControllerOptions.ProfileName = "view-a";
+```
+
+Runtime note: per-instance proxy application is currently implemented on macOS 14+ for `NativeWebView` and `NativeWebDialog`. Other targets keep the configuration contract but do not yet apply proxy settings in the current repo implementation.
+
 ## 3. Validate Diagnostics Before Navigation
 
 ```csharp
@@ -90,6 +107,8 @@ if (!factory.TryCreateNativeWebViewBackend(NativeWebViewPlatform.Windows, out va
 }
 
 using var webView = new NativeWebView(backend);
+webView.InstanceConfiguration.EnvironmentOptions.UserDataFolder = "./artifacts/manual-backend-userdata";
+webView.InstanceConfiguration.ControllerOptions.ProfileName = "manual-backend-profile";
 await webView.InitializeAsync();
 webView.Navigate("https://example.com");
 ```

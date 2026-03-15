@@ -18,6 +18,7 @@ title: "NativeWebDialog"
 | Property | Purpose |
 | --- | --- |
 | `IsVisible`, `CurrentUrl` | Dialog visibility and current URL. |
+| `InstanceConfiguration` | Per-instance environment/controller defaults, including proxy settings on supported runtimes. |
 | `CanGoBack`, `CanGoForward` | Navigation history state. |
 | `IsDevToolsEnabled`, `IsContextMenuEnabled`, `IsStatusBarEnabled`, `IsZoomControlEnabled` | Desktop browser UI toggles where supported. |
 | `ZoomFactor`, `HeaderString`, `UserAgentString` | Runtime dialog browser configuration. |
@@ -49,6 +50,11 @@ using NativeWebView.Core;
 NativeWebViewRuntime.EnsureCurrentPlatformRegistered();
 
 using var dialog = new NativeWebDialog();
+dialog.InstanceConfiguration.EnvironmentOptions.Proxy = new NativeWebViewProxyOptions
+{
+    Server = "http://localhost:8888",
+    BypassList = "localhost;127.0.0.1"
+};
 dialog.Show(new NativeWebDialogShowOptions
 {
     Title = "NativeWebView Sample Dialog",
@@ -61,5 +67,6 @@ dialog.Navigate("https://example.com/dialog");
 ## Notes
 
 - Dialog backends remain capability-driven just like the embedded control.
+- In the current repo implementation, per-instance proxy application is effective on macOS 14+ only.
 - Print UI and DevTools depend on the platform backend.
 - Unsupported mobile/browser targets return unsupported backend contracts instead of silently no-op behavior.

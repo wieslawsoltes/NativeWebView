@@ -78,11 +78,25 @@ if (!factory.TryCreateNativeWebViewBackend(NativeWebViewPlatform.Windows, out va
 }
 
 using var webView = new NativeWebView(backend);
+webView.InstanceConfiguration.EnvironmentOptions.UserDataFolder = "./artifacts/example-userdata";
+webView.InstanceConfiguration.EnvironmentOptions.CacheFolder = "./artifacts/example-cache";
+webView.InstanceConfiguration.EnvironmentOptions.Proxy = new NativeWebViewProxyOptions
+{
+    Server = "http://localhost:8888"
+};
+webView.InstanceConfiguration.ControllerOptions.ProfileName = "example-profile";
 await webView.InitializeAsync();
 webView.RenderMode = NativeWebViewRenderMode.GpuSurface;
 webView.RenderFramesPerSecond = 30;
 webView.Navigate("https://example.com");
 ```
+
+Each `NativeWebView` control instance keeps its own `InstanceConfiguration`, so multiple hosted views can carry different environment/controller defaults in the same process.
+
+Per-instance proxy application is currently effective on macOS 14+ for the embedded `NativeWebView` control and `NativeWebDialog`. Windows, Linux, iOS, Android, and Browser continue to expose the configuration contract, but the current repo backends for those targets do not yet apply it at runtime. The macOS implementation currently supports explicit `http`, `https`, and `socks5` proxy servers plus bypass domains, and uses a dedicated persistent `WKWebsiteDataStore` identity derived from the instance configuration so proxied views do not fall back to private-browsing storage semantics. PAC (`AutoConfigUrl`) is not applied.
+
+Use `NativeWebViewProxyPlatformSupportMatrix.Get(platform)` to inspect the honest support status for each target. The current core package also exposes `NativeWebViewWindowsProxyArgumentsBuilder` and `NativeWebViewLinuxProxySettingsBuilder` so future or custom backends can translate shared proxy options into WebView2/WebKitGTK-specific configuration payloads without duplicating parsing logic.
+Exact `UserDataFolder`/`CacheFolder`/`CookieDataFolder`/`SessionDataFolder` behavior remains backend-specific. In the current repo, non-macOS targets still expose these values as configuration contracts, and the macOS proxy path uses them as part of isolated store identity rather than direct physical directory mapping.
 
 ## Rendering Modes
 
