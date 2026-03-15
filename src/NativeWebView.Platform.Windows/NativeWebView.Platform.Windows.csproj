@@ -7,10 +7,17 @@
     <PackageTags>$(PackageTags);Windows;WebView2</PackageTags>
     <IsPackable>true</IsPackable>
     <DefineConstants>$(DefineConstants);NATIVEWEBVIEW_PLATFORM_WINDOWS</DefineConstants>
+    <NoWarn>$(NoWarn);MSB3277</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="../NativeWebView.Core/NativeWebView.Core.csproj" />
     <ProjectReference Include="../NativeWebView.Interop/NativeWebView.Interop.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2">
+      <PrivateAssets>buildTransitive</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
 </Project>

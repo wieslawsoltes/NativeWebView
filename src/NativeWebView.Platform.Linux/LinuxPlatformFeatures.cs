@@ -23,5 +23,6 @@ internal static class LinuxPlatformFeatures
         NativeWebViewFeature.WebMessageChannel |
         NativeWebViewFeature.GpuSurfaceRendering |
         NativeWebViewFeature.OffscreenRendering |
-        NativeWebViewFeature.RenderFrameCapture);
+        NativeWebViewFeature.RenderFrameCapture |
+        NativeWebViewFeature.ProxyConfiguration);
 }

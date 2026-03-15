@@ -28,5 +28,6 @@ internal static class WindowsPlatformFeatures
         NativeWebViewFeature.WebMessageChannel |
         NativeWebViewFeature.GpuSurfaceRendering |
         NativeWebViewFeature.OffscreenRendering |
-        NativeWebViewFeature.RenderFrameCapture);
+        NativeWebViewFeature.RenderFrameCapture |
+        NativeWebViewFeature.ProxyConfiguration);
 }
