@@ -130,11 +130,6 @@ public partial class MainWindow : Window
         WebViewControl.InstanceConfiguration.EnvironmentOptions.CacheFolder = "./artifacts/sample-webview-cache";
         WebViewControl.InstanceConfiguration.EnvironmentOptions.CookieDataFolder = "./artifacts/sample-webview-cookies";
         WebViewControl.InstanceConfiguration.EnvironmentOptions.SessionDataFolder = "./artifacts/sample-webview-session";
-        WebViewControl.InstanceConfiguration.EnvironmentOptions.Proxy = new NativeWebViewProxyOptions
-        {
-            Server = "http://localhost:8888",
-            BypassList = "localhost;127.0.0.1",
-        };
         WebViewControl.InstanceConfiguration.ControllerOptions.ProfileName = "sample-profile";
         WebViewControl.InstanceConfiguration.ControllerOptions.ScriptLocale = "en-US";
         WebViewControl.SetCompositedPassthroughOverride(null);
@@ -287,11 +282,6 @@ public partial class MainWindow : Window
     private NativeWebDialog EnsureDialog()
     {
         _dialog ??= new NativeWebDialog();
-        _dialog.InstanceConfiguration.EnvironmentOptions.Proxy = new NativeWebViewProxyOptions
-        {
-            Server = "http://localhost:8888",
-            BypassList = "localhost;127.0.0.1",
-        };
         AttachDialogEvents(_dialog);
         return _dialog;
     }
