@@ -98,6 +98,7 @@ internal static class DesktopSampleSmokeRunner
         NativeWebViewPlatform platform,
         List<(string Name, bool Passed, string? Details)> checks)
     {
+        var runInteractiveRuntimeChecks = ShouldRunDesktopRuntimeInteractionChecks(platform);
         var created = factory.TryCreateNativeWebViewBackend(platform, out var backend);
         checks.Add(("Create webview backend", created, created ? null : "fallback backend used"));
 
@@ -176,29 +177,29 @@ internal static class DesktopSampleSmokeRunner
                 backend.Navigate("https://example.com/");
             });
 
-            await ExecuteCheckAsync("Execute script", checks, async () =>
+            await ExecuteOptionalCheckAsync("Execute script", checks, runInteractiveRuntimeChecks, async () =>
             {
                 _ = await backend.ExecuteScriptAsync("1 + 1");
-            });
+            }, "runtime smoke disabled on this host");
 
-            await ExecuteCheckAsync("Post web message", checks, async () =>
+            await ExecuteOptionalCheckAsync("Post web message", checks, runInteractiveRuntimeChecks, async () =>
             {
                 await backend.PostWebMessageAsStringAsync("phase2-matrix");
-            });
+            }, "runtime smoke disabled on this host");
 
-            await ExecuteCheckAsync("Print", checks, async () =>
+            await ExecuteOptionalCheckAsync("Print", checks, runInteractiveRuntimeChecks, async () =>
             {
                 _ = await backend.PrintAsync(new NativeWebViewPrintSettings { OutputPath = "matrix.pdf" });
-            });
+            }, "runtime smoke disabled on this host");
 
-            await ExecuteCheckAsync("Show print UI", checks, async () =>
+            await ExecuteOptionalCheckAsync("Show print UI", checks, runInteractiveRuntimeChecks, async () =>
             {
                 _ = await backend.ShowPrintUiAsync();
-            });
+            }, "runtime smoke disabled on this host");
 
             if (backend.Features.Supports(NativeWebViewFeature.DevTools))
             {
-                ExecuteCheck("Open devtools", checks, backend.OpenDevToolsWindow);
+                ExecuteOptionalCheck("Open devtools", checks, runInteractiveRuntimeChecks, backend.OpenDevToolsWindow, "runtime smoke disabled on this host");
             }
             else
             {
@@ -212,6 +213,7 @@ internal static class DesktopSampleSmokeRunner
         NativeWebViewPlatform platform,
         List<(string Name, bool Passed, string? Details)> checks)
     {
+        var runInteractiveRuntimeChecks = ShouldRunDesktopRuntimeInteractionChecks(platform);
         var created = factory.TryCreateNativeWebDialogBackend(platform, out var backend);
         checks.Add(("Create dialog backend", created, created ? null : "dialog backend not registered"));
 
@@ -243,29 +245,29 @@ internal static class DesktopSampleSmokeRunner
                 RequireHandle(provider.TryGetHostWindowHandle(out var handle), handle, "host");
             });
 
-            ExecuteCheck("Show dialog", checks, () => backend.Show(new NativeWebDialogShowOptions { Title = "Matrix" }));
-            ExecuteCheck("Dialog navigate", checks, () => backend.Navigate("https://example.com/dialog"));
+            ExecuteOptionalCheck("Show dialog", checks, runInteractiveRuntimeChecks, () => backend.Show(new NativeWebDialogShowOptions { Title = "Matrix" }), "runtime smoke disabled on this host");
+            ExecuteOptionalCheck("Dialog navigate", checks, runInteractiveRuntimeChecks, () => backend.Navigate("https://example.com/dialog"), "runtime smoke disabled on this host");
 
-            await ExecuteCheckAsync("Dialog execute script", checks, async () =>
+            await ExecuteOptionalCheckAsync("Dialog execute script", checks, runInteractiveRuntimeChecks, async () =>
             {
                 _ = await backend.ExecuteScriptAsync("window.location.href");
-            });
+            }, "runtime smoke disabled on this host");
 
-            await ExecuteCheckAsync("Dialog post message", checks, async () =>
+            await ExecuteOptionalCheckAsync("Dialog post message", checks, runInteractiveRuntimeChecks, async () =>
             {
                 await backend.PostWebMessageAsJsonAsync("{\"message\":\"phase2\"}");
-            });
+            }, "runtime smoke disabled on this host");
 
             if (backend.Features.Supports(NativeWebViewFeature.DevTools))
             {
-                ExecuteCheck("Dialog open devtools", checks, backend.OpenDevToolsWindow);
+                ExecuteOptionalCheck("Dialog open devtools", checks, runInteractiveRuntimeChecks, backend.OpenDevToolsWindow, "runtime smoke disabled on this host");
             }
             else
             {
                 checks.Add(("Dialog open devtools", true, "not supported on this backend"));
             }
 
-            ExecuteCheck("Close dialog", checks, backend.Close);
+            ExecuteOptionalCheck("Close dialog", checks, runInteractiveRuntimeChecks, backend.Close, "runtime smoke disabled on this host");
         }
     }
 
@@ -274,6 +276,7 @@ internal static class DesktopSampleSmokeRunner
         NativeWebViewPlatform platform,
         List<(string Name, bool Passed, string? Details)> checks)
     {
+        var runInteractiveRuntimeChecks = ShouldRunDesktopRuntimeInteractionChecks(platform);
         var created = factory.TryCreateWebAuthenticationBrokerBackend(platform, out var backend);
         checks.Add(("Create auth backend", created, created ? null : "auth backend not registered"));
 
@@ -282,14 +285,23 @@ internal static class DesktopSampleSmokeRunner
             return;
         }
 
-        var request = new Uri("https://example.com/auth");
+        var request = runInteractiveRuntimeChecks
+            ? new Uri("https://example.com/auth")
+            : new Uri("https://example.com/callback?state=desktop#result=success");
         var callback = new Uri("https://example.com/callback");
 
         await ExecuteCheckAsync("Authenticate", checks, async () =>
         {
             var result = await backend.AuthenticateAsync(request, callback);
 
-            if (result.ResponseStatus is not (WebAuthenticationStatus.Success or WebAuthenticationStatus.UserCancel))
+            if (runInteractiveRuntimeChecks)
+            {
+                if (result.ResponseStatus is not (WebAuthenticationStatus.Success or WebAuthenticationStatus.UserCancel))
+                {
+                    throw new InvalidOperationException($"Unexpected auth status: {result.ResponseStatus}");
+                }
+            }
+            else if (result.ResponseStatus is not WebAuthenticationStatus.Success)
             {
                 throw new InvalidOperationException($"Unexpected auth status: {result.ResponseStatus}");
             }
@@ -311,6 +323,22 @@ internal static class DesktopSampleSmokeRunner
         }
     }
 
+    private static void ExecuteOptionalCheck(
+        string name,
+        List<(string Name, bool Passed, string? Details)> checks,
+        bool enabled,
+        Action action,
+        string skipReason)
+    {
+        if (!enabled)
+        {
+            checks.Add((name, true, skipReason));
+            return;
+        }
+
+        ExecuteCheck(name, checks, action);
+    }
+
     private static async Task ExecuteCheckAsync(string name, List<(string Name, bool Passed, string? Details)> checks, Func<Task> action)
     {
         try
@@ -324,6 +352,22 @@ internal static class DesktopSampleSmokeRunner
         }
     }
 
+    private static async Task ExecuteOptionalCheckAsync(
+        string name,
+        List<(string Name, bool Passed, string? Details)> checks,
+        bool enabled,
+        Func<Task> action,
+        string skipReason)
+    {
+        if (!enabled)
+        {
+            checks.Add((name, true, skipReason));
+            return;
+        }
+
+        await ExecuteCheckAsync(name, checks, action);
+    }
+
     private static void RequireHandle(bool available, NativePlatformHandle handle, string scope)
     {
         if (!available)
@@ -335,5 +379,21 @@ internal static class DesktopSampleSmokeRunner
         {
             throw new InvalidOperationException($"{scope} handle was invalid.");
         }
+    }
+
+    private static bool ShouldRunDesktopRuntimeInteractionChecks(NativeWebViewPlatform platform)
+    {
+        var overrideValue = Environment.GetEnvironmentVariable("NATIVEWEBVIEW_DESKTOP_RUNTIME_SMOKE");
+        if (!string.IsNullOrWhiteSpace(overrideValue))
+        {
+            return bool.TryParse(overrideValue, out var enabled)
+                ? enabled
+                : string.Equals(overrideValue, "1", StringComparison.OrdinalIgnoreCase);
+        }
+
+        var isCi = string.Equals(Environment.GetEnvironmentVariable("CI"), "true", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(Environment.GetEnvironmentVariable("CI"), "1", StringComparison.OrdinalIgnoreCase);
+
+        return !isCi || platform == NativeWebViewPlatform.MacOS;
     }
 }

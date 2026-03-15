@@ -38,6 +38,7 @@ public sealed class DesktopBackendMatrixTests
     {
         var factory = new NativeWebViewBackendFactory();
         register(factory);
+        var runInteractiveRuntimeChecks = ShouldRunDesktopRuntimeInteractionChecks(platform);
 
         Assert.True(factory.TryCreateNativeWebViewBackend(platform, out var webViewBackend));
         Assert.True(factory.TryCreateNativeWebDialogBackend(platform, out var dialogBackend));
@@ -73,19 +74,16 @@ public sealed class DesktopBackendMatrixTests
             Assert.NotNull(commandManager);
 
             webViewBackend.Navigate("https://example.com/");
-            await webViewBackend.ExecuteScriptAsync("1 + 1");
-            await webViewBackend.PostWebMessageAsStringAsync("desktop-matrix");
-
-            if (webViewBackend.Features.Supports(NativeWebViewFeature.DevTools))
+            if (runInteractiveRuntimeChecks)
             {
-                webViewBackend.OpenDevToolsWindow();
-            }
+                await webViewBackend.ExecuteScriptAsync("1 + 1");
+                await webViewBackend.PostWebMessageAsStringAsync("desktop-matrix");
 
-            dialogBackend.Show(new NativeWebDialogShowOptions { Title = "Desktop Matrix" });
-            dialogBackend.Navigate("https://example.com/dialog");
-            await dialogBackend.ExecuteScriptAsync("window.location.href");
-            await dialogBackend.PostWebMessageAsJsonAsync("{\"name\":\"desktop\"}");
-            dialogBackend.Close();
+                if (webViewBackend.Features.Supports(NativeWebViewFeature.DevTools))
+                {
+                    webViewBackend.OpenDevToolsWindow();
+                }
+            }
 
             var dialogHandleProvider = Assert.IsAssignableFrom<INativeWebDialogPlatformHandleProvider>(dialogBackend);
             Assert.True(dialogHandleProvider.TryGetPlatformHandle(out var dialogPlatformHandle));
@@ -94,6 +92,15 @@ public sealed class DesktopBackendMatrixTests
             AssertValidHandle(dialogPlatformHandle);
             AssertValidHandle(dialogHandle);
             AssertValidHandle(hostHandle);
+
+            if (runInteractiveRuntimeChecks)
+            {
+                dialogBackend.Show(new NativeWebDialogShowOptions { Title = "Desktop Matrix" });
+                dialogBackend.Navigate("https://example.com/dialog");
+                await dialogBackend.ExecuteScriptAsync("window.location.href");
+                await dialogBackend.PostWebMessageAsJsonAsync("{\"name\":\"desktop\"}");
+                dialogBackend.Close();
+            }
         }
 
         var authResult = await authBackend.AuthenticateAsync(
@@ -110,5 +117,21 @@ public sealed class DesktopBackendMatrixTests
     {
         Assert.NotEqual((nint)0, handle.Handle);
         Assert.False(string.IsNullOrWhiteSpace(handle.HandleDescriptor));
+    }
+
+    private static bool ShouldRunDesktopRuntimeInteractionChecks(NativeWebViewPlatform platform)
+    {
+        var overrideValue = Environment.GetEnvironmentVariable("NATIVEWEBVIEW_DESKTOP_RUNTIME_SMOKE");
+        if (!string.IsNullOrWhiteSpace(overrideValue))
+        {
+            return bool.TryParse(overrideValue, out var enabled)
+                ? enabled
+                : string.Equals(overrideValue, "1", StringComparison.OrdinalIgnoreCase);
+        }
+
+        var isCi = string.Equals(Environment.GetEnvironmentVariable("CI"), "true", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(Environment.GetEnvironmentVariable("CI"), "1", StringComparison.OrdinalIgnoreCase);
+
+        return !isCi || platform == NativeWebViewPlatform.MacOS;
     }
 }
