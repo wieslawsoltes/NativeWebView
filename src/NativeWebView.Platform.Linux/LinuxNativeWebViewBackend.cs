@@ -1261,47 +1261,47 @@ public sealed class LinuxNativeWebViewBackend
         switch (decisionType)
         {
             case LinuxNativeInterop.WebKitPolicyDecisionType.NavigationAction:
-            {
-                var args = new NativeWebViewNavigationStartedEventArgs(uri, isRedirected: false);
-                NavigationStarted?.Invoke(this, args);
-                if (args.Cancel)
                 {
-                    LinuxNativeInterop.webkit_policy_decision_ignore(decision);
-                    return 1;
-                }
+                    var args = new NativeWebViewNavigationStartedEventArgs(uri, isRedirected: false);
+                    NavigationStarted?.Invoke(this, args);
+                    if (args.Cancel)
+                    {
+                        LinuxNativeInterop.webkit_policy_decision_ignore(decision);
+                        return 1;
+                    }
 
-                break;
-            }
+                    break;
+                }
 
             case LinuxNativeInterop.WebKitPolicyDecisionType.NewWindowAction:
-            {
-                var args = new NativeWebViewNewWindowRequestedEventArgs(uri);
-                NewWindowRequested?.Invoke(this, args);
-                if (args.Handled)
                 {
-                    LinuxNativeInterop.webkit_policy_decision_ignore(decision);
-                    return 1;
-                }
+                    var args = new NativeWebViewNewWindowRequestedEventArgs(uri);
+                    NewWindowRequested?.Invoke(this, args);
+                    if (args.Handled)
+                    {
+                        LinuxNativeInterop.webkit_policy_decision_ignore(decision);
+                        return 1;
+                    }
 
-                break;
-            }
+                    break;
+                }
 
             case LinuxNativeInterop.WebKitPolicyDecisionType.Response:
-            {
-                var method = request == IntPtr.Zero
-                    ? "GET"
-                    : LinuxNativeInterop.ConvertUtf8Pointer(LinuxNativeInterop.webkit_uri_request_get_http_method(request)) ?? "GET";
-
-                var args = new NativeWebViewResourceRequestedEventArgs(uri, method);
-                WebResourceRequested?.Invoke(this, args);
-                if (args.Handled)
                 {
-                    LinuxNativeInterop.webkit_policy_decision_ignore(decision);
-                    return 1;
-                }
+                    var method = request == IntPtr.Zero
+                        ? "GET"
+                        : LinuxNativeInterop.ConvertUtf8Pointer(LinuxNativeInterop.webkit_uri_request_get_http_method(request)) ?? "GET";
 
-                break;
-            }
+                    var args = new NativeWebViewResourceRequestedEventArgs(uri, method);
+                    WebResourceRequested?.Invoke(this, args);
+                    if (args.Handled)
+                    {
+                        LinuxNativeInterop.webkit_policy_decision_ignore(decision);
+                        return 1;
+                    }
+
+                    break;
+                }
         }
 
         return 0;
