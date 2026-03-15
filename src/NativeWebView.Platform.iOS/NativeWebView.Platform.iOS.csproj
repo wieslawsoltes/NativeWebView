@@ -1,5 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <TargetFramework />
+    <HasIosWorkload>false</HasIosWorkload>
+    <HasIosWorkload Condition="Exists('/usr/local/share/dotnet/packs/Microsoft.iOS.Ref.net8.0_18.0')">true</HasIosWorkload>
+    <HasIosWorkload Condition="Exists('/usr/share/dotnet/packs/Microsoft.iOS.Ref.net8.0_18.0')">true</HasIosWorkload>
+    <EnableIosRuntime Condition="'$(EnableIosRuntime)' == '' and '$(HasIosWorkload)' == 'true' and $([System.String]::Copy('$(NETCoreSdkVersion)').StartsWith('8.0.'))">true</EnableIosRuntime>
+    <EnableIosRuntime Condition="'$(EnableIosRuntime)' == ''">false</EnableIosRuntime>
+    <TargetFrameworks>net8.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(EnableIosRuntime)' == 'true'">net8.0;net8.0-ios17.0</TargetFrameworks>
     <AssemblyName>NativeWebView.Platform.iOS</AssemblyName>
     <RootNamespace>NativeWebView.Platform.iOS</RootNamespace>
     <PackageId>NativeWebView.Platform.iOS</PackageId>
@@ -9,8 +17,22 @@
     <DefineConstants>$(DefineConstants);NATIVEWEBVIEW_PLATFORM_IOS</DefineConstants>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0-ios17.0'">
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
+    <CheckEolWorkloads>false</CheckEolWorkloads>
+    <DefineConstants>$(DefineConstants);NATIVEWEBVIEW_IOS_RUNTIME</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="../NativeWebView.Core/NativeWebView.Core.csproj" />
     <ProjectReference Include="../NativeWebView.Interop/NativeWebView.Interop.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0-ios17.0'">
+    <Compile Remove="IOSNativeWebViewBackend.Stub.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' != 'net8.0-ios17.0'">
+    <Compile Remove="IOSNativeWebViewBackend.iOS.cs" />
   </ItemGroup>
 </Project>

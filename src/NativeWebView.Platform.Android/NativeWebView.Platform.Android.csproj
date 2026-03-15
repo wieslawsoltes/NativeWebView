@@ -1,5 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <TargetFramework />
+    <HasAndroidWorkload>false</HasAndroidWorkload>
+    <HasAndroidWorkload Condition="Exists('/usr/local/share/dotnet/packs/Microsoft.Android.Ref.34')">true</HasAndroidWorkload>
+    <HasAndroidWorkload Condition="Exists('/usr/share/dotnet/packs/Microsoft.Android.Ref.34')">true</HasAndroidWorkload>
+    <EnableAndroidRuntime Condition="'$(EnableAndroidRuntime)' == '' and '$(HasAndroidWorkload)' == 'true' and $([System.String]::Copy('$(NETCoreSdkVersion)').StartsWith('8.0.'))">true</EnableAndroidRuntime>
+    <EnableAndroidRuntime Condition="'$(EnableAndroidRuntime)' == ''">false</EnableAndroidRuntime>
+    <TargetFrameworks>net8.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(EnableAndroidRuntime)' == 'true'">net8.0;net8.0-android34.0</TargetFrameworks>
     <AssemblyName>NativeWebView.Platform.Android</AssemblyName>
     <RootNamespace>NativeWebView.Platform.Android</RootNamespace>
     <PackageId>NativeWebView.Platform.Android</PackageId>
@@ -12,5 +20,20 @@
   <ItemGroup>
     <ProjectReference Include="../NativeWebView.Core/NativeWebView.Core.csproj" />
     <ProjectReference Include="../NativeWebView.Interop/NativeWebView.Interop.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0-android34.0'">
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
+    <CheckEolWorkloads>false</CheckEolWorkloads>
+    <SupportedOSPlatformVersion>24.0</SupportedOSPlatformVersion>
+    <DefineConstants>$(DefineConstants);NATIVEWEBVIEW_ANDROID_RUNTIME</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0-android34.0'">
+    <Compile Remove="AndroidNativeWebViewBackend.Stub.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' != 'net8.0-android34.0'">
+    <Compile Remove="AndroidNativeWebViewBackend.Android.cs" />
   </ItemGroup>
 </Project>

@@ -7,6 +7,7 @@ internal static class AndroidPlatformDiagnostics
     public static NativeWebViewPlatformDiagnostics Create()
     {
         var issues = new List<NativeWebViewDiagnosticIssue>();
+        AddContractOnlyControlWarning(issues);
 
         if (!NativeWebViewDiagnosticsHostPlatformOverride.IsEffectiveHostPlatform(NativeWebViewPlatform.Android))
         {
@@ -66,6 +67,19 @@ internal static class AndroidPlatformDiagnostics
                 severity: NativeWebViewDiagnosticSeverity.Error,
                 message: $"Android API level {parsed} is below required minimum {minimumApi}.",
                 recommendation: "Use API 24+ for Android WebView support."));
+        }
+    }
+
+    private static void AddContractOnlyControlWarning(List<NativeWebViewDiagnosticIssue> issues)
+    {
+        var implementationStatus = NativeWebViewPlatformImplementationStatusMatrix.Get(NativeWebViewPlatform.Android);
+        if (implementationStatus.EmbeddedControl != NativeWebViewRepositoryImplementationStatus.RuntimeImplemented)
+        {
+            issues.Add(new NativeWebViewDiagnosticIssue(
+                code: "android.control.contract_only",
+                severity: NativeWebViewDiagnosticSeverity.Warning,
+                message: "Android currently registers the NativeWebView control contract, but the embedded control runtime is not implemented in this repo yet.",
+                recommendation: "Treat Android embedded control support as planned work and check NativeWebViewPlatformImplementationStatusMatrix before shipping."));
         }
     }
 }

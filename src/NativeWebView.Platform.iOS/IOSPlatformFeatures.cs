@@ -4,8 +4,7 @@ namespace NativeWebView.Platform.iOS;
 
 internal static class IOSPlatformFeatures
 {
-    public static readonly IWebViewPlatformFeatures Instance = new WebViewPlatformFeatures(
-        NativeWebViewPlatform.IOS,
+    private const NativeWebViewFeature BaseFeatures =
         NativeWebViewFeature.EmbeddedView |
         NativeWebViewFeature.AuthenticationBroker |
         NativeWebViewFeature.ContextMenu |
@@ -20,5 +19,16 @@ internal static class IOSPlatformFeatures
         NativeWebViewFeature.WebMessageChannel |
         NativeWebViewFeature.GpuSurfaceRendering |
         NativeWebViewFeature.OffscreenRendering |
-        NativeWebViewFeature.RenderFrameCapture);
+        NativeWebViewFeature.RenderFrameCapture;
+
+    public static IWebViewPlatformFeatures Instance => new WebViewPlatformFeatures(
+        NativeWebViewPlatform.IOS,
+        BaseFeatures |
+#if NATIVEWEBVIEW_IOS_RUNTIME
+        (OperatingSystem.IsIOSVersionAtLeast(17)
+            ? NativeWebViewFeature.ProxyConfiguration
+            : NativeWebViewFeature.None));
+#else
+        NativeWebViewFeature.None);
+#endif
 }
