@@ -432,11 +432,12 @@ public sealed class IOSNativeWebViewBackend
         cancellationToken.ThrowIfCancellationRequested();
         EnsureNotDisposed();
         EnsureFeature(NativeWebViewFeature.WebMessageChannel, nameof(PostWebMessageAsJsonAsync));
+        var jsonMessage = NativeWebViewBackendSupport.NormalizeJsonMessagePayload(message);
 
         if (ShouldUseRuntimePath())
         {
             await EnsureRuntimeInitializedAsync(cancellationToken).ConfigureAwait(false);
-            var script = BuildDispatchScript(message);
+            var script = BuildDispatchScript(jsonMessage);
             _ = await InvokeOnMainThreadAsync(
                 async () => await _webView!.EvaluateJavaScriptAsync(script).ConfigureAwait(false),
                 cancellationToken).ConfigureAwait(false);
@@ -444,7 +445,7 @@ public sealed class IOSNativeWebViewBackend
         }
 
         EnsureStubInitialized();
-        WebMessageReceived?.Invoke(this, new NativeWebViewMessageReceivedEventArgs(message: null, json: message));
+        WebMessageReceived?.Invoke(this, new NativeWebViewMessageReceivedEventArgs(message: null, json: jsonMessage));
     }
 
     public async Task PostWebMessageAsStringAsync(string message, CancellationToken cancellationToken = default)
@@ -879,6 +880,8 @@ public sealed class IOSNativeWebViewBackend
 
         var environmentOptions = new NativeWebViewEnvironmentOptions();
         var controllerOptions = new NativeWebViewControllerOptions();
+        _instanceConfiguration.ApplyEnvironmentOptions(environmentOptions);
+        _instanceConfiguration.ApplyControllerOptions(controllerOptions);
 
         if (Features.Supports(NativeWebViewFeature.EnvironmentOptions))
         {

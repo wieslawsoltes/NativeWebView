@@ -196,8 +196,9 @@ public abstract class NativeWebViewBackendStubBase : INativeWebViewBackend, INat
         cancellationToken.ThrowIfCancellationRequested();
         EnsureNotDisposed();
         EnsureFeature(NativeWebViewFeature.WebMessageChannel, nameof(PostWebMessageAsJsonAsync));
+        var jsonMessage = NativeWebViewBackendSupport.NormalizeJsonMessagePayload(message);
 
-        WebMessageReceived?.Invoke(this, new NativeWebViewMessageReceivedEventArgs(message: null, json: message));
+        WebMessageReceived?.Invoke(this, new NativeWebViewMessageReceivedEventArgs(message: null, json: jsonMessage));
         return Task.CompletedTask;
     }
 
@@ -713,8 +714,9 @@ public abstract class NativeWebDialogBackendStubBase : INativeWebDialogBackend
         EnsureNotDisposed();
         EnsureFeature(NativeWebViewFeature.Dialog, nameof(PostWebMessageAsJsonAsync));
         EnsureFeature(NativeWebViewFeature.WebMessageChannel, nameof(PostWebMessageAsJsonAsync));
+        var jsonMessage = NativeWebViewBackendSupport.NormalizeJsonMessagePayload(message);
 
-        WebMessageReceived?.Invoke(this, new NativeWebViewMessageReceivedEventArgs(message: null, json: message));
+        WebMessageReceived?.Invoke(this, new NativeWebViewMessageReceivedEventArgs(message: null, json: jsonMessage));
         return Task.CompletedTask;
     }
 

@@ -385,15 +385,16 @@ public sealed class BrowserNativeWebViewBackend
         cancellationToken.ThrowIfCancellationRequested();
         EnsureNotDisposed();
         EnsureFeature(NativeWebViewFeature.WebMessageChannel, nameof(PostWebMessageAsJsonAsync));
+        var jsonMessage = NativeWebViewBackendSupport.NormalizeJsonMessagePayload(message);
 
         if (!ShouldUseRuntimePath())
         {
-            WebMessageReceived?.Invoke(this, new NativeWebViewMessageReceivedEventArgs(message: null, json: message));
+            WebMessageReceived?.Invoke(this, new NativeWebViewMessageReceivedEventArgs(message: null, json: jsonMessage));
             return;
         }
 
         await EnsureRuntimeInitializedAsync(cancellationToken).ConfigureAwait(false);
-        BrowserNativeWebViewInterop.PostWebMessage(_frameElement!, "json", message);
+        BrowserNativeWebViewInterop.PostWebMessage(_frameElement!, "json", jsonMessage);
     }
 
     public async Task PostWebMessageAsStringAsync(string message, CancellationToken cancellationToken = default)

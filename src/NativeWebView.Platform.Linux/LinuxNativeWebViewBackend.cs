@@ -416,11 +416,12 @@ public sealed class LinuxNativeWebViewBackend
         cancellationToken.ThrowIfCancellationRequested();
         EnsureNotDisposed();
         EnsureFeature(NativeWebViewFeature.WebMessageChannel, nameof(PostWebMessageAsJsonAsync));
+        var jsonMessage = NativeWebViewBackendSupport.NormalizeJsonMessagePayload(message);
 
         if (ShouldUseRuntimePath())
         {
             await EnsureRuntimeInitializedAsync(cancellationToken).ConfigureAwait(false);
-            var script = BuildDispatchScript(message);
+            var script = BuildDispatchScript(jsonMessage);
             var execution = await LinuxGtkDispatcher.InvokeAsync(
                 () => LinuxNativeInterop.RunJavaScriptAsync(_webView, script, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
@@ -430,7 +431,7 @@ public sealed class LinuxNativeWebViewBackend
         }
 
         EnsureStubInitialized();
-        WebMessageReceived?.Invoke(this, new NativeWebViewMessageReceivedEventArgs(message: null, json: message));
+        WebMessageReceived?.Invoke(this, new NativeWebViewMessageReceivedEventArgs(message: null, json: jsonMessage));
     }
 
     public async Task PostWebMessageAsStringAsync(string message, CancellationToken cancellationToken = default)

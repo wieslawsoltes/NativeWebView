@@ -361,16 +361,17 @@ public sealed class WindowsNativeWebViewBackend
         cancellationToken.ThrowIfCancellationRequested();
         EnsureNotDisposed();
         EnsureFeature(NativeWebViewFeature.WebMessageChannel, nameof(PostWebMessageAsJsonAsync));
+        var jsonMessage = NativeWebViewBackendSupport.NormalizeJsonMessagePayload(message);
 
         if (ShouldUseRuntimePath())
         {
             await EnsureRuntimeInitializedAsync(cancellationToken).ConfigureAwait(true);
-            _coreWebView!.PostWebMessageAsJson(message);
+            _coreWebView!.PostWebMessageAsJson(jsonMessage);
             return;
         }
 
         EnsureStubInitialized();
-        WebMessageReceived?.Invoke(this, new NativeWebViewMessageReceivedEventArgs(message: null, json: message));
+        WebMessageReceived?.Invoke(this, new NativeWebViewMessageReceivedEventArgs(message: null, json: jsonMessage));
     }
 
     public async Task PostWebMessageAsStringAsync(string message, CancellationToken cancellationToken = default)
@@ -908,6 +909,8 @@ public sealed class WindowsNativeWebViewBackend
 
         var environmentOptions = new NativeWebViewEnvironmentOptions();
         var controllerOptions = new NativeWebViewControllerOptions();
+        _instanceConfiguration.ApplyEnvironmentOptions(environmentOptions);
+        _instanceConfiguration.ApplyControllerOptions(controllerOptions);
 
         if (Features.Supports(NativeWebViewFeature.EnvironmentOptions))
         {

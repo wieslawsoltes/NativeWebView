@@ -356,8 +356,9 @@ public sealed class MacOSNativeWebDialogBackend : INativeWebDialogBackend, INati
         EnsureNotDisposed();
         EnsureFeature(NativeWebViewFeature.Dialog, nameof(PostWebMessageAsJsonAsync));
         EnsureFeature(NativeWebViewFeature.WebMessageChannel, nameof(PostWebMessageAsJsonAsync));
+        var jsonMessage = NativeWebViewBackendSupport.NormalizeJsonMessagePayload(message);
 
-        WebMessageReceived?.Invoke(this, new NativeWebViewMessageReceivedEventArgs(message: null, json: message));
+        WebMessageReceived?.Invoke(this, new NativeWebViewMessageReceivedEventArgs(message: null, json: jsonMessage));
         return Task.CompletedTask;
     }
 

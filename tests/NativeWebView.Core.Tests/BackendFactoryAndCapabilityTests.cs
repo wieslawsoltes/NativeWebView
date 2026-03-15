@@ -2,6 +2,7 @@ using NativeWebView.Core;
 using NativeWebView.Interop;
 using NativeWebView.Platform.Android;
 using NativeWebView.Platform.Browser;
+using NativeWebView.Platform.Linux;
 using NativeWebView.Platform.Windows;
 using NativeWebView.Platform.iOS;
 
@@ -57,6 +58,74 @@ public sealed class BackendFactoryAndCapabilityTests
 
         Assert.Equal(1, environmentRequestedCount);
         Assert.Equal(1, controllerRequestedCount);
+    }
+
+    [Fact]
+    public async Task DesktopRuntimeBackends_ApplyStoredInstanceConfigurationBeforePublicOptionHandlers()
+    {
+        var backends = new INativeWebViewBackend[]
+        {
+            new WindowsNativeWebViewBackend(),
+            new LinuxNativeWebViewBackend(),
+        };
+
+        foreach (var backend in backends)
+        {
+            using (backend)
+            {
+                var configurationTarget = Assert.IsAssignableFrom<INativeWebViewInstanceConfigurationTarget>(backend);
+                configurationTarget.ApplyInstanceConfiguration(new NativeWebViewInstanceConfiguration
+                {
+                    EnvironmentOptions =
+                    {
+                        UserDataFolder = $"/tmp/{backend.Platform.ToString().ToLowerInvariant()}/user-data",
+                        Proxy = new NativeWebViewProxyOptions
+                        {
+                            Server = "http://configured-proxy.example.com:8080",
+                        },
+                    },
+                    ControllerOptions =
+                    {
+                        ProfileName = $"{backend.Platform}-profile",
+                    },
+                });
+
+                NativeWebViewEnvironmentOptions? capturedEnvironment = null;
+                NativeWebViewControllerOptions? capturedController = null;
+
+                backend.CoreWebView2EnvironmentRequested += (_, e) => capturedEnvironment = e.Options.Clone();
+                backend.CoreWebView2ControllerOptionsRequested += (_, e) => capturedController = e.Options.Clone();
+
+                await backend.InitializeAsync();
+
+                Assert.NotNull(capturedEnvironment);
+                Assert.NotNull(capturedController);
+                Assert.Equal($"/tmp/{backend.Platform.ToString().ToLowerInvariant()}/user-data", capturedEnvironment!.UserDataFolder);
+                Assert.Equal("http://configured-proxy.example.com:8080", capturedEnvironment.Proxy?.Server);
+                Assert.Equal($"{backend.Platform}-profile", capturedController!.ProfileName);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task CompiledBackends_RejectInvalidJsonMessages()
+    {
+        var backends = new INativeWebViewBackend[]
+        {
+            new WindowsNativeWebViewBackend(),
+            new LinuxNativeWebViewBackend(),
+            new BrowserNativeWebViewBackend(),
+        };
+
+        foreach (var backend in backends)
+        {
+            using (backend)
+            {
+                var exception = await Assert.ThrowsAsync<ArgumentException>(
+                    () => backend.PostWebMessageAsJsonAsync("{ invalid json }"));
+                Assert.Equal("message", exception.ParamName);
+            }
+        }
     }
 
     [Fact]

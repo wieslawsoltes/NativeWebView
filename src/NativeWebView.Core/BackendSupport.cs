@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Text.Json;
 
 namespace NativeWebView.Core;
 
@@ -6,6 +7,21 @@ internal static class NativeWebViewBackendSupport
 {
     public static readonly INativeWebViewCommandManager NoopCommandManagerInstance = new NoopCommandManager();
     public static readonly INativeWebViewCookieManager NoopCookieManagerInstance = new NoopCookieManager();
+
+    public static string NormalizeJsonMessagePayload(string message, string paramName = "message")
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(message, paramName);
+
+        try
+        {
+            using var document = JsonDocument.Parse(message);
+            return document.RootElement.GetRawText();
+        }
+        catch (JsonException ex)
+        {
+            throw new ArgumentException("JSON message payload must be valid JSON.", paramName, ex);
+        }
+    }
 
     public static NativeWebViewRenderFrame CreateSyntheticRenderFrame(
         NativeWebViewPlatform platform,
