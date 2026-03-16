@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="Quickstart | NativeWebView">
-<meta name="twitter:description" content="Quickstart This walkthrough uses the default constructor and runtime auto-registration, which is the most direct path for an Avalonia application. 1. Place the Control in XAML &lt;Window xmlns=&quot;https://github.com/avaloniaui&quot; xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot; xmlns:nwv=&quot;clr-namespace:NativeWebView.Controls;assembly=NativeWebView&quot;> &lt;Grid> &lt;nwv:NativeWebView x:Name=&quot;WebViewControl&quot; /> &lt;/Grid> &lt;/Window> 2. Register the Current Platform and Initialize...">
+<meta name="twitter:description" content="Quickstart This walkthrough uses the default constructor and runtime auto-registration, which is the most direct path for an Avalonia application. 1. Place the Control in XAML &lt;Window xmlns=&quot;https://github.com/avaloniaui&quot; xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot; xmlns:nwv=&quot;clr-namespace:NativeWebView.Controls;assembly=NativeWebView&quot;> &lt;Grid> &lt;nwv:NativeWebView x:Name=&quot;WebViewControl&quot; /> &lt;/Grid> &lt;/Window> 2. Check Runtime Status, Register the Current Platform, and Initialize...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta name="twitter:image:alt" content="Quickstart | NativeWebView">
 <meta property="og:title" content="Quickstart | NativeWebView">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/NativeWebView">
-<meta property="og:description" content="Quickstart This walkthrough uses the default constructor and runtime auto-registration, which is the most direct path for an Avalonia application. 1. Place the Control in XAML &lt;Window xmlns=&quot;https://github.com/avaloniaui&quot; xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot; xmlns:nwv=&quot;clr-namespace:NativeWebView.Controls;assembly=NativeWebView&quot;> &lt;Grid> &lt;nwv:NativeWebView x:Name=&quot;WebViewControl&quot; /> &lt;/Grid> &lt;/Window> 2. Register the Current Platform and Initialize...">
+<meta property="og:description" content="Quickstart This walkthrough uses the default constructor and runtime auto-registration, which is the most direct path for an Avalonia application. 1. Place the Control in XAML &lt;Window xmlns=&quot;https://github.com/avaloniaui&quot; xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot; xmlns:nwv=&quot;clr-namespace:NativeWebView.Controls;assembly=NativeWebView&quot;> &lt;Grid> &lt;nwv:NativeWebView x:Name=&quot;WebViewControl&quot; /> &lt;/Grid> &lt;/Window> 2. Check Runtime Status, Register the Current Platform, and Initialize...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta property="og:image:alt" content="Quickstart | NativeWebView">
   </head>
@@ -167,11 +167,28 @@
   &lt;/Grid&gt;
 &lt;/Window&gt;
 </code></pre>
-<h2 id="2-register-the-current-platform-and-initialize">2. Register the Current Platform and Initialize</h2>
+<h2 id="2-check-runtime-status-register-the-current-platform-and-initialize">2. Check Runtime Status, Register the Current Platform, and Initialize</h2>
 <pre><code class="language-csharp">using NativeWebView.Controls;
 using NativeWebView.Core;
 
 NativeWebViewRuntime.EnsureCurrentPlatformRegistered();
+
+var implementationStatus = NativeWebViewPlatformImplementationStatusMatrix.Get(
+    NativeWebViewRuntime.CurrentPlatform);
+
+if (implementationStatus.EmbeddedControl != NativeWebViewRepositoryImplementationStatus.RuntimeImplemented)
+{
+    throw new PlatformNotSupportedException(
+        $&quot;The embedded NativeWebView control is not implemented on {NativeWebViewRuntime.CurrentPlatform} in the current repo yet.&quot;);
+}
+
+if (!NativeWebViewRuntime.Factory.TryCreateNativeWebViewBackend(
+        NativeWebViewRuntime.CurrentPlatform,
+        out _))
+{
+    throw new InvalidOperationException(
+        $&quot;The platform package for {NativeWebViewRuntime.CurrentPlatform} is not registered. Reference the matching NativeWebView.Platform.* package.&quot;);
+}
 
 await WebViewControl.InitializeAsync();
 WebViewControl.RenderMode = NativeWebViewRenderMode.GpuSurface;
@@ -189,14 +206,10 @@ WebViewControl.Navigate(&quot;https://example.com&quot;);
 WebViewControl.InstanceConfiguration.EnvironmentOptions.CacheFolder = &quot;./artifacts/view-a/cache&quot;;
 WebViewControl.InstanceConfiguration.EnvironmentOptions.CookieDataFolder = &quot;./artifacts/view-a/cookies&quot;;
 WebViewControl.InstanceConfiguration.EnvironmentOptions.SessionDataFolder = &quot;./artifacts/view-a/session&quot;;
-WebViewControl.InstanceConfiguration.EnvironmentOptions.Proxy = new NativeWebViewProxyOptions
-{
-    Server = &quot;http://localhost:8888&quot;,
-    BypassList = &quot;localhost;127.0.0.1&quot;
-};
 WebViewControl.InstanceConfiguration.ControllerOptions.ProfileName = &quot;view-a&quot;;
 </code></pre>
-<p>Runtime note: per-instance proxy application is currently implemented on macOS 14+ for <code>NativeWebView</code> and <code>NativeWebDialog</code>. Other targets keep the configuration contract but do not yet apply proxy settings in the current repo implementation.</p>
+<p>Runtime note: only assign <code>EnvironmentOptions.Proxy</code> when <code>NativeWebViewProxyPlatformSupportMatrix.Get(...)</code> reports runtime support for your target. Per-instance proxy application is implemented on the embedded Windows and Linux <code>NativeWebView</code> controls, on macOS 14+ for <code>NativeWebView</code> and <code>NativeWebDialog</code>, and on iOS 17+ for the embedded iOS <code>NativeWebView</code> control. Linux currently applies explicit server proxies on the X11 path; <code>AutoConfigUrl</code> and embedded proxy credentials remain unsupported there, and Android remains app-wide proxy only.</p>
+<p>If your flow needs a separate desktop window instead of an embedded control, switch to <a href="/NativeWebView/articles/controls/nativewebdialog"><code>NativeWebDialog</code></a>. If your flow only needs an authentication callback, use <a href="/NativeWebView/articles/controls/webauthenticationbroker"><code>WebAuthenticationBroker</code></a> instead; it is implemented across the current Windows, macOS, Linux, iOS, Android, and Browser runtime paths.</p>
 <h2 id="3-validate-diagnostics-before-navigation">3. Validate Diagnostics Before Navigation</h2>
 <pre><code class="language-csharp">var diagnostics = NativeWebViewRuntime.GetCurrentPlatformDiagnostics();
 NativeWebViewDiagnosticsValidator.EnsureReady(diagnostics);
@@ -225,15 +238,15 @@ NativeWebViewDiagnosticsValidator.EnsureReady(diagnostics);
 }
 </code></pre>
 <h2 id="5-optional-low-level-backend-creation">5. Optional Low-Level Backend Creation</h2>
-<p>If you want explicit backend composition instead of runtime auto-registration:</p>
+<p>If you want explicit backend composition instead of runtime auto-registration on the currently implemented embedded runtime path:</p>
 <pre><code class="language-csharp">using NativeWebView.Controls;
 using NativeWebView.Core;
-using NativeWebView.Platform.Windows;
+using NativeWebView.Platform.macOS;
 
 var factory = new NativeWebViewBackendFactory()
-    .UseNativeWebViewWindows();
+    .UseNativeWebViewMacOS();
 
-if (!factory.TryCreateNativeWebViewBackend(NativeWebViewPlatform.Windows, out var backend))
+if (!factory.TryCreateNativeWebViewBackend(NativeWebViewPlatform.MacOS, out var backend))
 {
     throw new InvalidOperationException(&quot;Backend not registered.&quot;);
 }
@@ -271,6 +284,7 @@ webView.Navigate(&quot;https://example.com&quot;);
 <h2 id="next">Next</h2>
 <ul>
 <li>Read <a href="/NativeWebView/articles/controls/nativewebview">NativeWebView</a> for the full control surface.</li>
+<li>Read <a href="/NativeWebView/articles/reference/platform-support-matrix">Platform Support Matrix</a> before treating a target as runtime-complete.</li>
 <li>Read <a href="/NativeWebView/articles/rendering/render-modes">Render Modes</a> before enabling composited rendering in production.</li>
 <li>Run the <a href="/NativeWebView/articles/getting-started/sample-feature-explorer">Sample Feature Explorer</a> to exercise the full feature set.</li>
 </ul>

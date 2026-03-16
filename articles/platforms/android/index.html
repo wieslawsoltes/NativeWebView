@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="Android | NativeWebView">
-<meta name="twitter:description" content="Android Backend Package: NativeWebView.Platform.Android Platform enum: NativeWebViewPlatform.Android Native engine: android.webkit.WebView Supported Areas Embedded view GPU surface rendering Offscreen rendering Authentication broker Context menu and zoom New window interception Environment and controller options Native handles Cookie manager and command manager Unsupported in the Current Implementation Dialog backend Desktop-only print UI and DevTools behaviors Registration factory.UseNativeWebViewAndroid(); Diagnostics Notes Diagnostics use ANDROID_API_LEVEL for minimum API-level enforcement (...">
+<meta name="twitter:description" content="Android Backend Package: NativeWebView.Platform.Android Platform enum: NativeWebViewPlatform.Android Native engine: android.webkit.WebView Current Repo Implementation Status NativeWebView: implemented when NativeWebView.Platform.Android is built with the .NET 8 Android workload. The runtime path uses a backend-owned child View attachment plus android.webkit.WebView. Minimum runtime version for the current backend package: Android 7.0 / API 24+. NativeWebDialog: unsupported in the current implementation. WebAuthenticationBroker: implemented when NativeWebView.Platform.Android...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta name="twitter:image:alt" content="Android | NativeWebView">
 <meta property="og:title" content="Android | NativeWebView">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/NativeWebView">
-<meta property="og:description" content="Android Backend Package: NativeWebView.Platform.Android Platform enum: NativeWebViewPlatform.Android Native engine: android.webkit.WebView Supported Areas Embedded view GPU surface rendering Offscreen rendering Authentication broker Context menu and zoom New window interception Environment and controller options Native handles Cookie manager and command manager Unsupported in the Current Implementation Dialog backend Desktop-only print UI and DevTools behaviors Registration factory.UseNativeWebViewAndroid(); Diagnostics Notes Diagnostics use ANDROID_API_LEVEL for minimum API-level enforcement (...">
+<meta property="og:description" content="Android Backend Package: NativeWebView.Platform.Android Platform enum: NativeWebViewPlatform.Android Native engine: android.webkit.WebView Current Repo Implementation Status NativeWebView: implemented when NativeWebView.Platform.Android is built with the .NET 8 Android workload. The runtime path uses a backend-owned child View attachment plus android.webkit.WebView. Minimum runtime version for the current backend package: Android 7.0 / API 24+. NativeWebDialog: unsupported in the current implementation. WebAuthenticationBroker: implemented when NativeWebView.Platform.Android...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta property="og:image:alt" content="Android | NativeWebView">
   </head>
@@ -166,7 +166,15 @@
 <li>Platform enum: <code>NativeWebViewPlatform.Android</code></li>
 <li>Native engine: <code>android.webkit.WebView</code></li>
 </ul>
-<h2 id="supported-areas">Supported Areas</h2>
+<h2 id="current-repo-implementation-status">Current Repo Implementation Status</h2>
+<ul>
+<li><code>NativeWebView</code>: implemented when <code>NativeWebView.Platform.Android</code> is built with the .NET 8 Android workload. The runtime path uses a backend-owned child <code>View</code> attachment plus <code>android.webkit.WebView</code>.</li>
+<li>Minimum runtime version for the current backend package: <code>Android 7.0 / API 24+</code>.</li>
+<li><code>NativeWebDialog</code>: unsupported in the current implementation.</li>
+<li><code>WebAuthenticationBroker</code>: implemented when <code>NativeWebView.Platform.Android</code> is built with the .NET 8 Android workload. The runtime path uses a dedicated authentication activity and <code>android.webkit.WebView</code>.</li>
+<li>Check <code>NativeWebViewPlatformImplementationStatusMatrix.Get(NativeWebViewPlatform.Android)</code> in code when you need the honest current repo status.</li>
+</ul>
+<h2 id="platform-engine-capability">Platform Engine Capability</h2>
 <ul>
 <li>Embedded view</li>
 <li>GPU surface rendering</li>
@@ -182,16 +190,25 @@
 <ul>
 <li>Dialog backend</li>
 <li>Desktop-only print UI and DevTools behaviors</li>
+<li>Per-instance proxy application</li>
+<li><code>WebAuthenticationBroker.UseHttpPost</code></li>
 </ul>
 <h2 id="registration">Registration</h2>
 <pre><code class="language-csharp">factory.UseNativeWebViewAndroid();
 </code></pre>
 <h2 id="diagnostics-notes">Diagnostics Notes</h2>
-<p>Diagnostics use <code>ANDROID_API_LEVEL</code> for minimum API-level enforcement (<code>24+</code>).</p>
+<p>Diagnostics use <code>ANDROID_API_LEVEL</code> for minimum API-level enforcement (<code>24+</code>).
+The real runtime path is compiled from the Android-targeted backend assembly; the default <code>net8.0</code> build remains a contract/stub asset for non-Android hosts.</p>
 <h2 id="proxy-notes">Proxy Notes</h2>
 <ul>
 <li>AndroidX <code>ProxyController</code> applies proxy overrides process-wide for the app, not per <code>WebView</code> instance.</li>
-<li>Per-instance proxy configuration is therefore not supported on Android in the current implementation.</li>
+<li>The current embedded Android <code>NativeWebView</code> runtime does not integrate that app-wide override, so per-instance proxy configuration remains unsupported.</li>
+</ul>
+<h2 id="authentication-notes">Authentication Notes</h2>
+<ul>
+<li>The current Android <code>WebAuthenticationBroker</code> implementation launches a dedicated activity-hosted <code>WebView</code> session and completes when navigation reaches the callback scheme/host/path.</li>
+<li>Popup windows are redirected back into the active auth <code>WebView</code> session.</li>
+<li><code>UseHttpPost</code> is not currently implemented on the Android runtime path.</li>
 </ul>
 
       </div>

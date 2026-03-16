@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="macOS | NativeWebView">
-<meta name="twitter:description" content="macOS Backend Package: NativeWebView.Platform.macOS Platform enum: NativeWebViewPlatform.MacOS Native engine: WKWebView Supported Areas Embedded view GPU surface rendering Offscreen rendering Dialog Authentication broker Context menu and zoom Printing and print UI New window and resource request interception Environment and controller options Native handles Cookie manager and command manager Registration factory.UseNativeWebViewMacOS(); Composition Notes macOS supports composited hosting paths and passthrough decisions for scenarios such as hardware-accelerated video playback. Review...">
+<meta name="twitter:description" content="macOS Backend Package: NativeWebView.Platform.macOS Platform enum: NativeWebViewPlatform.MacOS Native engine: WKWebView Current Repo Implementation Status NativeWebView: implemented. NativeWebDialog: implemented. WebAuthenticationBroker: implemented through the macOS dialog runtime and a WKWebView auth window. Check NativeWebViewPlatformImplementationStatusMatrix.Get(NativeWebViewPlatform.MacOS) when you need to distinguish implemented runtime paths from broader capability contracts. Platform Engine Capability Embedded view GPU surface rendering Offscreen rendering Dialog Authentication broker Context menu and zoom Printing and print UI...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta name="twitter:image:alt" content="macOS | NativeWebView">
 <meta property="og:title" content="macOS | NativeWebView">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/NativeWebView">
-<meta property="og:description" content="macOS Backend Package: NativeWebView.Platform.macOS Platform enum: NativeWebViewPlatform.MacOS Native engine: WKWebView Supported Areas Embedded view GPU surface rendering Offscreen rendering Dialog Authentication broker Context menu and zoom Printing and print UI New window and resource request interception Environment and controller options Native handles Cookie manager and command manager Registration factory.UseNativeWebViewMacOS(); Composition Notes macOS supports composited hosting paths and passthrough decisions for scenarios such as hardware-accelerated video playback. Review...">
+<meta property="og:description" content="macOS Backend Package: NativeWebView.Platform.macOS Platform enum: NativeWebViewPlatform.MacOS Native engine: WKWebView Current Repo Implementation Status NativeWebView: implemented. NativeWebDialog: implemented. WebAuthenticationBroker: implemented through the macOS dialog runtime and a WKWebView auth window. Check NativeWebViewPlatformImplementationStatusMatrix.Get(NativeWebViewPlatform.MacOS) when you need to distinguish implemented runtime paths from broader capability contracts. Platform Engine Capability Embedded view GPU surface rendering Offscreen rendering Dialog Authentication broker Context menu and zoom Printing and print UI...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta property="og:image:alt" content="macOS | NativeWebView">
   </head>
@@ -166,7 +166,14 @@
 <li>Platform enum: <code>NativeWebViewPlatform.MacOS</code></li>
 <li>Native engine: <code>WKWebView</code></li>
 </ul>
-<h2 id="supported-areas">Supported Areas</h2>
+<h2 id="current-repo-implementation-status">Current Repo Implementation Status</h2>
+<ul>
+<li><code>NativeWebView</code>: implemented.</li>
+<li><code>NativeWebDialog</code>: implemented.</li>
+<li><code>WebAuthenticationBroker</code>: implemented through the macOS dialog runtime and a <code>WKWebView</code> auth window.</li>
+<li>Check <code>NativeWebViewPlatformImplementationStatusMatrix.Get(NativeWebViewPlatform.MacOS)</code> when you need to distinguish implemented runtime paths from broader capability contracts.</li>
+</ul>
+<h2 id="platform-engine-capability">Platform Engine Capability</h2>
 <ul>
 <li>Embedded view</li>
 <li>GPU surface rendering</li>
@@ -191,6 +198,11 @@
 <li>The current runtime path uses a dedicated persistent <code>WKWebsiteDataStore</code> identity derived from the instance configuration.</li>
 <li>Explicit <code>http</code>, <code>https</code>, and <code>socks5</code> proxy servers plus bypass domains are supported.</li>
 <li>PAC (<code>AutoConfigUrl</code>) is not applied by the current macOS integration.</li>
+</ul>
+<h2 id="authentication-notes">Authentication Notes</h2>
+<ul>
+<li>The current macOS <code>WebAuthenticationBroker</code> implementation uses a dedicated dialog-hosted <code>WKWebView</code> session and completes when navigation reaches the callback scheme/host/path.</li>
+<li><code>UseHttpPost</code> is not currently implemented on the macOS runtime path.</li>
 </ul>
 
       </div>

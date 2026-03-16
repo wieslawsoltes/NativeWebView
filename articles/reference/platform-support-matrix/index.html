@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="Platform Support Matrix | NativeWebView">
-<meta name="twitter:description" content="Platform Support Matrix Platform Embedded WebView GPU Surface Mode Offscreen Mode Dialog Authentication Broker Native Handles Windows Yes Yes Yes Yes Yes Yes macOS Yes Yes Yes Yes Yes Yes Linux Yes Yes Yes Yes Yes Yes iOS Yes Yes Yes No Yes Yes Android Yes Yes Yes No Yes Yes Browser Yes Yes Yes No Yes Yes Copyright © 2026, Wieslaw Soltes aka wieslawsoltes - Content licensed under the...">
+<meta name="twitter:description" content="Platform Support Matrix Current Repo Runtime Status Platform NativeWebView control NativeWebDialog WebAuthenticationBroker Per-instance proxy Windows Implemented Implemented Implemented Implemented macOS Implemented Implemented Implemented Implemented on macOS 14+ Linux Implemented Implemented Implemented Implemented iOS Implemented when built with the .NET 8 Apple workload Unsupported Implemented when built with the .NET 8 Apple workload Implemented on iOS 17+ when built with the .NET 8 Apple workload Android Implemented when built with the...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta name="twitter:image:alt" content="Platform Support Matrix | NativeWebView">
 <meta property="og:title" content="Platform Support Matrix | NativeWebView">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/NativeWebView">
-<meta property="og:description" content="Platform Support Matrix Platform Embedded WebView GPU Surface Mode Offscreen Mode Dialog Authentication Broker Native Handles Windows Yes Yes Yes Yes Yes Yes macOS Yes Yes Yes Yes Yes Yes Linux Yes Yes Yes Yes Yes Yes iOS Yes Yes Yes No Yes Yes Android Yes Yes Yes No Yes Yes Browser Yes Yes Yes No Yes Yes Copyright © 2026, Wieslaw Soltes aka wieslawsoltes - Content licensed under the...">
+<meta property="og:description" content="Platform Support Matrix Current Repo Runtime Status Platform NativeWebView control NativeWebDialog WebAuthenticationBroker Per-instance proxy Windows Implemented Implemented Implemented Implemented macOS Implemented Implemented Implemented Implemented on macOS 14+ Linux Implemented Implemented Implemented Implemented iOS Implemented when built with the .NET 8 Apple workload Unsupported Implemented when built with the .NET 8 Apple workload Implemented on iOS 17+ when built with the .NET 8 Apple workload Android Implemented when built with the...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta property="og:image:alt" content="Platform Support Matrix | NativeWebView">
   </head>
@@ -156,75 +156,75 @@
         </div>
 <!-- lunet:summarize -->
 <h1 id="platform-support-matrix">Platform Support Matrix</h1>
+<h2 id="current-repo-runtime-status">Current Repo Runtime Status</h2>
 <table class="table">
 <thead>
 <tr>
 <th>Platform</th>
-<th>Embedded WebView</th>
-<th>GPU Surface Mode</th>
-<th>Offscreen Mode</th>
-<th>Dialog</th>
-<th>Authentication Broker</th>
-<th>Native Handles</th>
+<th><code>NativeWebView</code> control</th>
+<th><code>NativeWebDialog</code></th>
+<th><code>WebAuthenticationBroker</code></th>
+<th>Per-instance proxy</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>Windows</td>
-<td>Yes</td>
-<td>Yes</td>
-<td>Yes</td>
-<td>Yes</td>
-<td>Yes</td>
-<td>Yes</td>
+<td>Implemented</td>
+<td>Implemented</td>
+<td>Implemented</td>
+<td>Implemented</td>
 </tr>
 <tr>
 <td>macOS</td>
-<td>Yes</td>
-<td>Yes</td>
-<td>Yes</td>
-<td>Yes</td>
-<td>Yes</td>
-<td>Yes</td>
+<td>Implemented</td>
+<td>Implemented</td>
+<td>Implemented</td>
+<td>Implemented on macOS 14+</td>
 </tr>
 <tr>
 <td>Linux</td>
-<td>Yes</td>
-<td>Yes</td>
-<td>Yes</td>
-<td>Yes</td>
-<td>Yes</td>
-<td>Yes</td>
+<td>Implemented</td>
+<td>Implemented</td>
+<td>Implemented</td>
+<td>Implemented</td>
 </tr>
 <tr>
 <td>iOS</td>
-<td>Yes</td>
-<td>Yes</td>
-<td>Yes</td>
-<td>No</td>
-<td>Yes</td>
-<td>Yes</td>
+<td>Implemented when built with the .NET 8 Apple workload</td>
+<td>Unsupported</td>
+<td>Implemented when built with the .NET 8 Apple workload</td>
+<td>Implemented on iOS 17+ when built with the .NET 8 Apple workload</td>
 </tr>
 <tr>
 <td>Android</td>
-<td>Yes</td>
-<td>Yes</td>
-<td>Yes</td>
-<td>No</td>
-<td>Yes</td>
-<td>Yes</td>
+<td>Implemented when built with the .NET 8 Android workload</td>
+<td>Unsupported</td>
+<td>Implemented when built with the .NET 8 Android workload</td>
+<td>Contract-only, app-wide platform API only</td>
 </tr>
 <tr>
 <td>Browser</td>
-<td>Yes</td>
-<td>Yes</td>
-<td>Yes</td>
-<td>No</td>
-<td>Yes</td>
-<td>Yes</td>
+<td>Implemented when built for the browser target</td>
+<td>Unsupported</td>
+<td>Implemented when built for the browser target</td>
+<td>Unsupported</td>
 </tr>
 </tbody>
 </table>
+<p>Use <code>NativeWebViewPlatformImplementationStatusMatrix.Get(platform)</code> to inspect the current repo status in code. Use <code>NativeWebViewProxyPlatformSupportMatrix.Get(platform)</code> for proxy-specific status.</p>
+<h2 id="capability-contract-notes">Capability Contract Notes</h2>
+<ul>
+<li>Registered backend modules and <code>Features</code> continue to describe the broader platform capability contract for that engine family.</li>
+<li>Current repo runtime status is intentionally tracked separately so docs and applications can distinguish stubbed contracts from implemented native host paths.</li>
+<li>Today, Windows, macOS, and Linux have real embedded <code>NativeWebView</code> control hosts in the default desktop build. iOS and Android runtime paths are built from their platform-targeted backend assemblies rather than the default <code>net8.0</code> contract build, and the Browser runtime is built from the browser-targeted backend assembly and hosts an <code>iframe</code> plus popup/browser-auth integration through Avalonia Browser native control hosting.</li>
+</ul>
+<h2 id="practical-notes">Practical Notes</h2>
+<ul>
+<li><code>NativeWebDialog</code> is a desktop surface in this repo. For mobile and browser auth flows, use <code>WebAuthenticationBroker</code> instead of expecting dialog parity.</li>
+<li>Browser auth is popup-based and currently requires popup support plus an inspectable <code>http</code> or <code>https</code> callback URL.</li>
+<li>Per-instance proxy status should be read separately from general runtime status. Use <code>NativeWebViewProxyPlatformSupportMatrix.Get(platform)</code> when proxy behavior matters to your deployment.</li>
+</ul>
 
       </div>
   </div>

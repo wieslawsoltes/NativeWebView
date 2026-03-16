@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="Linux | NativeWebView">
-<meta name="twitter:description" content="Linux Backend Package: NativeWebView.Platform.Linux Platform enum: NativeWebViewPlatform.Linux Native engine: WebKitGTK Supported Areas Embedded view GPU surface rendering Offscreen rendering Dialog Authentication broker Context menu and zoom Printing New window and resource request interception Environment and controller options Native handles Cookie manager and command manager Registration factory.UseNativeWebViewLinux(); Diagnostics Notes NATIVEWEBVIEW_WEBKITGTK_VERSION can be used to assert the expected installed WebKitGTK major line during diagnostics. Proxy Notes WebKitGTK exposes website data manager proxy...">
+<meta name="twitter:description" content="Linux Backend Package: NativeWebView.Platform.Linux Platform enum: NativeWebViewPlatform.Linux Native engine: WebKitGTK Current Repo Implementation Status NativeWebView: implemented for the embedded control path on Linux/X11. The backend now creates a real GTK3/WebKitGTK child host and exposes live X11 / WebKitGTK handles. NativeWebDialog: implemented for the Linux/X11 runtime path through a top-level GTK window and embedded WebKitGTK host. WebAuthenticationBroker: implemented through the Linux dialog runtime and a WebKitGTK-backed auth window....">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta name="twitter:image:alt" content="Linux | NativeWebView">
 <meta property="og:title" content="Linux | NativeWebView">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/NativeWebView">
-<meta property="og:description" content="Linux Backend Package: NativeWebView.Platform.Linux Platform enum: NativeWebViewPlatform.Linux Native engine: WebKitGTK Supported Areas Embedded view GPU surface rendering Offscreen rendering Dialog Authentication broker Context menu and zoom Printing New window and resource request interception Environment and controller options Native handles Cookie manager and command manager Registration factory.UseNativeWebViewLinux(); Diagnostics Notes NATIVEWEBVIEW_WEBKITGTK_VERSION can be used to assert the expected installed WebKitGTK major line during diagnostics. Proxy Notes WebKitGTK exposes website data manager proxy...">
+<meta property="og:description" content="Linux Backend Package: NativeWebView.Platform.Linux Platform enum: NativeWebViewPlatform.Linux Native engine: WebKitGTK Current Repo Implementation Status NativeWebView: implemented for the embedded control path on Linux/X11. The backend now creates a real GTK3/WebKitGTK child host and exposes live X11 / WebKitGTK handles. NativeWebDialog: implemented for the Linux/X11 runtime path through a top-level GTK window and embedded WebKitGTK host. WebAuthenticationBroker: implemented through the Linux dialog runtime and a WebKitGTK-backed auth window....">
 <meta property="og:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta property="og:image:alt" content="Linux | NativeWebView">
   </head>
@@ -166,7 +166,14 @@
 <li>Platform enum: <code>NativeWebViewPlatform.Linux</code></li>
 <li>Native engine: WebKitGTK</li>
 </ul>
-<h2 id="supported-areas">Supported Areas</h2>
+<h2 id="current-repo-implementation-status">Current Repo Implementation Status</h2>
+<ul>
+<li><code>NativeWebView</code>: implemented for the embedded control path on Linux/X11. The backend now creates a real GTK3/WebKitGTK child host and exposes live X11 / WebKitGTK handles.</li>
+<li><code>NativeWebDialog</code>: implemented for the Linux/X11 runtime path through a top-level GTK window and embedded WebKitGTK host.</li>
+<li><code>WebAuthenticationBroker</code>: implemented through the Linux dialog runtime and a WebKitGTK-backed auth window.</li>
+<li>Check <code>NativeWebViewPlatformImplementationStatusMatrix.Get(NativeWebViewPlatform.Linux)</code> in code when you need the honest current repo status.</li>
+</ul>
+<h2 id="platform-engine-capability">Platform Engine Capability</h2>
 <ul>
 <li>Embedded view</li>
 <li>GPU surface rendering</li>
@@ -184,12 +191,23 @@
 <pre><code class="language-csharp">factory.UseNativeWebViewLinux();
 </code></pre>
 <h2 id="diagnostics-notes">Diagnostics Notes</h2>
-<p><code>NATIVEWEBVIEW_WEBKITGTK_VERSION</code> can be used to assert the expected installed WebKitGTK major line during diagnostics.</p>
+<p><code>NATIVEWEBVIEW_WEBKITGTK_VERSION</code> can be used to assert the expected installed WebKitGTK major line during diagnostics.
+The embedded control runtime expects GTK3/WebKitGTK on an X11-capable Linux session.</p>
 <h2 id="proxy-notes">Proxy Notes</h2>
 <ul>
 <li>WebKitGTK exposes website data manager proxy settings.</li>
 <li><code>NativeWebViewLinuxProxySettingsBuilder</code> converts shared proxy options into a WebKitGTK-style default proxy URI plus ignore-host list.</li>
-<li>The current repo Linux backend remains a contract stub, so per-instance proxy settings are not yet applied at runtime.</li>
+<li>The Linux <code>NativeWebView</code> and <code>NativeWebDialog</code> runtime paths now apply explicit per-instance proxy settings on the X11 runtime path.</li>
+<li><code>Proxy.AutoConfigUrl</code> and embedded proxy credentials remain unsupported on the Linux runtime path.</li>
+</ul>
+<h2 id="current-linux-runtime-notes">Current Linux Runtime Notes</h2>
+<ul>
+<li>The embedded control runtime is implemented on Linux/X11 only; the backend does not currently provide a native Wayland host path.</li>
+<li>The dialog and broker runtime paths are also implemented on Linux/X11 only.</li>
+<li><code>CookieDataFolder</code> maps to persistent WebKitGTK cookie storage when private mode is disabled.</li>
+<li><code>UserDataFolder</code>, <code>CacheFolder</code>, and <code>SessionDataFolder</code> remain backend-specific configuration contracts on Linux in the current repo.</li>
+<li><code>PrintAsync()</code> delegates to the native WebKitGTK print pipeline, but direct PDF export through <code>OutputPath</code> is not implemented.</li>
+<li><code>WebAuthenticationBroker.UseHttpPost</code> is not currently implemented on the Linux runtime path.</li>
 </ul>
 
       </div>

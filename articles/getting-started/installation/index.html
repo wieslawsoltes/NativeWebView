@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="Installation | NativeWebView">
-<meta name="twitter:description" content="Installation Core Package Setup Install the Avalonia control package plus the platform package that matches the runtime you ship: dotnet add package NativeWebView dotnet add package NativeWebView.Platform.Windows Replace NativeWebView.Platform.Windows with NativeWebView.Platform.macOS, NativeWebView.Platform.Linux, NativeWebView.Platform.iOS, NativeWebView.Platform.Android, or NativeWebView.Platform.Browser as needed. Optional facades: dotnet add package NativeWebView.Dialog dotnet add package NativeWebView.Auth Package Layout Package Purpose NativeWebView Avalonia control facade API....">
+<meta name="twitter:description" content="Installation Core Package Setup Install the Avalonia control package plus the platform package that matches the runtime you ship: dotnet add package NativeWebView dotnet add package NativeWebView.Platform.Windows Replace NativeWebView.Platform.Windows with NativeWebView.Platform.macOS, NativeWebView.Platform.Linux, NativeWebView.Platform.iOS, NativeWebView.Platform.Android, or NativeWebView.Platform.Browser as needed. Package installation and backend registration are broader than any single surface's runtime status. Check NativeWebViewPlatformImplementationStatusMatrix.Get(...) before treating a specific...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta name="twitter:image:alt" content="Installation | NativeWebView">
 <meta property="og:title" content="Installation | NativeWebView">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/NativeWebView">
-<meta property="og:description" content="Installation Core Package Setup Install the Avalonia control package plus the platform package that matches the runtime you ship: dotnet add package NativeWebView dotnet add package NativeWebView.Platform.Windows Replace NativeWebView.Platform.Windows with NativeWebView.Platform.macOS, NativeWebView.Platform.Linux, NativeWebView.Platform.iOS, NativeWebView.Platform.Android, or NativeWebView.Platform.Browser as needed. Optional facades: dotnet add package NativeWebView.Dialog dotnet add package NativeWebView.Auth Package Layout Package Purpose NativeWebView Avalonia control facade API....">
+<meta property="og:description" content="Installation Core Package Setup Install the Avalonia control package plus the platform package that matches the runtime you ship: dotnet add package NativeWebView dotnet add package NativeWebView.Platform.Windows Replace NativeWebView.Platform.Windows with NativeWebView.Platform.macOS, NativeWebView.Platform.Linux, NativeWebView.Platform.iOS, NativeWebView.Platform.Android, or NativeWebView.Platform.Browser as needed. Package installation and backend registration are broader than any single surface's runtime status. Check NativeWebViewPlatformImplementationStatusMatrix.Get(...) before treating a specific...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta property="og:image:alt" content="Installation | NativeWebView">
   </head>
@@ -162,10 +162,16 @@
 dotnet add package NativeWebView.Platform.Windows
 </code></pre>
 <p>Replace <code>NativeWebView.Platform.Windows</code> with <code>NativeWebView.Platform.macOS</code>, <code>NativeWebView.Platform.Linux</code>, <code>NativeWebView.Platform.iOS</code>, <code>NativeWebView.Platform.Android</code>, or <code>NativeWebView.Platform.Browser</code> as needed.</p>
+<p>Package installation and backend registration are broader than any single surface's runtime status. Check <code>NativeWebViewPlatformImplementationStatusMatrix.Get(...)</code> before treating a specific <code>NativeWebView</code>, <code>NativeWebDialog</code>, or <code>WebAuthenticationBroker</code> target as production-ready.</p>
 <p>Optional facades:</p>
 <pre><code class="language-bash">dotnet add package NativeWebView.Dialog
 dotnet add package NativeWebView.Auth
 </code></pre>
+<ul>
+<li><code>NativeWebView.Dialog</code> is meaningful on the desktop runtime paths: Windows, macOS, and Linux.</li>
+<li><code>NativeWebView.Auth</code> is implemented across the current Windows, macOS, Linux, iOS, Android, and Browser runtime paths.</li>
+<li>iOS and Android runtime support comes from their platform-targeted backend assemblies rather than the default <code>net8.0</code> contract build.</li>
+</ul>
 <h2 id="package-layout">Package Layout</h2>
 <table class="table">
 <thead>
@@ -229,6 +235,7 @@ using NativeWebView.Platform.Windows;
 var factory = new NativeWebViewBackendFactory();
 factory.UseNativeWebViewWindows();
 </code></pre>
+<p>This registers the Windows capability contract, and the current repo now also ships real Windows runtime paths for <code>NativeWebView</code>, <code>NativeWebDialog</code>, and <code>WebAuthenticationBroker</code>.</p>
 <p>If you rely on default constructors, runtime auto-registration is available:</p>
 <pre><code class="language-csharp">NativeWebViewRuntime.EnsureCurrentPlatformRegistered();
 </code></pre>
@@ -238,6 +245,13 @@ factory.UseNativeWebViewWindows();
 NativeWebViewDiagnosticsValidator.EnsureReady(diagnostics);
 </code></pre>
 <p>This is the recommended startup guard in both samples and CI.</p>
+<p>If your application requires the real embedded <code>NativeWebView</code> control runtime, pair diagnostics with:</p>
+<pre><code class="language-csharp">var implementationStatus = NativeWebViewPlatformImplementationStatusMatrix.Get(NativeWebViewPlatform.Windows);
+if (implementationStatus.EmbeddedControl != NativeWebViewRepositoryImplementationStatus.RuntimeImplemented)
+{
+    throw new PlatformNotSupportedException(&quot;Embedded control runtime is not implemented for this target yet.&quot;);
+}
+</code></pre>
 <h2 id="avalonia-integration-notes">Avalonia Integration Notes</h2>
 <p>Add the XML namespace in XAML:</p>
 <pre><code class="language-xml">xmlns:nwv=&quot;clr-namespace:NativeWebView.Controls;assembly=NativeWebView&quot;

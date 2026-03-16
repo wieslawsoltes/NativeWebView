@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="WebAuthenticationBroker | NativeWebView">
-<meta name="twitter:description" content="WebAuthenticationBroker WebAuthenticationBroker exposes a unified authentication flow surface across supported backends. API AuthenticateAsync(Uri requestUri, Uri callbackUri, WebAuthenticationOptions options, CancellationToken cancellationToken) Options None SilentMode UseTitle UseHttpPost UseCorporateNetwork UseWebAuthenticationBroker Result Field Meaning ResponseStatus Success, UserCancel, or ErrorHttp. ResponseData Callback payload when available. ResponseErrorDetail Backend-specific error code when the status is ErrorHttp. Security Validation Controller-level guards validate that: request URI is absolute and uses http or https, callback URI is absolute,...">
+<meta name="twitter:description" content="WebAuthenticationBroker WebAuthenticationBroker exposes a unified authentication flow surface across supported backends. Availability Windows, macOS, Linux: implemented through dedicated native dialog-hosted web sessions. iOS: implemented through a modal WKWebView flow when the iOS backend is built with the .NET 8 Apple workload. Android: implemented through a dedicated authentication activity when the Android backend is built with the .NET 8 Android workload. Browser: implemented through a popup-window flow on the browser runtime...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta name="twitter:image:alt" content="WebAuthenticationBroker | NativeWebView">
 <meta property="og:title" content="WebAuthenticationBroker | NativeWebView">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/NativeWebView">
-<meta property="og:description" content="WebAuthenticationBroker WebAuthenticationBroker exposes a unified authentication flow surface across supported backends. API AuthenticateAsync(Uri requestUri, Uri callbackUri, WebAuthenticationOptions options, CancellationToken cancellationToken) Options None SilentMode UseTitle UseHttpPost UseCorporateNetwork UseWebAuthenticationBroker Result Field Meaning ResponseStatus Success, UserCancel, or ErrorHttp. ResponseData Callback payload when available. ResponseErrorDetail Backend-specific error code when the status is ErrorHttp. Security Validation Controller-level guards validate that: request URI is absolute and uses http or https, callback URI is absolute,...">
+<meta property="og:description" content="WebAuthenticationBroker WebAuthenticationBroker exposes a unified authentication flow surface across supported backends. Availability Windows, macOS, Linux: implemented through dedicated native dialog-hosted web sessions. iOS: implemented through a modal WKWebView flow when the iOS backend is built with the .NET 8 Apple workload. Android: implemented through a dedicated authentication activity when the Android backend is built with the .NET 8 Android workload. Browser: implemented through a popup-window flow on the browser runtime...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta property="og:image:alt" content="WebAuthenticationBroker | NativeWebView">
   </head>
@@ -155,6 +155,13 @@
 <!-- lunet:summarize -->
 <h1 id="webauthenticationbroker">WebAuthenticationBroker</h1>
 <p><code>WebAuthenticationBroker</code> exposes a unified authentication flow surface across supported backends.</p>
+<h2 id="availability">Availability</h2>
+<ul>
+<li>Windows, macOS, Linux: implemented through dedicated native dialog-hosted web sessions.</li>
+<li>iOS: implemented through a modal <code>WKWebView</code> flow when the iOS backend is built with the .NET 8 Apple workload.</li>
+<li>Android: implemented through a dedicated authentication activity when the Android backend is built with the .NET 8 Android workload.</li>
+<li>Browser: implemented through a popup-window flow on the browser runtime path.</li>
+</ul>
 <h2 id="api">API</h2>
 <ul>
 <li><code>AuthenticateAsync(Uri requestUri, Uri callbackUri, WebAuthenticationOptions options, CancellationToken cancellationToken)</code></li>
@@ -191,6 +198,16 @@
 </tr>
 </tbody>
 </table>
+<h2 id="runtime-notes">Runtime Notes</h2>
+<ul>
+<li>Authentication completes when navigation reaches the callback scheme, host, port, and path. Query-string and fragment values from the callback URL are preserved in <code>ResponseData</code>.</li>
+<li><code>SilentMode</code> currently returns <code>UserCancel</code> across the runtime backends in this repo.</li>
+<li><code>UseHttpPost</code> is currently unsupported on every runtime backend in this repo and returns <code>ErrorHttp</code>.</li>
+<li>Browser authentication requires popup support plus an inspectable <code>http</code> or <code>https</code> callback URL. Custom-scheme callbacks are not supported there.</li>
+<li>When a platform-specific interactive runtime cannot be launched on the current host or TFM, the broker returns <code>ErrorHttp</code> instead of reporting a false user cancel.</li>
+<li>Desktop runtimes use dedicated dialog-hosted sessions, while iOS and Android use workload-targeted modal or activity-hosted sessions rather than the default <code>net8.0</code> contract assemblies.</li>
+</ul>
+<p>Use <code>WebAuthenticationBroker</code> when you need a callback-driven auth session. Use <a href="/NativeWebView/articles/controls/nativewebdialog"><code>NativeWebDialog</code></a> instead when you need a general-purpose desktop browser window.</p>
 <h2 id="security-validation">Security Validation</h2>
 <p>Controller-level guards validate that:</p>
 <ul>

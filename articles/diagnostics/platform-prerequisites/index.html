@@ -177,6 +177,7 @@ foreach (var issue in diagnostics.Issues)
 <p>You can also use runtime auto-registration:</p>
 <pre><code class="language-csharp">var diagnostics = NativeWebViewRuntime.GetCurrentPlatformDiagnostics();
 </code></pre>
+<p>Diagnostics now also warn when a platform only exposes a contract-only embedded <code>NativeWebView</code> control path. Use <code>NativeWebViewPlatformImplementationStatusMatrix.Get(...)</code> when you need a direct status check in addition to prerequisite validation.</p>
 <h2 id="diagnostic-semantics">Diagnostic Semantics</h2>
 <ul>
 <li><code>Info</code>: informative status message.</li>
@@ -194,6 +195,7 @@ foreach (var issue in diagnostics.Issues)
 <ol>
 <li>Register the platform backend module.</li>
 <li>Read diagnostics for the active platform.</li>
+<li>Check <code>NativeWebViewPlatformImplementationStatusMatrix</code> if your app requires a real embedded control runtime instead of a contract-only backend.</li>
 <li>Fail fast when any issue has <code>Error</code> severity.</li>
 <li>Log warnings with remediation guidance.</li>
 </ol>

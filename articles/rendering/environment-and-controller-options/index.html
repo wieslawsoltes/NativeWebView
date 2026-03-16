@@ -200,17 +200,17 @@
 <tr>
 <td>Windows</td>
 <td>WebView2 environment arguments / Chromium proxy flags</td>
-<td>Not yet runtime-applied because the current Windows backend remains a contract stub.</td>
+<td>Runtime-applied for the embedded Windows <code>NativeWebView</code> control.</td>
 </tr>
 <tr>
 <td>Linux</td>
 <td>WebKitGTK website data manager proxy settings</td>
-<td>Not yet runtime-applied because the current Linux backend remains a contract stub.</td>
+<td>Runtime-applied for the embedded Linux <code>NativeWebView</code> control on the X11 host path with explicit proxy servers and bypass domains.</td>
 </tr>
 <tr>
 <td>iOS</td>
 <td><code>WKWebsiteDataStore.proxyConfigurations</code> (<code>iOS 17+</code>)</td>
-<td>Not yet runtime-applied because the current iOS backend remains a contract stub.</td>
+<td>Runtime-applied for the embedded iOS <code>NativeWebView</code> control when the iOS backend is built with the .NET 8 Apple workload; supports explicit <code>http</code>, <code>https</code>, and <code>socks5</code> proxy servers, credentials, and bypass domains.</td>
 </tr>
 <tr>
 <td>Android</td>
@@ -220,7 +220,7 @@
 <tr>
 <td>Browser</td>
 <td>Host browser integration</td>
-<td>Unsupported because the hosted browser target does not expose per-instance engine proxy control in the current implementation.</td>
+<td>Unsupported because the hosted browser target does not expose per-instance engine proxy control on the implemented iframe runtime path.</td>
 </tr>
 </tbody>
 </table>
@@ -233,7 +233,7 @@ Converts <code>NativeWebViewProxyOptions</code> into Chromium/WebView2 command-l
 <li><code>NativeWebViewLinuxProxySettingsBuilder.Build(...)</code>
 Converts <code>NativeWebViewProxyOptions</code> into a WebKitGTK-style default-proxy URI plus ignore-host list.</li>
 </ul>
-<p>These helpers are groundwork for future backends or custom integrations; they do not by themselves make the current Windows or Linux repo backends runtime-capable.</p>
+<p>These helpers are also used by the current Windows and Linux runtime backends; they remain useful for custom integrations on other targets.</p>
 <h2 id="example">Example</h2>
 <pre><code class="language-csharp">WebViewControl.InstanceConfiguration.EnvironmentOptions.UserDataFolder = &quot;./artifacts/sample-a/userdata&quot;;
 WebViewControl.InstanceConfiguration.EnvironmentOptions.CacheFolder = &quot;./artifacts/sample-a/cache&quot;;
@@ -261,9 +261,9 @@ WebViewControl.CoreWebView2ControllerOptionsRequested += (_, e) =&gt;
 <h2 id="notes">Notes</h2>
 <ul>
 <li><code>InstanceConfiguration</code> is copied per control instance, so multiple <code>NativeWebView</code> controls can start from the same template and then diverge safely.</li>
-<li>Exact <code>UserDataFolder</code> / <code>CacheFolder</code> / <code>CookieDataFolder</code> / <code>SessionDataFolder</code> semantics are backend-specific. In the current repo, unsupported runtime backends still surface these values as contracts, and the macOS proxy runtime path uses them as part of isolated data-store identity rather than direct physical directory mapping.</li>
+<li>Exact <code>UserDataFolder</code> / <code>CacheFolder</code> / <code>CookieDataFolder</code> / <code>SessionDataFolder</code> semantics are backend-specific. In the current repo, Linux runtime-applies <code>CookieDataFolder</code>, <code>Language</code>, <code>IsInPrivateModeEnabled</code>, and explicit proxy settings on the embedded control path, while <code>UserDataFolder</code>, <code>CacheFolder</code>, and <code>SessionDataFolder</code> remain backend-specific contracts there. The macOS and iOS <code>WKWebView</code> runtime paths use storage-path and profile-name values as part of isolated data-store identity rather than direct physical directory mapping.</li>
 <li>On macOS, assign proxy settings before the control is attached or before a dialog is shown so the native <code>WKWebView</code> can be created with a dedicated data store.</li>
-<li><code>Proxy.AutoConfigUrl</code> remains contract-only in the current repo implementation; the macOS runtime path applies explicit server proxies only.</li>
+<li><code>Proxy.AutoConfigUrl</code> remains contract-only in the current repo implementation; the macOS, Linux, and iOS runtime paths apply explicit server proxies only.</li>
 <li>Events are raised once per backend initialization in the current implementation.</li>
 <li>Platforms that cannot apply some values may still expose the event for compatibility.</li>
 <li>Keep event handlers deterministic because these values become part of environment reproducibility and CI diagnostics.</li>

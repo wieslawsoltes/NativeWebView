@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="Browser | NativeWebView">
-<meta name="twitter:description" content="Browser Backend Package: NativeWebView.Platform.Browser Platform enum: NativeWebViewPlatform.Browser Native engine: browser-host integration for WebAssembly/browser targets Supported Areas Embedded view GPU surface rendering Offscreen rendering Authentication broker New window interception Environment and controller options Native handles Cookie manager and command manager Unsupported in the Current Implementation Dialog backend Desktop windowing features Registration factory.UseNativeWebViewBrowser(); Diagnostics Notes Set NATIVEWEBVIEW_BROWSER_POPUP_SUPPORT=false or 0 to force the popup-support warning path during diagnostics testing....">
+<meta name="twitter:description" content="Browser Backend Package: NativeWebView.Platform.Browser Platform enum: NativeWebViewPlatform.Browser Native engine: browser-host integration for WebAssembly/browser targets Current Repo Implementation Status NativeWebView: implemented when the browser-targeted backend assembly is compiled. The runtime path is backed by Avalonia Browser native hosting plus a real DOM iframe. NativeWebDialog: unsupported in the current implementation. WebAuthenticationBroker: implemented when the browser-targeted backend assembly is compiled, through a popup-window flow that monitors the callback URL from browser runtime code....">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta name="twitter:image:alt" content="Browser | NativeWebView">
 <meta property="og:title" content="Browser | NativeWebView">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/NativeWebView">
-<meta property="og:description" content="Browser Backend Package: NativeWebView.Platform.Browser Platform enum: NativeWebViewPlatform.Browser Native engine: browser-host integration for WebAssembly/browser targets Supported Areas Embedded view GPU surface rendering Offscreen rendering Authentication broker New window interception Environment and controller options Native handles Cookie manager and command manager Unsupported in the Current Implementation Dialog backend Desktop windowing features Registration factory.UseNativeWebViewBrowser(); Diagnostics Notes Set NATIVEWEBVIEW_BROWSER_POPUP_SUPPORT=false or 0 to force the popup-support warning path during diagnostics testing....">
+<meta property="og:description" content="Browser Backend Package: NativeWebView.Platform.Browser Platform enum: NativeWebViewPlatform.Browser Native engine: browser-host integration for WebAssembly/browser targets Current Repo Implementation Status NativeWebView: implemented when the browser-targeted backend assembly is compiled. The runtime path is backed by Avalonia Browser native hosting plus a real DOM iframe. NativeWebDialog: unsupported in the current implementation. WebAuthenticationBroker: implemented when the browser-targeted backend assembly is compiled, through a popup-window flow that monitors the callback URL from browser runtime code....">
 <meta property="og:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta property="og:image:alt" content="Browser | NativeWebView">
   </head>
@@ -166,7 +166,14 @@
 <li>Platform enum: <code>NativeWebViewPlatform.Browser</code></li>
 <li>Native engine: browser-host integration for WebAssembly/browser targets</li>
 </ul>
-<h2 id="supported-areas">Supported Areas</h2>
+<h2 id="current-repo-implementation-status">Current Repo Implementation Status</h2>
+<ul>
+<li><code>NativeWebView</code>: implemented when the browser-targeted backend assembly is compiled. The runtime path is backed by Avalonia Browser native hosting plus a real DOM <code>iframe</code>.</li>
+<li><code>NativeWebDialog</code>: unsupported in the current implementation.</li>
+<li><code>WebAuthenticationBroker</code>: implemented when the browser-targeted backend assembly is compiled, through a popup-window flow that monitors the callback URL from browser runtime code.</li>
+<li>Check <code>NativeWebViewPlatformImplementationStatusMatrix.Get(NativeWebViewPlatform.Browser)</code> in code when you need the honest current repo status.</li>
+</ul>
+<h2 id="platform-engine-capability">Platform Engine Capability</h2>
 <ul>
 <li>Embedded view</li>
 <li>GPU surface rendering</li>
@@ -177,10 +184,17 @@
 <li>Native handles</li>
 <li>Cookie manager and command manager</li>
 </ul>
-<h2 id="unsupported-in-the-current-implementation">Unsupported in the Current Implementation</h2>
+<h2 id="runtime-notes">Runtime Notes</h2>
 <ul>
-<li>Dialog backend</li>
-<li>Desktop windowing features</li>
+<li>Dialog backend: unsupported in the current browser runtime.</li>
+<li>Desktop windowing features: unsupported on the browser runtime path.</li>
+<li>Per-instance proxy configuration: unsupported on the browser runtime path.</li>
+<li>Arbitrary browser frame restrictions still apply. Pages that block framing with <code>X-Frame-Options</code> or <code>Content-Security-Policy: frame-ancestors</code> will not host successfully inside the embedded browser runtime.</li>
+<li>Script execution, <code>window.chrome.webview</code> emulation, and <code>NewWindowRequested</code> interception work when the hosted page is same-origin with the app or when the page explicitly cooperates via <code>postMessage</code>. Cross-origin navigation still works, but cross-origin script access does not.</li>
+<li><code>HeaderString</code> and <code>UserAgentString</code> remain compatibility properties only on the browser runtime path; the host browser does not expose per-iframe request-header or user-agent overrides here.</li>
+<li>Browser authentication requires popup support plus an inspectable <code>http</code> or <code>https</code> callback URL that returns control to an origin the app can observe.</li>
+<li>If popup startup is unavailable, the browser auth runtime reports <code>ErrorHttp</code> instead of <code>UserCancel</code>.</li>
+<li>Custom-scheme callbacks and <code>UseHttpPost</code> are not currently implemented on the browser runtime path.</li>
 </ul>
 <h2 id="registration">Registration</h2>
 <pre><code class="language-csharp">factory.UseNativeWebViewBrowser();

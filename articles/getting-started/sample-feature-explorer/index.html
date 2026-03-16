@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="Sample Feature Explorer | NativeWebView">
-<meta name="twitter:description" content="Sample Feature Explorer The desktop sample demonstrates the full surface area of the library in an Avalonia application. Desktop Feature Explorer Run the desktop sample: dotnet run --project samples/NativeWebView.Sample.Desktop/NativeWebView.Sample.Desktop.csproj -c Debug The sample exercises: NativeWebView navigation, messaging, printing, state, and native handles. Render mode switching between Embedded, GpuSurface, and Offscreen. Managed overlay testing for airspace verification. NativeWebDialog actions on desktop backends. WebAuthenticationBroker flows....">
+<meta name="twitter:description" content="Sample Feature Explorer The desktop sample demonstrates the full surface area of the library in an Avalonia application. Desktop Feature Explorer Run the desktop sample: dotnet run --project samples/NativeWebView.Sample.Desktop/NativeWebView.Sample.Desktop.csproj -c Debug The sample exercises: NativeWebView navigation, messaging, printing, state, and native handles. Render mode switching between Embedded, GpuSurface, and Offscreen. Managed overlay testing for airspace verification. NativeWebDialog actions on the desktop runtime backends: Windows, macOS, and Linux....">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta name="twitter:image:alt" content="Sample Feature Explorer | NativeWebView">
 <meta property="og:title" content="Sample Feature Explorer | NativeWebView">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/NativeWebView">
-<meta property="og:description" content="Sample Feature Explorer The desktop sample demonstrates the full surface area of the library in an Avalonia application. Desktop Feature Explorer Run the desktop sample: dotnet run --project samples/NativeWebView.Sample.Desktop/NativeWebView.Sample.Desktop.csproj -c Debug The sample exercises: NativeWebView navigation, messaging, printing, state, and native handles. Render mode switching between Embedded, GpuSurface, and Offscreen. Managed overlay testing for airspace verification. NativeWebDialog actions on desktop backends. WebAuthenticationBroker flows....">
+<meta property="og:description" content="Sample Feature Explorer The desktop sample demonstrates the full surface area of the library in an Avalonia application. Desktop Feature Explorer Run the desktop sample: dotnet run --project samples/NativeWebView.Sample.Desktop/NativeWebView.Sample.Desktop.csproj -c Debug The sample exercises: NativeWebView navigation, messaging, printing, state, and native handles. Render mode switching between Embedded, GpuSurface, and Offscreen. Managed overlay testing for airspace verification. NativeWebDialog actions on the desktop runtime backends: Windows, macOS, and Linux....">
 <meta property="og:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta property="og:image:alt" content="Sample Feature Explorer | NativeWebView">
   </head>
@@ -166,8 +166,8 @@
 <li><code>NativeWebView</code> navigation, messaging, printing, state, and native handles.</li>
 <li>Render mode switching between <code>Embedded</code>, <code>GpuSurface</code>, and <code>Offscreen</code>.</li>
 <li>Managed overlay testing for airspace verification.</li>
-<li><code>NativeWebDialog</code> actions on desktop backends.</li>
-<li><code>WebAuthenticationBroker</code> flows.</li>
+<li><code>NativeWebDialog</code> actions on the desktop runtime backends: Windows, macOS, and Linux.</li>
+<li><code>WebAuthenticationBroker</code> flows on desktop, plus shared controller behavior used by the mobile and browser runtime paths.</li>
 <li>Runtime diagnostics and feature summaries.</li>
 </ul>
 <h2 id="deterministic-smoke-mode">Deterministic Smoke Mode</h2>
@@ -186,6 +186,7 @@
 <p>For mobile or browser smoke validation:</p>
 <pre><code class="language-bash">./scripts/run-mobile-browser-sample-smoke.sh --configuration Release --platform all
 </code></pre>
+<p>This path is the right place to validate workload-gated iOS/Android backends and the browser runtime, including popup-based browser auth.</p>
 <h2 id="when-to-use-the-sample">When to Use the Sample</h2>
 <p>Use the feature explorer when you need to verify:</p>
 <ul>

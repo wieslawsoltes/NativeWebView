@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="iOS | NativeWebView">
-<meta name="twitter:description" content="iOS Backend Package: NativeWebView.Platform.iOS Platform enum: NativeWebViewPlatform.IOS Native engine: WKWebView Supported Areas Embedded view GPU surface rendering Offscreen rendering Authentication broker Context menu and zoom New window interception Environment and controller options Native handles Cookie manager and command manager Unsupported in the Current Implementation Dialog backend Desktop-only print UI and DevTools behaviors Registration factory.UseNativeWebViewIOS(); Proxy Notes WKWebsiteDataStore.proxyConfigurations is available on iOS 17+. The current repo iOS backend remains a contract...">
+<meta name="twitter:description" content="iOS Backend Package: NativeWebView.Platform.iOS Platform enum: NativeWebViewPlatform.IOS Native engine: WKWebView Current Repo Implementation Status NativeWebView: implemented when NativeWebView.Platform.iOS is built with the .NET 8 Apple workload. The runtime path uses a backend-owned UIView attachment plus WKWebView. Minimum runtime version for the current backend package: iOS 17+. NativeWebDialog: unsupported in the current implementation. WebAuthenticationBroker: implemented when NativeWebView.Platform.iOS is built with the .NET 8 Apple workload. The runtime path uses a modal...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta name="twitter:image:alt" content="iOS | NativeWebView">
 <meta property="og:title" content="iOS | NativeWebView">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/NativeWebView">
-<meta property="og:description" content="iOS Backend Package: NativeWebView.Platform.iOS Platform enum: NativeWebViewPlatform.IOS Native engine: WKWebView Supported Areas Embedded view GPU surface rendering Offscreen rendering Authentication broker Context menu and zoom New window interception Environment and controller options Native handles Cookie manager and command manager Unsupported in the Current Implementation Dialog backend Desktop-only print UI and DevTools behaviors Registration factory.UseNativeWebViewIOS(); Proxy Notes WKWebsiteDataStore.proxyConfigurations is available on iOS 17+. The current repo iOS backend remains a contract...">
+<meta property="og:description" content="iOS Backend Package: NativeWebView.Platform.iOS Platform enum: NativeWebViewPlatform.IOS Native engine: WKWebView Current Repo Implementation Status NativeWebView: implemented when NativeWebView.Platform.iOS is built with the .NET 8 Apple workload. The runtime path uses a backend-owned UIView attachment plus WKWebView. Minimum runtime version for the current backend package: iOS 17+. NativeWebDialog: unsupported in the current implementation. WebAuthenticationBroker: implemented when NativeWebView.Platform.iOS is built with the .NET 8 Apple workload. The runtime path uses a modal...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta property="og:image:alt" content="iOS | NativeWebView">
   </head>
@@ -166,7 +166,15 @@
 <li>Platform enum: <code>NativeWebViewPlatform.IOS</code></li>
 <li>Native engine: <code>WKWebView</code></li>
 </ul>
-<h2 id="supported-areas">Supported Areas</h2>
+<h2 id="current-repo-implementation-status">Current Repo Implementation Status</h2>
+<ul>
+<li><code>NativeWebView</code>: implemented when <code>NativeWebView.Platform.iOS</code> is built with the .NET 8 Apple workload. The runtime path uses a backend-owned <code>UIView</code> attachment plus <code>WKWebView</code>.</li>
+<li>Minimum runtime version for the current backend package: <code>iOS 17+</code>.</li>
+<li><code>NativeWebDialog</code>: unsupported in the current implementation.</li>
+<li><code>WebAuthenticationBroker</code>: implemented when <code>NativeWebView.Platform.iOS</code> is built with the .NET 8 Apple workload. The runtime path uses a modal <code>WKWebView</code> controller.</li>
+<li>Check <code>NativeWebViewPlatformImplementationStatusMatrix.Get(NativeWebViewPlatform.IOS)</code> in code when you need the honest current repo status.</li>
+</ul>
+<h2 id="platform-engine-capability">Platform Engine Capability</h2>
 <ul>
 <li>Embedded view</li>
 <li>GPU surface rendering</li>
@@ -182,6 +190,8 @@
 <ul>
 <li>Dialog backend</li>
 <li>Desktop-only print UI and DevTools behaviors</li>
+<li><code>Proxy.AutoConfigUrl</code></li>
+<li><code>WebAuthenticationBroker.UseHttpPost</code></li>
 </ul>
 <h2 id="registration">Registration</h2>
 <pre><code class="language-csharp">factory.UseNativeWebViewIOS();
@@ -189,7 +199,15 @@
 <h2 id="proxy-notes">Proxy Notes</h2>
 <ul>
 <li><code>WKWebsiteDataStore.proxyConfigurations</code> is available on <code>iOS 17+</code>.</li>
-<li>The current repo iOS backend remains a contract stub, so per-instance proxy settings are not yet applied at runtime.</li>
+<li>The current repo runtime applies explicit <code>http</code>, <code>https</code>, and <code>socks5</code> per-instance proxy settings on <code>iOS 17+</code>.</li>
+<li>Proxy credentials and bypass domains are applied on the runtime path.</li>
+<li><code>Proxy.AutoConfigUrl</code> remains unsupported in the current iOS runtime path.</li>
+<li>Storage-path and profile-name values contribute to a dedicated <code>WKWebsiteDataStore</code> identity instead of mapping directly to physical directories.</li>
+</ul>
+<h2 id="authentication-notes">Authentication Notes</h2>
+<ul>
+<li>The current iOS <code>WebAuthenticationBroker</code> implementation presents a modal <code>WKWebView</code> flow and completes when navigation reaches the callback scheme/host/path.</li>
+<li><code>UseHttpPost</code> is not currently implemented on the iOS runtime path.</li>
 </ul>
 
       </div>

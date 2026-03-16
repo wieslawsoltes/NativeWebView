@@ -172,6 +172,7 @@
 <li>Platform backend registration for the current runtime.</li>
 <li>Runtime readiness checks before first navigation.</li>
 <li>A working choice between <code>Embedded</code>, <code>GpuSurface</code>, and <code>Offscreen</code> render modes.</li>
+<li>Clear handoff points to <code>NativeWebDialog</code> for desktop popup windows and <code>WebAuthenticationBroker</code> for auth callback flows.</li>
 </ul>
 <h2 id="recommended-learning-path">Recommended Learning Path</h2>
 <ol>
@@ -185,9 +186,10 @@
 <p>Choose the primary surface first:</p>
 <ul>
 <li>Use <a href="/NativeWebView/articles/controls/nativewebview"><code>NativeWebView</code></a> when the browser must live inside an Avalonia layout.</li>
-<li>Use <a href="/NativeWebView/articles/controls/nativewebdialog"><code>NativeWebDialog</code></a> when the browser should live in a separate desktop window.</li>
-<li>Use <a href="/NativeWebView/articles/controls/webauthenticationbroker"><code>WebAuthenticationBroker</code></a> when the main goal is an auth callback flow.</li>
+<li>Use <a href="/NativeWebView/articles/controls/nativewebdialog"><code>NativeWebDialog</code></a> when the browser should live in a separate desktop window on Windows, macOS, or Linux.</li>
+<li>Use <a href="/NativeWebView/articles/controls/webauthenticationbroker"><code>WebAuthenticationBroker</code></a> when the main goal is an auth callback flow. The repo now ships runtime implementations across Windows, macOS, Linux, iOS, Android, and Browser.</li>
 </ul>
+<p>Mobile and workload-specific note: the iOS and Android runtime paths come from their platform-targeted backend assemblies rather than the default <code>net8.0</code> contract build. Browser authentication is popup-based and does not provide <code>NativeWebDialog</code>.</p>
 <p>Choose the render mode next:</p>
 <ul>
 <li><code>Embedded</code>: best native fidelity and input behavior.</li>

@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="Windows | NativeWebView">
-<meta name="twitter:description" content="Windows Backend Package: NativeWebView.Platform.Windows Platform enum: NativeWebViewPlatform.Windows Native engine: Microsoft Edge WebView2 Supported Areas Embedded view GPU surface rendering Offscreen rendering Dialog Authentication broker DevTools, context menu, status bar, zoom Printing and print UI New window and resource request interception Environment and controller options Native handles Cookie manager and command manager Registration factory.UseNativeWebViewWindows(); Diagnostics Notes Use NATIVEWEBVIEW_WEBVIEW2_RUNTIME_PATH when you need an explicit runtime path override. If it is set, the...">
+<meta name="twitter:description" content="Windows Backend Package: NativeWebView.Platform.Windows Platform enum: NativeWebViewPlatform.Windows Native engine: Microsoft Edge WebView2 Current Repo Implementation Status NativeWebView: implemented. The control now creates a real child HWND and WebView2 controller when hosted through the Avalonia NativeWebView control. NativeWebDialog: implemented. The backend now creates a real top-level HWND and hosts the WebView2 runtime inside it. WebAuthenticationBroker: implemented through the Windows dialog runtime and a WebView2-backed auth window....">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta name="twitter:image:alt" content="Windows | NativeWebView">
 <meta property="og:title" content="Windows | NativeWebView">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/NativeWebView">
-<meta property="og:description" content="Windows Backend Package: NativeWebView.Platform.Windows Platform enum: NativeWebViewPlatform.Windows Native engine: Microsoft Edge WebView2 Supported Areas Embedded view GPU surface rendering Offscreen rendering Dialog Authentication broker DevTools, context menu, status bar, zoom Printing and print UI New window and resource request interception Environment and controller options Native handles Cookie manager and command manager Registration factory.UseNativeWebViewWindows(); Diagnostics Notes Use NATIVEWEBVIEW_WEBVIEW2_RUNTIME_PATH when you need an explicit runtime path override. If it is set, the...">
+<meta property="og:description" content="Windows Backend Package: NativeWebView.Platform.Windows Platform enum: NativeWebViewPlatform.Windows Native engine: Microsoft Edge WebView2 Current Repo Implementation Status NativeWebView: implemented. The control now creates a real child HWND and WebView2 controller when hosted through the Avalonia NativeWebView control. NativeWebDialog: implemented. The backend now creates a real top-level HWND and hosts the WebView2 runtime inside it. WebAuthenticationBroker: implemented through the Windows dialog runtime and a WebView2-backed auth window....">
 <meta property="og:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta property="og:image:alt" content="Windows | NativeWebView">
   </head>
@@ -166,7 +166,14 @@
 <li>Platform enum: <code>NativeWebViewPlatform.Windows</code></li>
 <li>Native engine: Microsoft Edge WebView2</li>
 </ul>
-<h2 id="supported-areas">Supported Areas</h2>
+<h2 id="current-repo-implementation-status">Current Repo Implementation Status</h2>
+<ul>
+<li><code>NativeWebView</code>: implemented. The control now creates a real child HWND and WebView2 controller when hosted through the Avalonia <code>NativeWebView</code> control.</li>
+<li><code>NativeWebDialog</code>: implemented. The backend now creates a real top-level HWND and hosts the WebView2 runtime inside it.</li>
+<li><code>WebAuthenticationBroker</code>: implemented through the Windows dialog runtime and a WebView2-backed auth window.</li>
+<li>Check <code>NativeWebViewPlatformImplementationStatusMatrix.Get(NativeWebViewPlatform.Windows)</code> in code when you need the honest current repo status.</li>
+</ul>
+<h2 id="platform-engine-capability">Platform Engine Capability</h2>
 <ul>
 <li>Embedded view</li>
 <li>GPU surface rendering</li>
@@ -189,7 +196,12 @@
 <ul>
 <li>WebView2 can be configured via environment options and Chromium proxy arguments.</li>
 <li><code>NativeWebViewWindowsProxyArgumentsBuilder</code> converts shared proxy options into <code>AdditionalBrowserArguments</code> payloads for WebView2-style integrations.</li>
-<li>The current repo Windows backend remains a contract stub, so per-instance proxy settings are not yet applied at runtime.</li>
+<li>The Windows <code>NativeWebView</code> and <code>NativeWebDialog</code> runtime paths apply per-instance proxy settings by merging them into WebView2 <code>AdditionalBrowserArguments</code>.</li>
+</ul>
+<h2 id="authentication-notes">Authentication Notes</h2>
+<ul>
+<li>The current Windows <code>WebAuthenticationBroker</code> implementation uses a dedicated dialog-hosted WebView2 session and completes when navigation reaches the callback scheme/host/path.</li>
+<li><code>UseHttpPost</code> is not currently implemented on the Windows runtime path.</li>
 </ul>
 
       </div>
