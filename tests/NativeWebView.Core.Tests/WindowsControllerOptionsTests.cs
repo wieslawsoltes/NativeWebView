@@ -70,6 +70,23 @@ public sealed class WindowsControllerOptionsTests
     }
 
     [Fact]
+    public void IsTransientControllerCreationFailure_ReturnsTrue_ForInvalidArgumentFailures()
+    {
+        Assert.True(WindowsNativeWebViewBackend.IsTransientControllerCreationFailure(
+            new ArgumentException("invalid handle")));
+
+        Assert.True(WindowsNativeWebViewBackend.IsTransientControllerCreationFailure(
+            new COMException("invalid handle", unchecked((int)0x80070057))));
+    }
+
+    [Fact]
+    public void IsTransientControllerCreationFailure_ReturnsFalse_ForNonTransientFailures()
+    {
+        Assert.False(WindowsNativeWebViewBackend.IsTransientControllerCreationFailure(
+            new InvalidOperationException("runtime missing")));
+    }
+
+    [Fact]
     public void AttachControllerOptionsFallbackExceptionContext_PreservesOriginalException()
     {
         var originalException = new ArgumentException("initial invalid options");

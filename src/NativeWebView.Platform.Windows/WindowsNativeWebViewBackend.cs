@@ -18,6 +18,12 @@ public sealed class WindowsNativeWebViewBackend
     private const int EInvalidArgHResult = unchecked((int)0x80070057);
     internal const string ControllerOptionsFallbackOriginalExceptionDataKey =
         "NativeWebView.Windows.ControllerOptionsFallbackOriginalException";
+    private static readonly TimeSpan[] ControllerCreationRetryDelays =
+    [
+        TimeSpan.FromMilliseconds(150),
+        TimeSpan.FromMilliseconds(350),
+        TimeSpan.FromMilliseconds(750),
+    ];
     private static readonly NativePlatformHandle PlaceholderPlatformHandle = new((nint)0x1001, "HWND");
     private static readonly NativePlatformHandle PlaceholderViewHandle = new((nint)0x1002, "ICoreWebView2");
     private static readonly NativePlatformHandle PlaceholderControllerHandle = new((nint)0x1003, "ICoreWebView2Controller");
@@ -848,7 +854,8 @@ public sealed class WindowsNativeWebViewBackend
             _controller = await CreateRuntimeControllerAsync(
                 _environment,
                 _childWindowHandle,
-                _preparedControllerOptions).ConfigureAwait(true);
+                _preparedControllerOptions,
+                cancellationToken).ConfigureAwait(true);
 
             _coreWebView = _controller.CoreWebView2;
             CaptureRuntimeHandles();
@@ -1294,35 +1301,74 @@ public sealed class WindowsNativeWebViewBackend
         ArgumentNullException.ThrowIfNull(exception);
 
         return RequiresRuntimeControllerOptions(options) &&
-            (exception is ArgumentException ||
-             exception is COMException { HResult: EInvalidArgHResult });
+            IsTransientControllerCreationFailure(exception);
+    }
+
+    internal static bool IsTransientControllerCreationFailure(Exception exception)
+    {
+        ArgumentNullException.ThrowIfNull(exception);
+
+        return exception is ArgumentException ||
+            exception is COMException { HResult: EInvalidArgHResult };
     }
 
     private static async Task<CoreWebView2Controller> CreateRuntimeControllerAsync(
         CoreWebView2Environment environment,
         IntPtr childWindowHandle,
-        NativeWebViewControllerOptions? options)
+        NativeWebViewControllerOptions? options,
+        CancellationToken cancellationToken)
     {
         if (!RequiresRuntimeControllerOptions(options))
         {
-            return await environment.CreateCoreWebView2ControllerAsync(childWindowHandle).ConfigureAwait(true);
+            return await CreateRuntimeControllerWithRetryAsync(
+                    () => environment.CreateCoreWebView2ControllerAsync(childWindowHandle),
+                    cancellationToken)
+                .ConfigureAwait(true);
         }
 
         try
         {
             var controllerOptions = CreateRuntimeControllerOptions(environment, options!);
-            return await environment.CreateCoreWebView2ControllerAsync(childWindowHandle, controllerOptions).ConfigureAwait(true);
+            return await CreateRuntimeControllerWithRetryAsync(
+                    () => environment.CreateCoreWebView2ControllerAsync(childWindowHandle, controllerOptions),
+                    cancellationToken)
+                .ConfigureAwait(true);
         }
         catch (Exception ex) when (ShouldRetryControllerCreationWithoutOptions(options, ex))
         {
             try
             {
-                return await environment.CreateCoreWebView2ControllerAsync(childWindowHandle).ConfigureAwait(true);
+                return await CreateRuntimeControllerWithRetryAsync(
+                        () => environment.CreateCoreWebView2ControllerAsync(childWindowHandle),
+                        cancellationToken)
+                    .ConfigureAwait(true);
             }
             catch (Exception retryException)
             {
                 AttachControllerOptionsFallbackExceptionContext(retryException, ex);
                 throw;
+            }
+        }
+    }
+
+    private static async Task<CoreWebView2Controller> CreateRuntimeControllerWithRetryAsync(
+        Func<Task<CoreWebView2Controller>> createAsync,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(createAsync);
+
+        for (var attempt = 0; ; attempt++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            try
+            {
+                return await createAsync().ConfigureAwait(true);
+            }
+            catch (Exception ex) when (IsTransientControllerCreationFailure(ex) &&
+                                       attempt < ControllerCreationRetryDelays.Length)
+            {
+                await Task.Delay(ControllerCreationRetryDelays[attempt], cancellationToken).ConfigureAwait(true);
             }
         }
     }
