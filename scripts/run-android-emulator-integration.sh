@@ -9,6 +9,7 @@ integration_timeout_seconds="${ANDROID_INTEGRATION_TIMEOUT_SECONDS:-240}"
 project_path="tests/NativeWebView.Integration.Android/NativeWebView.Integration.Android.csproj"
 framework="net8.0-android34.0"
 package_name="com.wieslawsoltes.nativewebview.integration.android"
+log_tag="NWVIntegration"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -87,11 +88,17 @@ adb uninstall "$package_name" >/dev/null 2>&1 || true
 adb install -r "$apk_path" >/dev/null
 adb logcat -c
 adb shell am force-stop "$package_name" >/dev/null 2>&1 || true
-adb shell monkey -p "$package_name" -c android.intent.category.LAUNCHER 1 >/dev/null
+
+launcher_component="$(adb shell cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category.LAUNCHER "$package_name" 2>/dev/null | tr -d '\r' | tail -n 1 || true)"
+if [[ "$launcher_component" == */* ]]; then
+  adb shell am start -W -n "$launcher_component" >/dev/null
+else
+  adb shell monkey -p "$package_name" -c android.intent.category.LAUNCHER 1 >/dev/null
+fi
 
 deadline=$((SECONDS + integration_timeout_seconds))
 while (( SECONDS < deadline )); do
-  adb logcat -d -s NativeWebView.Integration:I > "$logcat_output" || true
+  adb logcat -d -s "${log_tag}:I" > "$logcat_output" || true
 
   result_line="$(grep 'NATIVEWEBVIEW_INTEGRATION_RESULT:' "$logcat_output" | tail -n 1 || true)"
   if [[ -n "$result_line" ]]; then

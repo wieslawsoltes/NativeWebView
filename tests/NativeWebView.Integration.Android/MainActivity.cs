@@ -15,9 +15,11 @@ namespace NativeWebView.Integration.Android;
     ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.UiMode)]
 public class MainActivity : AvaloniaMainActivity<App>
 {
+    private const string IntegrationLogTag = "NWVIntegration";
+
     protected override void OnCreate(Bundle? savedInstanceState)
     {
-        IntegrationPlatformContext.ExternalLogger = static message => Log.Info("NativeWebView.Integration", message);
+        IntegrationPlatformContext.ExternalLogger = static message => Log.Info(IntegrationLogTag, message);
         base.OnCreate(savedInstanceState);
     }
 
