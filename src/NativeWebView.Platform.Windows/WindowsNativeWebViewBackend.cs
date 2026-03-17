@@ -840,10 +840,8 @@ public sealed class WindowsNativeWebViewBackend
 
             if (_environment is null)
             {
-                _environment = await CoreWebView2Environment.CreateAsync(
-                    browserExecutableFolder: NormalizePath(_preparedEnvironmentOptions!.BrowserExecutableFolder),
-                    userDataFolder: NormalizePath(_preparedEnvironmentOptions.UserDataFolder),
-                    options: CreateRuntimeEnvironmentOptions(_preparedEnvironmentOptions)).ConfigureAwait(true);
+                _environment = await CreateRuntimeEnvironmentAsync(_preparedEnvironmentOptions!)
+                    .ConfigureAwait(true);
             }
 
             if (_childWindowHandle == IntPtr.Zero)
@@ -1273,7 +1271,76 @@ public sealed class WindowsNativeWebViewBackend
             headers);
     }
 
-    private CoreWebView2EnvironmentOptions CreateRuntimeEnvironmentOptions(NativeWebViewEnvironmentOptions options)
+    internal static bool RequiresRuntimeEnvironmentOptions(NativeWebViewEnvironmentOptions? options)
+    {
+        if (options is null)
+        {
+            return false;
+        }
+
+        var browserArguments = NativeWebViewWindowsProxyArgumentsBuilder.Merge(
+            options.AdditionalBrowserArguments,
+            options.Proxy);
+
+        return !string.IsNullOrWhiteSpace(browserArguments) ||
+            options.AllowSingleSignOnUsingOSPrimaryAccount ||
+            !string.IsNullOrWhiteSpace(options.Language) ||
+            !string.IsNullOrWhiteSpace(options.TargetCompatibleBrowserVersion);
+    }
+
+    internal static bool ShouldRetryEnvironmentCreationWithoutOptions(
+        NativeWebViewEnvironmentOptions? options,
+        Exception exception)
+    {
+        ArgumentNullException.ThrowIfNull(exception);
+
+        return RequiresRuntimeEnvironmentOptions(options) &&
+            IsTransientEnvironmentCreationFailure(exception);
+    }
+
+    internal static bool IsTransientEnvironmentCreationFailure(Exception exception)
+    {
+        ArgumentNullException.ThrowIfNull(exception);
+
+        return exception is ArgumentException ||
+            exception is COMException { HResult: EInvalidArgHResult };
+    }
+
+    private static async Task<CoreWebView2Environment> CreateRuntimeEnvironmentAsync(NativeWebViewEnvironmentOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+
+        var browserExecutableFolder = NormalizePath(options.BrowserExecutableFolder);
+        var userDataFolder = NormalizePath(options.UserDataFolder);
+
+        if (!RequiresRuntimeEnvironmentOptions(options))
+        {
+            return await CoreWebView2Environment.CreateAsync(
+                    browserExecutableFolder: browserExecutableFolder,
+                    userDataFolder: userDataFolder,
+                    options: null)
+                .ConfigureAwait(true);
+        }
+
+        try
+        {
+            return await CoreWebView2Environment.CreateAsync(
+                    browserExecutableFolder: browserExecutableFolder,
+                    userDataFolder: userDataFolder,
+                    options: CreateRuntimeEnvironmentOptions(options))
+                .ConfigureAwait(true);
+        }
+        catch (Exception ex) when (ShouldRetryEnvironmentCreationWithoutOptions(options, ex))
+        {
+            return await CoreWebView2Environment.CreateAsync(
+                    browserExecutableFolder: browserExecutableFolder,
+                    userDataFolder: userDataFolder,
+                    options: null)
+                .ConfigureAwait(true);
+        }
+    }
+
+    private static CoreWebView2EnvironmentOptions CreateRuntimeEnvironmentOptions(NativeWebViewEnvironmentOptions options)
     {
         return new CoreWebView2EnvironmentOptions
         {

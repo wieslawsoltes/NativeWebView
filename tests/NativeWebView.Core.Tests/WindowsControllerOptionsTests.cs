@@ -7,6 +7,84 @@ namespace NativeWebView.Core.Tests;
 public sealed class WindowsControllerOptionsTests
 {
     [Fact]
+    public void RequiresRuntimeEnvironmentOptions_ReturnsFalse_ForNullOrDefaultOptions()
+    {
+        Assert.False(WindowsNativeWebViewBackend.RequiresRuntimeEnvironmentOptions(null));
+        Assert.False(WindowsNativeWebViewBackend.RequiresRuntimeEnvironmentOptions(new NativeWebViewEnvironmentOptions()));
+        Assert.False(WindowsNativeWebViewBackend.RequiresRuntimeEnvironmentOptions(new NativeWebViewEnvironmentOptions
+        {
+            AdditionalBrowserArguments = " ",
+            Language = string.Empty,
+            TargetCompatibleBrowserVersion = " ",
+            Proxy = new NativeWebViewProxyOptions(),
+        }));
+    }
+
+    [Fact]
+    public void RequiresRuntimeEnvironmentOptions_ReturnsTrue_WhenAnyEnvironmentOptionIsCustomized()
+    {
+        Assert.True(WindowsNativeWebViewBackend.RequiresRuntimeEnvironmentOptions(new NativeWebViewEnvironmentOptions
+        {
+            AdditionalBrowserArguments = "--disable-gpu",
+        }));
+
+        Assert.True(WindowsNativeWebViewBackend.RequiresRuntimeEnvironmentOptions(new NativeWebViewEnvironmentOptions
+        {
+            AllowSingleSignOnUsingOSPrimaryAccount = true,
+        }));
+
+        Assert.True(WindowsNativeWebViewBackend.RequiresRuntimeEnvironmentOptions(new NativeWebViewEnvironmentOptions
+        {
+            Language = "en-US",
+        }));
+
+        Assert.True(WindowsNativeWebViewBackend.RequiresRuntimeEnvironmentOptions(new NativeWebViewEnvironmentOptions
+        {
+            TargetCompatibleBrowserVersion = "120.0.0.0",
+        }));
+
+        Assert.True(WindowsNativeWebViewBackend.RequiresRuntimeEnvironmentOptions(new NativeWebViewEnvironmentOptions
+        {
+            Proxy = new NativeWebViewProxyOptions
+            {
+                Server = "http://127.0.0.1:8888",
+            },
+        }));
+    }
+
+    [Fact]
+    public void ShouldRetryEnvironmentCreationWithoutOptions_ReturnsTrue_ForInvalidEnvironmentOptionFailures()
+    {
+        var options = new NativeWebViewEnvironmentOptions
+        {
+            AdditionalBrowserArguments = "--disable-gpu",
+        };
+
+        Assert.True(WindowsNativeWebViewBackend.ShouldRetryEnvironmentCreationWithoutOptions(
+            options,
+            new ArgumentException("invalid options")));
+
+        Assert.True(WindowsNativeWebViewBackend.ShouldRetryEnvironmentCreationWithoutOptions(
+            options,
+            new COMException("invalid options", unchecked((int)0x80070057))));
+    }
+
+    [Fact]
+    public void ShouldRetryEnvironmentCreationWithoutOptions_ReturnsFalse_ForOtherFailuresOrDefaultOptions()
+    {
+        Assert.False(WindowsNativeWebViewBackend.ShouldRetryEnvironmentCreationWithoutOptions(
+            new NativeWebViewEnvironmentOptions(),
+            new ArgumentException("default options should not trigger retry")));
+
+        Assert.False(WindowsNativeWebViewBackend.ShouldRetryEnvironmentCreationWithoutOptions(
+            new NativeWebViewEnvironmentOptions
+            {
+                Language = "en-US",
+            },
+            new InvalidOperationException("different failure")));
+    }
+
+    [Fact]
     public void RequiresRuntimeControllerOptions_ReturnsFalse_ForNullOrDefaultOptions()
     {
         Assert.False(WindowsNativeWebViewBackend.RequiresRuntimeControllerOptions(null));
@@ -83,6 +161,23 @@ public sealed class WindowsControllerOptionsTests
     public void IsTransientControllerCreationFailure_ReturnsFalse_ForNonTransientFailures()
     {
         Assert.False(WindowsNativeWebViewBackend.IsTransientControllerCreationFailure(
+            new InvalidOperationException("runtime missing")));
+    }
+
+    [Fact]
+    public void IsTransientEnvironmentCreationFailure_ReturnsTrue_ForInvalidArgumentFailures()
+    {
+        Assert.True(WindowsNativeWebViewBackend.IsTransientEnvironmentCreationFailure(
+            new ArgumentException("invalid options")));
+
+        Assert.True(WindowsNativeWebViewBackend.IsTransientEnvironmentCreationFailure(
+            new COMException("invalid options", unchecked((int)0x80070057))));
+    }
+
+    [Fact]
+    public void IsTransientEnvironmentCreationFailure_ReturnsFalse_ForNonTransientFailures()
+    {
+        Assert.False(WindowsNativeWebViewBackend.IsTransientEnvironmentCreationFailure(
             new InvalidOperationException("runtime missing")));
     }
 
