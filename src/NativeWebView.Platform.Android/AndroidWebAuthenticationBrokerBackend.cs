@@ -113,7 +113,10 @@ public sealed class AndroidAuthenticationBrokerActivity : Activity
             return;
         }
 
-        _session.Attach(this);
+        var session = _session
+            ?? throw new InvalidOperationException("Android authentication session is unavailable.");
+
+        session.Attach(this);
 
         var root = new LinearLayout(this)
         {
@@ -130,7 +133,7 @@ public sealed class AndroidAuthenticationBrokerActivity : Activity
 
         var titleView = new TextView(this)
         {
-            Text = WebAuthenticationBrokerBackendSupport.CreateInteractiveTitle(_session.RequestUri, _session.Options),
+            Text = WebAuthenticationBrokerBackendSupport.CreateInteractiveTitle(session.RequestUri, session.Options),
             TextSize = 18,
         };
 
@@ -168,7 +171,7 @@ public sealed class AndroidAuthenticationBrokerActivity : Activity
         root.AddView(_webView);
 
         SetContentView(root);
-        _webView.LoadUrl(_session.RequestUri.AbsoluteUri);
+        _webView.LoadUrl(session.RequestUri.AbsoluteUri);
     }
 
     protected override void OnDestroy()
@@ -297,7 +300,13 @@ public sealed class AndroidAuthenticationBrokerActivity : Activity
                 return false;
             }
 
-            var popupWebView = new WebView(view.Context);
+            var popupContext = view.Context;
+            if (popupContext is null)
+            {
+                return false;
+            }
+
+            var popupWebView = new WebView(popupContext);
             popupWebView.SetWebViewClient(new PopupNavigationClient(owner, popupWebView));
             transport.WebView = popupWebView;
             resultMsg.SendToTarget();

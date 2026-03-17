@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>NativeWebView.Integration</AssemblyName>
+    <RootNamespace>NativeWebView.Integration</RootNamespace>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/NativeWebView/NativeWebView.csproj" />
+    <ProjectReference Include="../../src/NativeWebView.Dialog/NativeWebView.Dialog.csproj" />
+    <ProjectReference Include="../../src/NativeWebView.Auth/NativeWebView.Auth.csproj" />
+    <ProjectReference Include="../../src/NativeWebView.Core/NativeWebView.Core.csproj" />
+    <ProjectReference Include="../../src/NativeWebView.Interop/NativeWebView.Interop.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Assets/*.html" />
+  </ItemGroup>
+</Project>

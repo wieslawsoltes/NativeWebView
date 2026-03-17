@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>NativeWebView.Integration.Desktop</AssemblyName>
+    <RootNamespace>NativeWebView.Integration.Desktop</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Desktop" />
+    <PackageReference Include="Avalonia.Diagnostics">
+      <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
+      <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../NativeWebView.Integration/NativeWebView.Integration.csproj" />
+    <ProjectReference Include="../../src/NativeWebView.Platform.Windows/NativeWebView.Platform.Windows.csproj" />
+    <ProjectReference Include="../../src/NativeWebView.Platform.macOS/NativeWebView.Platform.macOS.csproj" />
+    <ProjectReference Include="../../src/NativeWebView.Platform.Linux/NativeWebView.Platform.Linux.csproj" />
+  </ItemGroup>
+</Project>

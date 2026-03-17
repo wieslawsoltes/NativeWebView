@@ -15,6 +15,15 @@ public sealed class WindowsNativeWebViewBackend
       INativeWebViewInstanceConfigurationTarget,
       INativeWebViewNativeControlAttachment
 {
+    private const int EInvalidArgHResult = unchecked((int)0x80070057);
+    internal const string ControllerOptionsFallbackOriginalExceptionDataKey =
+        "NativeWebView.Windows.ControllerOptionsFallbackOriginalException";
+    private static readonly TimeSpan[] ControllerCreationRetryDelays =
+    [
+        TimeSpan.FromMilliseconds(150),
+        TimeSpan.FromMilliseconds(350),
+        TimeSpan.FromMilliseconds(750),
+    ];
     private static readonly NativePlatformHandle PlaceholderPlatformHandle = new((nint)0x1001, "HWND");
     private static readonly NativePlatformHandle PlaceholderViewHandle = new((nint)0x1002, "ICoreWebView2");
     private static readonly NativePlatformHandle PlaceholderControllerHandle = new((nint)0x1003, "ICoreWebView2Controller");
@@ -831,10 +840,8 @@ public sealed class WindowsNativeWebViewBackend
 
             if (_environment is null)
             {
-                _environment = await CoreWebView2Environment.CreateAsync(
-                    browserExecutableFolder: NormalizePath(_preparedEnvironmentOptions!.BrowserExecutableFolder),
-                    userDataFolder: NormalizePath(_preparedEnvironmentOptions.UserDataFolder),
-                    options: CreateRuntimeEnvironmentOptions(_preparedEnvironmentOptions)).ConfigureAwait(true);
+                _environment = await CreateRuntimeEnvironmentAsync(_preparedEnvironmentOptions!)
+                    .ConfigureAwait(true);
             }
 
             if (_childWindowHandle == IntPtr.Zero)
@@ -842,21 +849,24 @@ public sealed class WindowsNativeWebViewBackend
                 throw new InvalidOperationException("Cannot initialize WebView2 without an attached child HWND.");
             }
 
-            var controllerOptions = CreateRuntimeControllerOptions(_environment, _preparedControllerOptions);
-            _controller = controllerOptions is null
-                ? await _environment.CreateCoreWebView2ControllerAsync(_childWindowHandle).ConfigureAwait(true)
-                : await _environment.CreateCoreWebView2ControllerAsync(_childWindowHandle, controllerOptions).ConfigureAwait(true);
+            _controller = await CreateRuntimeControllerAsync(
+                _environment,
+                _childWindowHandle,
+                _preparedControllerOptions,
+                cancellationToken).ConfigureAwait(true);
 
             _coreWebView = _controller.CoreWebView2;
             CaptureRuntimeHandles();
             AttachRuntimeEvents();
             ApplyRuntimeSettings();
             UpdateControllerBounds();
+            var requestedPendingNavigationUri = _pendingNavigationUri;
             SyncNavigationSnapshotFromRuntime();
+            _pendingNavigationUri = ResolveInitializationNavigationTarget(requestedPendingNavigationUri, _currentUrl);
 
-            if (_pendingNavigationUri is not null)
+            if (requestedPendingNavigationUri is not null)
             {
-                NavigateCore(_pendingNavigationUri);
+                NavigateCore(requestedPendingNavigationUri);
             }
 
             _isRuntimeInitialized = true;
@@ -1168,6 +1178,11 @@ public sealed class WindowsNativeWebViewBackend
         UpdateHistorySnapshot(_coreWebView.CanGoBack, _coreWebView.CanGoForward);
     }
 
+    internal static Uri? ResolveInitializationNavigationTarget(Uri? requestedPendingNavigationUri, Uri? runtimeCurrentUri)
+    {
+        return requestedPendingNavigationUri ?? runtimeCurrentUri;
+    }
+
     private void OnNavigationStarting(object? sender, CoreWebView2NavigationStartingEventArgs e)
     {
         var uri = TryCreateUri(e.Uri);
@@ -1263,7 +1278,76 @@ public sealed class WindowsNativeWebViewBackend
             headers);
     }
 
-    private CoreWebView2EnvironmentOptions CreateRuntimeEnvironmentOptions(NativeWebViewEnvironmentOptions options)
+    internal static bool RequiresRuntimeEnvironmentOptions(NativeWebViewEnvironmentOptions? options)
+    {
+        if (options is null)
+        {
+            return false;
+        }
+
+        var browserArguments = NativeWebViewWindowsProxyArgumentsBuilder.Merge(
+            options.AdditionalBrowserArguments,
+            options.Proxy);
+
+        return !string.IsNullOrWhiteSpace(browserArguments) ||
+            options.AllowSingleSignOnUsingOSPrimaryAccount ||
+            !string.IsNullOrWhiteSpace(options.Language) ||
+            !string.IsNullOrWhiteSpace(options.TargetCompatibleBrowserVersion);
+    }
+
+    internal static bool ShouldRetryEnvironmentCreationWithoutOptions(
+        NativeWebViewEnvironmentOptions? options,
+        Exception exception)
+    {
+        ArgumentNullException.ThrowIfNull(exception);
+
+        return RequiresRuntimeEnvironmentOptions(options) &&
+            IsTransientEnvironmentCreationFailure(exception);
+    }
+
+    internal static bool IsTransientEnvironmentCreationFailure(Exception exception)
+    {
+        ArgumentNullException.ThrowIfNull(exception);
+
+        return exception is ArgumentException ||
+            exception is COMException { HResult: EInvalidArgHResult };
+    }
+
+    private static async Task<CoreWebView2Environment> CreateRuntimeEnvironmentAsync(NativeWebViewEnvironmentOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+
+        var browserExecutableFolder = NormalizePath(options.BrowserExecutableFolder);
+        var userDataFolder = NormalizePath(options.UserDataFolder);
+
+        if (!RequiresRuntimeEnvironmentOptions(options))
+        {
+            return await CoreWebView2Environment.CreateAsync(
+                    browserExecutableFolder: browserExecutableFolder,
+                    userDataFolder: userDataFolder,
+                    options: null)
+                .ConfigureAwait(true);
+        }
+
+        try
+        {
+            return await CoreWebView2Environment.CreateAsync(
+                    browserExecutableFolder: browserExecutableFolder,
+                    userDataFolder: userDataFolder,
+                    options: CreateRuntimeEnvironmentOptions(options))
+                .ConfigureAwait(true);
+        }
+        catch (Exception ex) when (ShouldRetryEnvironmentCreationWithoutOptions(options, ex))
+        {
+            return await CoreWebView2Environment.CreateAsync(
+                    browserExecutableFolder: browserExecutableFolder,
+                    userDataFolder: userDataFolder,
+                    options: null)
+                .ConfigureAwait(true);
+        }
+    }
+
+    private static CoreWebView2EnvironmentOptions CreateRuntimeEnvironmentOptions(NativeWebViewEnvironmentOptions options)
     {
         return new CoreWebView2EnvironmentOptions
         {
@@ -1276,13 +1360,102 @@ public sealed class WindowsNativeWebViewBackend
         };
     }
 
-    private static CoreWebView2ControllerOptions? CreateRuntimeControllerOptions(
-        CoreWebView2Environment environment,
-        NativeWebViewControllerOptions? options)
+    internal static bool RequiresRuntimeControllerOptions(NativeWebViewControllerOptions? options)
     {
-        if (options is null)
+        return options is not null &&
+            (!string.IsNullOrWhiteSpace(options.ProfileName) ||
+             options.IsInPrivateModeEnabled ||
+             !string.IsNullOrWhiteSpace(options.ScriptLocale));
+    }
+
+    internal static bool ShouldRetryControllerCreationWithoutOptions(
+        NativeWebViewControllerOptions? options,
+        Exception exception)
+    {
+        ArgumentNullException.ThrowIfNull(exception);
+
+        return RequiresRuntimeControllerOptions(options) &&
+            IsTransientControllerCreationFailure(exception);
+    }
+
+    internal static bool IsTransientControllerCreationFailure(Exception exception)
+    {
+        ArgumentNullException.ThrowIfNull(exception);
+
+        return exception is ArgumentException ||
+            exception is COMException { HResult: EInvalidArgHResult };
+    }
+
+    private static async Task<CoreWebView2Controller> CreateRuntimeControllerAsync(
+        CoreWebView2Environment environment,
+        IntPtr childWindowHandle,
+        NativeWebViewControllerOptions? options,
+        CancellationToken cancellationToken)
+    {
+        if (!RequiresRuntimeControllerOptions(options))
         {
-            return null;
+            return await CreateRuntimeControllerWithRetryAsync(
+                    () => environment.CreateCoreWebView2ControllerAsync(childWindowHandle),
+                    cancellationToken)
+                .ConfigureAwait(true);
+        }
+
+        try
+        {
+            var controllerOptions = CreateRuntimeControllerOptions(environment, options!);
+            return await CreateRuntimeControllerWithRetryAsync(
+                    () => environment.CreateCoreWebView2ControllerAsync(childWindowHandle, controllerOptions),
+                    cancellationToken)
+                .ConfigureAwait(true);
+        }
+        catch (Exception ex) when (ShouldRetryControllerCreationWithoutOptions(options, ex))
+        {
+            try
+            {
+                return await CreateRuntimeControllerWithRetryAsync(
+                        () => environment.CreateCoreWebView2ControllerAsync(childWindowHandle),
+                        cancellationToken)
+                    .ConfigureAwait(true);
+            }
+            catch (Exception retryException)
+            {
+                AttachControllerOptionsFallbackExceptionContext(retryException, ex);
+                throw;
+            }
+        }
+    }
+
+    private static async Task<CoreWebView2Controller> CreateRuntimeControllerWithRetryAsync(
+        Func<Task<CoreWebView2Controller>> createAsync,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(createAsync);
+
+        for (var attempt = 0; ; attempt++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            try
+            {
+                return await createAsync().ConfigureAwait(true);
+            }
+            catch (Exception ex) when (IsTransientControllerCreationFailure(ex) &&
+                                       attempt < ControllerCreationRetryDelays.Length)
+            {
+                await Task.Delay(ControllerCreationRetryDelays[attempt], cancellationToken).ConfigureAwait(true);
+            }
+        }
+    }
+
+    private static CoreWebView2ControllerOptions CreateRuntimeControllerOptions(
+        CoreWebView2Environment environment,
+        NativeWebViewControllerOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+
+        if (!RequiresRuntimeControllerOptions(options))
+        {
+            throw new InvalidOperationException("Runtime controller options were requested without any customized values.");
         }
 
         var controllerOptions = environment.CreateCoreWebView2ControllerOptions();
@@ -1300,6 +1473,19 @@ public sealed class WindowsNativeWebViewBackend
         }
 
         return controllerOptions;
+    }
+
+    internal static void AttachControllerOptionsFallbackExceptionContext(
+        Exception fallbackException,
+        Exception originalException)
+    {
+        ArgumentNullException.ThrowIfNull(fallbackException);
+        ArgumentNullException.ThrowIfNull(originalException);
+
+        if (!fallbackException.Data.Contains(ControllerOptionsFallbackOriginalExceptionDataKey))
+        {
+            fallbackException.Data[ControllerOptionsFallbackOriginalExceptionDataKey] = originalException;
+        }
     }
 
     private CoreWebView2PrintSettings? CreatePrintSettings(NativeWebViewPrintSettings? settings)

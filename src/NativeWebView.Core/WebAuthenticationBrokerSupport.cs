@@ -1,5 +1,7 @@
 namespace NativeWebView.Core;
 
+using System.Text.Json;
+
 internal static class WebAuthenticationBrokerBackendSupport
 {
     public const int NotImplementedError = unchecked((int)0x80004001);
@@ -147,13 +149,16 @@ internal static class WebAuthenticationBrokerBackendSupport
         {
             _ = sender;
 
-            if (!IsCallbackUri(e.Uri, callbackUri))
+            if (TryCompleteFromCallbackUri(e.Uri))
             {
-                return;
+                e.Cancel = true;
             }
+        }
 
-            e.Cancel = true;
-            TryComplete(WebAuthenticationResult.Success(ToResponseData(e.Uri!)), closeDialog: true);
+        void OnNavigationCompleted(object? sender, NativeWebViewNavigationCompletedEventArgs e)
+        {
+            _ = sender;
+            TryCompleteFromCallbackUri(e.Uri);
         }
 
         void OnNewWindowRequested(object? sender, NativeWebViewNewWindowRequestedEventArgs e)
@@ -184,8 +189,20 @@ internal static class WebAuthenticationBrokerBackendSupport
             }
         }
 
+        bool TryCompleteFromCallbackUri(Uri? uri)
+        {
+            if (!IsCallbackUri(uri, callbackUri))
+            {
+                return false;
+            }
+
+            TryComplete(WebAuthenticationResult.Success(ToResponseData(uri!)), closeDialog: true);
+            return true;
+        }
+
         dialogBackend.Closed += OnClosed;
         dialogBackend.NavigationStarted += OnNavigationStarted;
+        dialogBackend.NavigationCompleted += OnNavigationCompleted;
         dialogBackend.NewWindowRequested += OnNewWindowRequested;
 
         using var cancellationRegistration = cancellationToken.Register(static state =>
@@ -203,10 +220,17 @@ internal static class WebAuthenticationBrokerBackendSupport
                 CenterOnParent = true,
             });
 
-            // Force runtime initialization to complete or fail before the auth flow waits on navigation events.
-            await dialogBackend.ExecuteScriptAsync("void 0", cancellationToken).ConfigureAwait(false);
+            var callbackObserverTask = ObserveCallbackUriAsync(
+                dialogBackend,
+                callbackUri,
+                TryCompleteFromCallbackUri,
+                () => Volatile.Read(ref completionState) != 0,
+                cancellationToken);
+
             dialogBackend.Navigate(requestUri);
-            return await completion.Task.ConfigureAwait(false);
+            var result = await completion.Task.ConfigureAwait(true);
+            await callbackObserverTask.ConfigureAwait(true);
+            return result;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -220,6 +244,7 @@ internal static class WebAuthenticationBrokerBackendSupport
         {
             dialogBackend.Closed -= OnClosed;
             dialogBackend.NavigationStarted -= OnNavigationStarted;
+            dialogBackend.NavigationCompleted -= OnNavigationCompleted;
             dialogBackend.NewWindowRequested -= OnNewWindowRequested;
             dialogBackend.Dispose();
         }
@@ -229,5 +254,69 @@ internal static class WebAuthenticationBrokerBackendSupport
     {
         ArgumentNullException.ThrowIfNull(uri);
         return uri.IsAbsoluteUri ? uri.AbsoluteUri : uri.ToString();
+    }
+
+    private static async Task ObserveCallbackUriAsync(
+        INativeWebDialogBackend dialogBackend,
+        Uri callbackUri,
+        Func<Uri?, bool> tryCompleteFromUri,
+        Func<bool> isCompleted,
+        CancellationToken cancellationToken)
+    {
+        while (!isCompleted())
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (tryCompleteFromUri(dialogBackend.CurrentUrl))
+            {
+                return;
+            }
+
+            try
+            {
+                var location = await dialogBackend.ExecuteScriptAsync("window.location.href", cancellationToken).ConfigureAwait(true);
+                if (Uri.TryCreate(ParseScriptString(location), UriKind.Absolute, out var currentUri))
+                {
+                    if (tryCompleteFromUri(currentUri))
+                    {
+                        return;
+                    }
+                }
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch
+            {
+                // The dialog runtime may not be script-ready yet. Continue observing navigation.
+            }
+
+            await Task.Delay(TimeSpan.FromMilliseconds(200), cancellationToken).ConfigureAwait(true);
+        }
+    }
+
+    private static string? ParseScriptString(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return value;
+        }
+
+        var trimmed = value.Trim();
+
+        try
+        {
+            using var document = JsonDocument.Parse(trimmed);
+            if (document.RootElement.ValueKind == JsonValueKind.String)
+            {
+                return document.RootElement.GetString();
+            }
+        }
+        catch (JsonException)
+        {
+        }
+
+        return trimmed;
     }
 }

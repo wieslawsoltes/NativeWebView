@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-ios17.0</TargetFramework>
+    <SupportedOSPlatformVersion>13.0</SupportedOSPlatformVersion>
+    <AssemblyName>NativeWebView.Integration.iOS</AssemblyName>
+    <RootNamespace>NativeWebView.Integration.iOS</RootNamespace>
+    <ApplicationId>com.wieslawsoltes.nativewebview.integration.ios</ApplicationId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.iOS" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../NativeWebView.Integration/NativeWebView.Integration.csproj" />
+    <ProjectReference Include="../../src/NativeWebView.Platform.iOS/NativeWebView.Platform.iOS.csproj" />
+  </ItemGroup>
+</Project>

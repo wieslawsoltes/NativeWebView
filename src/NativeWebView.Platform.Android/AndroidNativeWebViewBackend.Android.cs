@@ -773,10 +773,8 @@ public sealed class AndroidNativeWebViewBackend
 
     private void InitializeRuntimeOnMainThread()
     {
-        if (_containerView is null)
-        {
-            throw new InvalidOperationException("Runtime initialization requires an attached Android host view.");
-        }
+        var containerView = _containerView
+            ?? throw new InvalidOperationException("Runtime initialization requires an attached Android host view.");
 
         if (_webView is not null)
         {
@@ -791,7 +789,10 @@ public sealed class AndroidNativeWebViewBackend
         _webViewClient = new AndroidNavigationClient(this);
         _webChromeClient = new AndroidChromeClient(this);
 
-        _webView = new WebView(_containerView.Context)
+        var containerContext = containerView.Context
+            ?? throw new InvalidOperationException("Runtime initialization requires an Android host view context.");
+
+        _webView = new WebView(containerContext)
         {
             LayoutParameters = new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MatchParent,
@@ -816,7 +817,7 @@ public sealed class AndroidNativeWebViewBackend
         settings.AllowFileAccess = true;
 
         _defaultUserAgentString = settings.UserAgentString;
-        _containerView.AddView(_webView);
+        containerView.AddView(_webView);
 
         ApplyZoomControlModeOnMainThread();
         ApplyContextMenuModeOnMainThread();
@@ -842,9 +843,11 @@ public sealed class AndroidNativeWebViewBackend
             ?? throw new InvalidOperationException("Failed to resolve the Android parent view handle.");
         var parentGroup = parentView as ViewGroup
             ?? throw new InvalidOperationException("Android native control attachment requires a ViewGroup parent handle.");
+        var parentContext = parentView.Context
+            ?? throw new InvalidOperationException("Android native control attachment requires a parent view context.");
 
         _parentView = parentView;
-        _containerView = new FrameLayout(parentView.Context)
+        _containerView = new FrameLayout(parentContext)
         {
             LayoutParameters = new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MatchParent,
@@ -1252,7 +1255,7 @@ public sealed class AndroidNativeWebViewBackend
             : uri.ToString();
     }
 
-    private Uri? CreateUri(Android.Net.Uri? uri)
+    private Uri? CreateUri(global::Android.Net.Uri? uri)
     {
         return CreateUri(uri?.ToString());
     }
@@ -1552,7 +1555,13 @@ public sealed class AndroidNativeWebViewBackend
                 return false;
             }
 
-            var popupWebView = new WebView(view.Context);
+            var popupContext = view.Context;
+            if (popupContext is null)
+            {
+                return false;
+            }
+
+            var popupWebView = new WebView(popupContext);
             popupWebView.SetWebViewClient(new PopupNavigationClient(owner, popupWebView));
             transport.WebView = popupWebView;
             resultMsg.SendToTarget();

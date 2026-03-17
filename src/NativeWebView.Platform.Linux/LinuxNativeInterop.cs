@@ -654,12 +654,9 @@ internal static class LinuxNativeInterop
             throw new InvalidOperationException("Unable to resolve the X11 display for Linux native attachment.");
         }
 
-        var reparentResult = XReparentWindow(xDisplay, childWindow, parentWindow, 0, 0);
-        if (reparentResult != 0)
-        {
-            throw new InvalidOperationException($"Unable to parent Linux host window to X11 parent (XReparentWindow returned {reparentResult}).");
-        }
-
+        // XReparentWindow reports protocol errors asynchronously; its immediate int return is not a
+        // Win32-style success code and must not be treated as a failure signal.
+        _ = XReparentWindow(xDisplay, childWindow, parentWindow, 0, 0);
         _ = XMapWindow(xDisplay, childWindow);
         _ = XFlush(xDisplay);
     }

@@ -67,6 +67,102 @@ public sealed class WebAuthenticationBrokerSupportTests
     }
 
     [Fact]
+    public async Task AuthenticateWithDialogAsync_CompletesFromCallbackNavigationCompleted_AndClosesDialog()
+    {
+        var callback = new Uri("https://example.com/callback?code=123#state=seed");
+        var backend = new TestDialogBackend((dialog, requestUri) =>
+        {
+            _ = requestUri;
+            dialog.RaiseNavigationCompleted(callback);
+        });
+
+        var result = await WebAuthenticationBrokerBackendSupport.AuthenticateWithDialogAsync(
+            backend,
+            new Uri("https://example.com/auth"),
+            callback,
+            WebAuthenticationOptions.UseTitle);
+
+        Assert.Equal(WebAuthenticationStatus.Success, result.ResponseStatus);
+        Assert.Equal(callback.AbsoluteUri, result.ResponseData);
+        Assert.True(backend.ShowCalled);
+        Assert.True(backend.CloseCalled);
+        Assert.True(backend.DisposeCalled);
+    }
+
+    [Fact]
+    public async Task AuthenticateWithDialogAsync_CompletesFromScriptObservedCallback_WhenNavigationEventsAreMissing()
+    {
+        var callback = new Uri("https://example.com/callback?code=123#state=seed");
+        TestDialogBackend? backend = null;
+        backend = new TestDialogBackend(
+            navigateHandler: (dialog, requestUri) =>
+            {
+                _ = requestUri;
+                dialog.CurrentUrl = callback;
+            },
+            executeScriptHandler: (script, cancellationToken) =>
+            {
+                _ = script;
+                cancellationToken.ThrowIfCancellationRequested();
+                return Task.FromResult<string?>(
+                    backend!.CurrentUrl is not null && WebAuthenticationBrokerBackendSupport.IsCallbackUri(backend.CurrentUrl, callback)
+                        ? $"\"{callback.AbsoluteUri}\""
+                        : "\"https://example.com/auth\"");
+            });
+
+        var result = await WebAuthenticationBrokerBackendSupport.AuthenticateWithDialogAsync(
+            backend,
+            new Uri("https://example.com/auth"),
+            callback,
+            WebAuthenticationOptions.UseTitle);
+
+        Assert.Equal(WebAuthenticationStatus.Success, result.ResponseStatus);
+        Assert.Equal(callback.AbsoluteUri, result.ResponseData);
+        Assert.True(backend.ShowCalled);
+        Assert.True(backend.CloseCalled);
+        Assert.True(backend.DisposeCalled);
+    }
+
+    [Fact]
+    public async Task AuthenticateWithDialogAsync_DoesNotProbeScriptBeforeShowingDialog()
+    {
+        var callback = new Uri("https://example.com/callback?code=123#state=seed");
+        var probedBeforeShow = false;
+        TestDialogBackend? backend = null;
+        backend = new TestDialogBackend(
+            navigateHandler: (dialog, requestUri) =>
+            {
+                _ = requestUri;
+                dialog.CurrentUrl = callback;
+            },
+            executeScriptHandler: (script, cancellationToken) =>
+            {
+                _ = script;
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (!backend!.ShowCalled)
+                {
+                    probedBeforeShow = true;
+                }
+
+                var currentUrl = backend.CurrentUrl?.AbsoluteUri ?? "about:blank";
+                return Task.FromResult<string?>($"\"{currentUrl}\"");
+            });
+
+        var result = await WebAuthenticationBrokerBackendSupport.AuthenticateWithDialogAsync(
+            backend,
+            new Uri("https://example.com/auth"),
+            callback,
+            WebAuthenticationOptions.UseTitle);
+
+        Assert.Equal(WebAuthenticationStatus.Success, result.ResponseStatus);
+        Assert.False(probedBeforeShow);
+        Assert.True(backend.ShowCalled);
+        Assert.True(backend.CloseCalled);
+        Assert.True(backend.DisposeCalled);
+    }
+
+    [Fact]
     public async Task AuthenticateWithDialogAsync_ReturnsUserCancel_WhenDialogClosesBeforeCallback()
     {
         var backend = new TestDialogBackend((dialog, requestUri) =>
@@ -89,7 +185,7 @@ public sealed class WebAuthenticationBrokerSupportTests
     public async Task AuthenticateWithDialogAsync_ReturnsRuntimeUnavailable_WhenDialogInitializationFails()
     {
         var backend = new TestDialogBackend(
-            executeScriptHandler: static (_, _) => throw new InvalidOperationException("init failed"));
+            navigateHandler: static (_, _) => throw new InvalidOperationException("init failed"));
 
         var result = await WebAuthenticationBrokerBackendSupport.AuthenticateWithDialogAsync(
             backend,
@@ -182,7 +278,7 @@ public sealed class WebAuthenticationBrokerSupportTests
 
         public bool IsVisible { get; private set; }
 
-        public Uri? CurrentUrl { get; private set; }
+        public Uri? CurrentUrl { get; set; }
 
         public bool CanGoBack => false;
 
@@ -355,6 +451,11 @@ public sealed class WebAuthenticationBrokerSupportTests
         {
             var args = new NativeWebViewNavigationStartedEventArgs(uri, isRedirected: false);
             NavigationStarted?.Invoke(this, args);
+        }
+
+        public void RaiseNavigationCompleted(Uri uri)
+        {
+            NavigationCompleted?.Invoke(this, new NativeWebViewNavigationCompletedEventArgs(uri, isSuccess: true, httpStatusCode: 200));
         }
     }
 }

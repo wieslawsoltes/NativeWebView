@@ -45,7 +45,7 @@ function Get-AvailablePort {
     }
 }
 
-dotnet tool restore
+$lunetDll = & (Join-Path $PSScriptRoot 'scripts/ensure-lunet.ps1')
 Clear-ServeDocsOutputs
 Push-Location site
 try {
@@ -60,16 +60,16 @@ try {
         $pythonArgs = @('-3', '-m', 'http.server', $port, '--bind', $hostAddress)
     } else {
         Write-Warning "Python runtime not found (python3/python/py). Falling back to 'lunet serve'."
-        dotnet tool run lunet --stacktrace serve
+        & dotnet $lunetDll --stacktrace serve
         return
     }
 
     $port = Get-AvailablePort -HostAddress $hostAddress -StartPort ([int]$port)
 
-    dotnet tool run lunet --stacktrace build --dev
+    & dotnet $lunetDll --stacktrace build --dev
 
     $watcher = Start-Process -FilePath 'dotnet' `
-        -ArgumentList @('tool', 'run', 'lunet', '--stacktrace', 'build', '--dev', '--watch') `
+        -ArgumentList @($lunetDll, '--stacktrace', 'build', '--dev', '--watch') `
         -NoNewWindow `
         -PassThru
 

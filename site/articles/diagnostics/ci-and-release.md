@@ -41,7 +41,7 @@ Workflow: `.github/workflows/docs.yml`
 
 Stages:
 
-1. Restore local dotnet tools.
+1. Bootstrap the pinned Lunet package from NuGet.
 2. Build the Lunet site via `./build-docs.sh`.
 3. Publish `site/.lunet/build/www` to GitHub Pages.
 

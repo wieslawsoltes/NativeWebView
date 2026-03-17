@@ -38,20 +38,21 @@ if ! command -v "$python_bin" >/dev/null 2>&1 && [[ ! -x "$python_bin" ]]; then
   exit 1
 fi
 
-dotnet tool restore
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+lunet_dll="$("${repo_root}/scripts/ensure-lunet.sh")"
 (
-  cd site
-  dotnet tool run lunet --stacktrace build --dev
+  cd "${repo_root}/site"
+  dotnet "${lunet_dll}" --stacktrace build --dev
 )
 
 export NATIVEWEBVIEW_DOCS_PYTHON_BIN="$python_bin"
 
-npm ci --prefix tests/NativeWebView.Playwright
+npm ci --prefix "${repo_root}/tests/NativeWebView.Playwright"
 if [[ "$install_browsers" == "true" ]]; then
   if [[ "$(uname -s)" == "Linux" ]]; then
-    npx --prefix tests/NativeWebView.Playwright playwright install --with-deps chromium
+    npx --prefix "${repo_root}/tests/NativeWebView.Playwright" playwright install --with-deps chromium
   else
-    npx --prefix tests/NativeWebView.Playwright playwright install chromium
+    npx --prefix "${repo_root}/tests/NativeWebView.Playwright" playwright install chromium
   fi
 fi
-npm --prefix tests/NativeWebView.Playwright test
+npm --prefix "${repo_root}/tests/NativeWebView.Playwright" test

@@ -1,0 +1,2 @@
+[Fixed] Hardened the Windows WebView2 backend so it only requests controller options when they are explicitly customized and automatically retries controller creation without those options when WebView2 returns an invalid-argument failure.
+[Fixed] Added a Windows application manifest to the desktop sample so Avalonia `NativeControlHost` can create its child host window on supported Windows systems.

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NativeWebView Integration Bridge</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: #f8fafc;
+      color: #0f172a;
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+    }
+
+    main {
+      width: min(100%, 56rem);
+      padding: 2rem;
+      box-sizing: border-box;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: #e2e8f0;
+      padding: 1rem;
+      border-radius: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1>NativeWebView Integration Bridge</h1>
+  <p>This page is loaded by the platform integration harness.</p>
+  <pre id="state"></pre>
+</main>
+<script>
+  (() => {
+    const params = new URLSearchParams(window.location.search);
+    const kind = params.get("kind") || "webview";
+    const state = {
+      kind,
+      pageReady: false,
+      nativeMessageCount: 0,
+      lastNativeMessage: null,
+      location: window.location.href
+    };
+
+    window.__nativeWebViewIntegrationState = state;
+
+    const stateElement = document.getElementById("state");
+    const renderState = () => {
+      if (stateElement) {
+        stateElement.textContent = JSON.stringify(state, null, 2);
+      }
+    };
+
+    const bridge = window.chrome && window.chrome.webview;
+    if (bridge && typeof bridge.addEventListener === "function") {
+      bridge.addEventListener("message", (event) => {
+        state.nativeMessageCount += 1;
+        state.lastNativeMessage = typeof event.data === "string"
+          ? event.data
+          : JSON.stringify(event.data);
+        renderState();
+      });
+    }
+
+    const markReady = () => {
+      state.pageReady = true;
+      state.location = window.location.href;
+      renderState();
+
+      if (bridge && typeof bridge.postMessage === "function") {
+        bridge.postMessage(`page-ready:${kind}`);
+      }
+    };
+
+    window.addEventListener("load", markReady, { once: true });
+    renderState();
+  })();
+</script>
+</body>
+</html>

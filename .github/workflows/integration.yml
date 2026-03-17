@@ -1,0 +1,223 @@
+name: Platform Integration
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: integration-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  NODE_VERSION: '20'
+  PYTHON_VERSION: '3.12'
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  CI: true
+
+jobs:
+  desktop-windows:
+    name: Desktop Integration (Windows)
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Build integration desktop head
+        run: dotnet build tests/NativeWebView.Integration.Desktop/NativeWebView.Integration.Desktop.csproj -c Release
+
+      - name: Run desktop integration
+        run: bash ./scripts/run-desktop-integration.sh --configuration Release --no-build
+
+      - name: Upload integration artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-windows
+          if-no-files-found: warn
+          path: artifacts/integration/
+
+  desktop-macos:
+    name: Desktop Integration (macOS)
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Build integration desktop head
+        run: dotnet build tests/NativeWebView.Integration.Desktop/NativeWebView.Integration.Desktop.csproj -c Release
+
+      - name: Run desktop integration
+        run: bash ./scripts/run-desktop-integration.sh --configuration Release --no-build
+
+      - name: Upload integration artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-macos
+          if-no-files-found: warn
+          path: artifacts/integration/
+
+  desktop-linux:
+    name: Desktop Integration (Linux)
+    runs-on: ubuntu-latest
+
+    env:
+      NATIVEWEBVIEW_WEBKITGTK_VERSION: 4.1
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install Linux runtime dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb libgtk-3-0 libwebkit2gtk-4.1-0
+
+      - name: Build integration desktop head
+        run: dotnet build tests/NativeWebView.Integration.Desktop/NativeWebView.Integration.Desktop.csproj -c Release
+
+      - name: Run desktop integration
+        run: xvfb-run --auto-servernum bash ./scripts/run-desktop-integration.sh --configuration Release --no-build
+
+      - name: Upload integration artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-linux
+          if-no-files-found: warn
+          path: artifacts/integration/
+
+  browser:
+    name: Browser Integration
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install WebAssembly workload
+        run: dotnet workload install wasm-tools
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: tests/NativeWebView.Playwright/package-lock.json
+
+      - name: Run browser integration
+        run: bash ./scripts/run-browser-integration.sh --configuration Release --python python3
+
+      - name: Upload browser artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-browser
+          if-no-files-found: warn
+          path: |
+            artifacts/integration/browser/
+            tests/NativeWebView.Playwright/playwright-report
+            tests/NativeWebView.Playwright/test-results
+
+  ios-simulator:
+    name: iOS Integration
+    if: ${{ vars.NATIVEWEBVIEW_ENABLE_MOBILE_INTEGRATION == 'true' }}
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install iOS workload
+        run: dotnet workload install ios
+
+      - name: Run iOS simulator integration
+        run: bash ./scripts/run-ios-simulator-integration.sh --configuration Release
+
+      - name: Upload iOS artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-ios
+          if-no-files-found: warn
+          path: |
+            artifacts/integration/ios/
+            ${{ env.HOME }}/Library/Logs/CoreSimulator/**
+
+  android-emulator:
+    name: Android Integration
+    if: ${{ vars.NATIVEWEBVIEW_ENABLE_MOBILE_INTEGRATION == 'true' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install Android workload
+        run: dotnet workload install android
+
+      - name: Run Android emulator integration
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          profile: pixel_6
+          script: bash ./scripts/run-android-emulator-integration.sh --configuration Release --logcat-output artifacts/integration/android/logcat.txt
+
+      - name: Upload Android artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-android
+          if-no-files-found: warn
+          path: artifacts/integration/android/

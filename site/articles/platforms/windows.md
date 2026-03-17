@@ -41,6 +41,10 @@ factory.UseNativeWebViewWindows();
 
 Use `NATIVEWEBVIEW_WEBVIEW2_RUNTIME_PATH` when you need an explicit runtime path override. If it is set, the path must exist.
 
+Windows apps that host `NativeWebView` through Avalonia `NativeControlHost` need an application manifest with supported OS declarations. The desktop sample now includes `app.manifest`; custom Windows hosts should ship the same kind of manifest to avoid the Avalonia child-window creation failure.
+
+When WebView2 rejects controller options with an invalid-argument failure, the Windows backend now retries controller creation without those options so initialization can still succeed on runtimes that do not accept the requested profile or locale settings.
+
 ## Proxy Notes
 
 - WebView2 can be configured via environment options and Chromium proxy arguments.

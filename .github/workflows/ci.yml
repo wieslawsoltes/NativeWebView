@@ -58,9 +58,6 @@ jobs:
             10.0.x
             8.0.x
 
-      - name: Restore local tools
-        run: dotnet tool restore
-
       - name: Build docs
         run: |
           chmod +x check-docs.sh

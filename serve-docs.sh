@@ -12,7 +12,7 @@ clean_docs_outputs() {
 }
 
 cd "${SCRIPT_DIR}"
-dotnet tool restore
+LUNET_DLL="$("${SCRIPT_DIR}/scripts/ensure-lunet.sh")"
 clean_docs_outputs
 cd site
 
@@ -22,7 +22,7 @@ elif command -v python >/dev/null 2>&1; then
     PYTHON_BIN="python"
 else
     echo "Python runtime not found (python3/python). Falling back to 'lunet serve'." >&2
-    dotnet tool run lunet --stacktrace serve
+    dotnet "${LUNET_DLL}" --stacktrace serve
     exit 0
 fi
 
@@ -53,9 +53,9 @@ PY
 
 PORT="$(find_available_port "$HOST" "$PORT")"
 
-dotnet tool run lunet --stacktrace build --dev
+dotnet "${LUNET_DLL}" --stacktrace build --dev
 
-dotnet tool run lunet --stacktrace build --dev --watch &
+dotnet "${LUNET_DLL}" --stacktrace build --dev --watch &
 LUNET_WATCH_PID=$!
 
 cleanup() {

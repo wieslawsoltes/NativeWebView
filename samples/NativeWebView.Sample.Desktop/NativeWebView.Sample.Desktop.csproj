@@ -4,6 +4,7 @@
     <AssemblyName>NativeWebView.Sample.Desktop</AssemblyName>
     <RootNamespace>NativeWebView.Sample.Desktop</RootNamespace>
     <IsPackable>false</IsPackable>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
 
