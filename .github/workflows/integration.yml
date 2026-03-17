@@ -156,6 +156,7 @@ jobs:
 
   ios-simulator:
     name: iOS Integration
+    if: ${{ vars.NATIVEWEBVIEW_ENABLE_MOBILE_INTEGRATION == 'true' }}
     runs-on: macos-latest
 
     steps:
@@ -190,6 +191,7 @@ jobs:
 
   android-emulator:
     name: Android Integration
+    if: ${{ vars.NATIVEWEBVIEW_ENABLE_MOBILE_INTEGRATION == 'true' }}
     runs-on: ubuntu-latest
 
     steps:
