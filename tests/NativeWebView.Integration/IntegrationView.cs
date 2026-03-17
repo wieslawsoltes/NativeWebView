@@ -432,10 +432,11 @@ internal sealed class IntegrationView : UserControl
             }
             else
             {
-                var location = await WaitForStringResultAsync(
+                var location = await WaitForUriResultAsync(
+                        () => dialog.CurrentUrl,
                         dialog.ExecuteScriptAsync,
                         "window.location.href",
-                        pages.DialogPageUri.AbsoluteUri,
+                        pages.DialogPageUri,
                         cancellationToken)
                     .ConfigureAwait(true);
 
@@ -684,6 +685,60 @@ internal sealed class IntegrationView : UserControl
         }
 
         throw new InvalidOperationException($"Timed out waiting for script value '{expectedValue}'.");
+    }
+
+    private static async Task<string> WaitForUriResultAsync(
+        Func<Uri?> currentUriProvider,
+        Func<string, CancellationToken, Task<string?>> executeScriptAsync,
+        string script,
+        Uri expectedValue,
+        CancellationToken cancellationToken,
+        int maxAttempts = 100)
+    {
+        Exception? lastException = null;
+        string? lastObservedValue = null;
+
+        for (var attempt = 0; attempt < maxAttempts; attempt++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var currentUri = currentUriProvider();
+            if (currentUri is not null && AreSameUri(currentUri, expectedValue))
+            {
+                return currentUri.AbsoluteUri;
+            }
+
+            try
+            {
+                var value = await EvaluateStringAsync(executeScriptAsync, script, cancellationToken).ConfigureAwait(true);
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    lastObservedValue = value;
+
+                    if (Uri.TryCreate(value, UriKind.Absolute, out var actualUri) &&
+                        actualUri is not null &&
+                        AreSameUri(actualUri, expectedValue))
+                    {
+                        return value;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                lastException = ex;
+            }
+
+            await Task.Delay(TimeSpan.FromMilliseconds(200), cancellationToken).ConfigureAwait(true);
+        }
+
+        if (lastException is not null)
+        {
+            throw lastException;
+        }
+
+        var observed = currentUriProvider()?.AbsoluteUri ?? lastObservedValue ?? "<null>";
+        throw new InvalidOperationException(
+            $"Timed out waiting for URI '{expectedValue.AbsoluteUri}'. Last observed value was '{observed}'.");
     }
 
     private static async Task WaitForBooleanResultAsync(
