@@ -189,7 +189,7 @@
 <li>Use <a href="/NativeWebView/articles/controls/nativewebdialog"><code>NativeWebDialog</code></a> when the browser should live in a separate desktop window on Windows, macOS, or Linux.</li>
 <li>Use <a href="/NativeWebView/articles/controls/webauthenticationbroker"><code>WebAuthenticationBroker</code></a> when the main goal is an auth callback flow. The repo now ships runtime implementations across Windows, macOS, Linux, iOS, Android, and Browser.</li>
 </ul>
-<p>Mobile and workload-specific note: the iOS and Android runtime paths come from their platform-targeted backend assemblies rather than the default <code>net8.0</code> contract build. Browser authentication is popup-based and does not provide <code>NativeWebDialog</code>.</p>
+<p>Mobile and workload-specific note: the iOS and Android runtime paths come from their platform-targeted backend assemblies rather than the default <code>net10.0</code> contract build. Browser authentication is popup-based and does not provide <code>NativeWebDialog</code>.</p>
 <p>Choose the render mode next:</p>
 <ul>
 <li><code>Embedded</code>: best native fidelity and input behavior.</li>

@@ -205,7 +205,7 @@
 <li><code>UseHttpPost</code> is currently unsupported on every runtime backend in this repo and returns <code>ErrorHttp</code>.</li>
 <li>Browser authentication requires popup support plus an inspectable <code>http</code> or <code>https</code> callback URL. Custom-scheme callbacks are not supported there.</li>
 <li>When a platform-specific interactive runtime cannot be launched on the current host or TFM, the broker returns <code>ErrorHttp</code> instead of reporting a false user cancel.</li>
-<li>Desktop runtimes use dedicated dialog-hosted sessions, while iOS and Android use workload-targeted modal or activity-hosted sessions rather than the default <code>net8.0</code> contract assemblies.</li>
+<li>Desktop runtimes use dedicated dialog-hosted sessions, while iOS and Android use workload-targeted modal or activity-hosted sessions rather than the default <code>net10.0</code> contract assemblies.</li>
 </ul>
 <p>Use <code>WebAuthenticationBroker</code> when you need a callback-driven auth session. Use <a href="/NativeWebView/articles/controls/nativewebdialog"><code>NativeWebDialog</code></a> instead when you need a general-purpose desktop browser window.</p>
 <h2 id="security-validation">Security Validation</h2>
