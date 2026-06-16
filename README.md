@@ -2,8 +2,8 @@
 
 Native webview stack for Avalonia that stays on top of platform-native engines instead of bundling Chromium.
 
-[![.NET 8](https://img.shields.io/badge/.NET-8-512BD4)](https://dotnet.microsoft.com)
-[![Avalonia](https://img.shields.io/badge/Avalonia-11.3-1f6feb)](https://avaloniaui.net)
+[![.NET SDK 10.0.200](https://img.shields.io/badge/.NET%20SDK-10.0.200-512BD4)](https://dotnet.microsoft.com)
+[![Avalonia](https://img.shields.io/badge/Avalonia-12.0.4-1f6feb)](https://avaloniaui.net)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ## NuGet Packages
@@ -12,19 +12,19 @@ End-user installs are typically `NativeWebView` plus the platform package for th
 
 ### Package Layout
 
-| Package | Purpose |
-| --- | --- |
-| `NativeWebView` | Avalonia control facade API. |
-| `NativeWebView.Core` | Shared contracts, controllers, feature model, and backend factory. |
-| `NativeWebView.Dialog` | Dialog facade API. |
-| `NativeWebView.Auth` | Web authentication broker facade API. |
-| `NativeWebView.Interop` | Native handle contracts and structs. |
-| `NativeWebView.Platform.Windows` | Windows backend registration and implementation. |
-| `NativeWebView.Platform.macOS` | macOS backend registration and implementation. |
-| `NativeWebView.Platform.Linux` | Linux backend registration and implementation. |
-| `NativeWebView.Platform.iOS` | iOS backend registration and implementation. |
-| `NativeWebView.Platform.Android` | Android backend registration and implementation. |
-| `NativeWebView.Platform.Browser` | Browser backend registration and implementation. |
+| Package | NuGet | Purpose |
+| --- | --- | --- |
+| `NativeWebView` | [![NuGet](https://img.shields.io/nuget/v/NativeWebView.svg)](https://www.nuget.org/packages/NativeWebView) | Avalonia control facade API. |
+| `NativeWebView.Core` | [![NuGet](https://img.shields.io/nuget/v/NativeWebView.Core.svg)](https://www.nuget.org/packages/NativeWebView.Core) | Shared contracts, controllers, feature model, and backend factory. |
+| `NativeWebView.Dialog` | [![NuGet](https://img.shields.io/nuget/v/NativeWebView.Dialog.svg)](https://www.nuget.org/packages/NativeWebView.Dialog) | Dialog facade API. |
+| `NativeWebView.Auth` | [![NuGet](https://img.shields.io/nuget/v/NativeWebView.Auth.svg)](https://www.nuget.org/packages/NativeWebView.Auth) | Web authentication broker facade API. |
+| `NativeWebView.Interop` | [![NuGet](https://img.shields.io/nuget/v/NativeWebView.Interop.svg)](https://www.nuget.org/packages/NativeWebView.Interop) | Native handle contracts and structs. |
+| `NativeWebView.Platform.Windows` | [![NuGet](https://img.shields.io/nuget/v/NativeWebView.Platform.Windows.svg)](https://www.nuget.org/packages/NativeWebView.Platform.Windows) | Windows backend registration and implementation. |
+| `NativeWebView.Platform.macOS` | [![NuGet](https://img.shields.io/nuget/v/NativeWebView.Platform.macOS.svg)](https://www.nuget.org/packages/NativeWebView.Platform.macOS) | macOS backend registration and implementation. |
+| `NativeWebView.Platform.Linux` | [![NuGet](https://img.shields.io/nuget/v/NativeWebView.Platform.Linux.svg)](https://www.nuget.org/packages/NativeWebView.Platform.Linux) | Linux backend registration and implementation. |
+| `NativeWebView.Platform.iOS` | [![NuGet](https://img.shields.io/nuget/v/NativeWebView.Platform.iOS.svg)](https://www.nuget.org/packages/NativeWebView.Platform.iOS) | iOS backend registration and implementation. |
+| `NativeWebView.Platform.Android` | [![NuGet](https://img.shields.io/nuget/v/NativeWebView.Platform.Android.svg)](https://www.nuget.org/packages/NativeWebView.Platform.Android) | Android backend registration and implementation. |
+| `NativeWebView.Platform.Browser` | [![NuGet](https://img.shields.io/nuget/v/NativeWebView.Platform.Browser.svg)](https://www.nuget.org/packages/NativeWebView.Platform.Browser) | Browser backend registration and implementation. |
 
 ## Features
 
