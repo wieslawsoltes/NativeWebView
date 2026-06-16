@@ -24,7 +24,13 @@
   </Window.Styles>
 
   <Grid RowDefinitions="Auto,Auto,*,220" ColumnDefinitions="2*,1*">
-    <Border Grid.Row="0" Grid.ColumnSpan="2" Padding="8" Background="#E8EEF9" BorderBrush="#CBD5E8" BorderThickness="0,0,0,1">
+    <Border
+        Grid.Row="0"
+        Grid.ColumnSpan="2"
+        Padding="8"
+        Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+        BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+        BorderThickness="0,0,0,1">
       <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,*,Auto,Auto">
         <Button x:Name="BackButton" Grid.Row="0" Grid.Column="0" Classes="toolbar" Click="BackButtonOnClick" ToolTip.Tip="Back">
           <fi:SymbolIcon Symbol="ArrowLeft" />
@@ -255,7 +261,7 @@
             Margin="6,8,0,0"
             FontSize="13"
             FontWeight="SemiBold"
-            Foreground="#314258" />
+            Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" />
       </Grid>
     </Border>
 
@@ -263,7 +269,7 @@
       <TabItem Header="WebView">
         <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
           <StackPanel Margin="8" Spacing="10">
-            <Border Padding="10" BorderBrush="#3D4650" BorderThickness="1" CornerRadius="6">
+            <Border Padding="10" BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" BorderThickness="1" CornerRadius="6">
               <StackPanel Spacing="8">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <TextBlock Width="70" VerticalAlignment="Center" Text="Script" />
@@ -295,7 +301,7 @@
               </StackPanel>
             </Border>
 
-            <Border Padding="10" BorderBrush="#3D4650" BorderThickness="1" CornerRadius="6">
+            <Border Padding="10" BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" BorderThickness="1" CornerRadius="6">
               <StackPanel Spacing="8">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <TextBlock Width="70" VerticalAlignment="Center" Text="Zoom" />
@@ -339,7 +345,7 @@
       <TabItem Header="Dialog">
         <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
           <StackPanel Margin="8" Spacing="10">
-            <Border Padding="10" BorderBrush="#3D4650" BorderThickness="1" CornerRadius="6">
+            <Border Padding="10" BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" BorderThickness="1" CornerRadius="6">
               <StackPanel Spacing="8">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <TextBlock Width="70" VerticalAlignment="Center" Text="URL" />
@@ -368,7 +374,7 @@
               </StackPanel>
             </Border>
 
-            <Border Padding="10" BorderBrush="#3D4650" BorderThickness="1" CornerRadius="6">
+            <Border Padding="10" BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" BorderThickness="1" CornerRadius="6">
               <StackPanel Spacing="8">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <TextBlock Width="70" VerticalAlignment="Center" Text="Move" />
@@ -403,7 +409,7 @@
 
       <TabItem Header="Auth">
         <StackPanel Margin="8" Spacing="10">
-          <Border Padding="10" BorderBrush="#3D4650" BorderThickness="1" CornerRadius="6">
+          <Border Padding="10" BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" BorderThickness="1" CornerRadius="6">
             <StackPanel Spacing="8">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <TextBlock Width="100" VerticalAlignment="Center" Text="Request URI" />
@@ -426,14 +432,14 @@
             </StackPanel>
           </Border>
 
-          <Border Padding="10" BorderBrush="#3D4650" BorderThickness="1" CornerRadius="6">
+          <Border Padding="10" BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" BorderThickness="1" CornerRadius="6">
             <TextBlock x:Name="AuthResultTextBlock" TextWrapping="Wrap" />
           </Border>
         </StackPanel>
       </TabItem>
     </TabControl>
 
-    <Border Grid.Row="2" Grid.Column="0" Margin="8" BorderBrush="#3D4650" BorderThickness="1" CornerRadius="4">
+    <Border Grid.Row="2" Grid.Column="0" Margin="8" BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" BorderThickness="1" CornerRadius="4">
       <Grid>
         <nwv:NativeWebView x:Name="WebViewControl" />
         <TextBlock
@@ -556,7 +562,7 @@
       </TabItem>
     </TabControl>
 
-    <Border Grid.Row="3" Grid.ColumnSpan="2" Margin="8" BorderBrush="#3D4650" BorderThickness="1" CornerRadius="4" Padding="8">
+    <Border Grid.Row="3" Grid.ColumnSpan="2" Margin="8" BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" BorderThickness="1" CornerRadius="4" Padding="8">
       <Grid RowDefinitions="Auto,*">
         <TextBlock FontWeight="Bold" Text="Event Log" />
         <TextBox
