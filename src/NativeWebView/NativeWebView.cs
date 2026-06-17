@@ -44,6 +44,7 @@ public class NativeWebView : NativeControlHost, IDisposable
 
     private MacOSNativeWebViewHost? _macOSHost;
     private readonly long _presenterId = Interlocked.Increment(ref s_nextPresenterId);
+    private bool _isDisposed;
     private DispatcherTimer? _framePump;
     private WriteableBitmap? _gpuSurfaceBitmap;
     private WriteableBitmap? _offscreenBitmap;
@@ -55,6 +56,22 @@ public class NativeWebView : NativeControlHost, IDisposable
     private bool _isMacOsCompositedPassthroughActive;
     private bool? _macOsCompositedPassthroughOverride;
     private string? _renderDiagnosticsMessage;
+    private EventHandler<CoreWebViewInitializedEventArgs>? _coreWebView2Initialized;
+    private EventHandler<NativeWebViewNavigationStartedEventArgs>? _navigationStarted;
+    private EventHandler<NativeWebViewNavigationCompletedEventArgs>? _navigationCompleted;
+    private EventHandler<NativeWebViewMessageReceivedEventArgs>? _webMessageReceived;
+    private EventHandler<NativeWebViewOpenDevToolsRequestedEventArgs>? _openDevToolsRequested;
+    private EventHandler<NativeWebViewDestroyRequestedEventArgs>? _destroyRequested;
+    private EventHandler<NativeWebViewRequestCustomChromeEventArgs>? _requestCustomChrome;
+    private EventHandler<NativeWebViewRequestParentWindowPositionEventArgs>? _requestParentWindowPosition;
+    private EventHandler<NativeWebViewBeginMoveDragEventArgs>? _beginMoveDrag;
+    private EventHandler<NativeWebViewBeginResizeDragEventArgs>? _beginResizeDrag;
+    private EventHandler<NativeWebViewNewWindowRequestedEventArgs>? _newWindowRequested;
+    private EventHandler<NativeWebViewResourceRequestedEventArgs>? _webResourceRequested;
+    private EventHandler<NativeWebViewContextMenuRequestedEventArgs>? _contextMenuRequested;
+    private EventHandler<NativeWebViewNavigationHistoryChangedEventArgs>? _navigationHistoryChanged;
+    private EventHandler<CoreWebViewEnvironmentRequestedEventArgs>? _coreWebView2EnvironmentRequested;
+    private EventHandler<CoreWebViewControllerOptionsRequestedEventArgs>? _coreWebView2ControllerOptionsRequested;
 
     public static readonly StyledProperty<NativeWebViewRenderMode> RenderModeProperty =
         AvaloniaProperty.Register<NativeWebView, NativeWebViewRenderMode>(nameof(RenderMode), NativeWebViewRenderMode.Embedded);
@@ -95,6 +112,7 @@ public class NativeWebView : NativeControlHost, IDisposable
         _macOSHost = _instance.MacOSHost;
         _controller.CoreWebView2EnvironmentRequested += OnCoreWebView2EnvironmentRequestedInternal;
         _controller.CoreWebView2ControllerOptionsRequested += OnCoreWebView2ControllerOptionsRequestedInternal;
+        AttachControllerEventForwarders();
         ApplyInstanceConfigurationToBackend();
     }
 
@@ -187,98 +205,98 @@ public class NativeWebView : NativeControlHost, IDisposable
 
     public event EventHandler<CoreWebViewInitializedEventArgs>? CoreWebView2Initialized
     {
-        add => _controller.CoreWebView2Initialized += value;
-        remove => _controller.CoreWebView2Initialized -= value;
+        add => _coreWebView2Initialized += value;
+        remove => _coreWebView2Initialized -= value;
     }
 
     public event EventHandler<NativeWebViewNavigationStartedEventArgs>? NavigationStarted
     {
-        add => _controller.NavigationStarted += value;
-        remove => _controller.NavigationStarted -= value;
+        add => _navigationStarted += value;
+        remove => _navigationStarted -= value;
     }
 
     public event EventHandler<NativeWebViewNavigationCompletedEventArgs>? NavigationCompleted
     {
-        add => _controller.NavigationCompleted += value;
-        remove => _controller.NavigationCompleted -= value;
+        add => _navigationCompleted += value;
+        remove => _navigationCompleted -= value;
     }
 
     public event EventHandler<NativeWebViewMessageReceivedEventArgs>? WebMessageReceived
     {
-        add => _controller.WebMessageReceived += value;
-        remove => _controller.WebMessageReceived -= value;
+        add => _webMessageReceived += value;
+        remove => _webMessageReceived -= value;
     }
 
     public event EventHandler<NativeWebViewOpenDevToolsRequestedEventArgs>? OpenDevToolsRequested
     {
-        add => _controller.OpenDevToolsRequested += value;
-        remove => _controller.OpenDevToolsRequested -= value;
+        add => _openDevToolsRequested += value;
+        remove => _openDevToolsRequested -= value;
     }
 
     public event EventHandler<NativeWebViewDestroyRequestedEventArgs>? DestroyRequested
     {
-        add => _controller.DestroyRequested += value;
-        remove => _controller.DestroyRequested -= value;
+        add => _destroyRequested += value;
+        remove => _destroyRequested -= value;
     }
 
     public event EventHandler<NativeWebViewRequestCustomChromeEventArgs>? RequestCustomChrome
     {
-        add => _controller.RequestCustomChrome += value;
-        remove => _controller.RequestCustomChrome -= value;
+        add => _requestCustomChrome += value;
+        remove => _requestCustomChrome -= value;
     }
 
     public event EventHandler<NativeWebViewRequestParentWindowPositionEventArgs>? RequestParentWindowPosition
     {
-        add => _controller.RequestParentWindowPosition += value;
-        remove => _controller.RequestParentWindowPosition -= value;
+        add => _requestParentWindowPosition += value;
+        remove => _requestParentWindowPosition -= value;
     }
 
     public event EventHandler<NativeWebViewBeginMoveDragEventArgs>? BeginMoveDrag
     {
-        add => _controller.BeginMoveDrag += value;
-        remove => _controller.BeginMoveDrag -= value;
+        add => _beginMoveDrag += value;
+        remove => _beginMoveDrag -= value;
     }
 
     public event EventHandler<NativeWebViewBeginResizeDragEventArgs>? BeginResizeDrag
     {
-        add => _controller.BeginResizeDrag += value;
-        remove => _controller.BeginResizeDrag -= value;
+        add => _beginResizeDrag += value;
+        remove => _beginResizeDrag -= value;
     }
 
     public event EventHandler<NativeWebViewNewWindowRequestedEventArgs>? NewWindowRequested
     {
-        add => _controller.NewWindowRequested += value;
-        remove => _controller.NewWindowRequested -= value;
+        add => _newWindowRequested += value;
+        remove => _newWindowRequested -= value;
     }
 
     public event EventHandler<NativeWebViewResourceRequestedEventArgs>? WebResourceRequested
     {
-        add => _controller.WebResourceRequested += value;
-        remove => _controller.WebResourceRequested -= value;
+        add => _webResourceRequested += value;
+        remove => _webResourceRequested -= value;
     }
 
     public event EventHandler<NativeWebViewContextMenuRequestedEventArgs>? ContextMenuRequested
     {
-        add => _controller.ContextMenuRequested += value;
-        remove => _controller.ContextMenuRequested -= value;
+        add => _contextMenuRequested += value;
+        remove => _contextMenuRequested -= value;
     }
 
     public event EventHandler<NativeWebViewNavigationHistoryChangedEventArgs>? NavigationHistoryChanged
     {
-        add => _controller.NavigationHistoryChanged += value;
-        remove => _controller.NavigationHistoryChanged -= value;
+        add => _navigationHistoryChanged += value;
+        remove => _navigationHistoryChanged -= value;
     }
 
     public event EventHandler<CoreWebViewEnvironmentRequestedEventArgs>? CoreWebView2EnvironmentRequested
     {
-        add => _controller.CoreWebView2EnvironmentRequested += value;
-        remove => _controller.CoreWebView2EnvironmentRequested -= value;
+        add => _coreWebView2EnvironmentRequested += value;
+        remove => _coreWebView2EnvironmentRequested -= value;
     }
 
     public event EventHandler<CoreWebViewControllerOptionsRequestedEventArgs>? CoreWebView2ControllerOptionsRequested
     {
-        add => _controller.CoreWebView2ControllerOptionsRequested += value;
-        remove => _controller.CoreWebView2ControllerOptionsRequested -= value;
+        add => _coreWebView2ControllerOptionsRequested += value;
+        remove => _coreWebView2ControllerOptionsRequested -= value;
     }
 
     public event EventHandler<NativeWebViewRenderFrameCapturedEventArgs>? RenderFrameCaptured;
@@ -347,6 +365,94 @@ public class NativeWebView : NativeControlHost, IDisposable
             _ = CaptureAndRenderFrameAsync();
         }
     }
+
+    private void AttachControllerEventForwarders()
+    {
+        _controller.CoreWebView2Initialized += ForwardCoreWebView2Initialized;
+        _controller.NavigationStarted += ForwardNavigationStarted;
+        _controller.NavigationCompleted += ForwardNavigationCompleted;
+        _controller.WebMessageReceived += ForwardWebMessageReceived;
+        _controller.OpenDevToolsRequested += ForwardOpenDevToolsRequested;
+        _controller.DestroyRequested += ForwardDestroyRequested;
+        _controller.RequestCustomChrome += ForwardRequestCustomChrome;
+        _controller.RequestParentWindowPosition += ForwardRequestParentWindowPosition;
+        _controller.BeginMoveDrag += ForwardBeginMoveDrag;
+        _controller.BeginResizeDrag += ForwardBeginResizeDrag;
+        _controller.NewWindowRequested += ForwardNewWindowRequested;
+        _controller.WebResourceRequested += ForwardWebResourceRequested;
+        _controller.ContextMenuRequested += ForwardContextMenuRequested;
+        _controller.NavigationHistoryChanged += ForwardNavigationHistoryChanged;
+        _controller.CoreWebView2EnvironmentRequested += ForwardCoreWebView2EnvironmentRequested;
+        _controller.CoreWebView2ControllerOptionsRequested += ForwardCoreWebView2ControllerOptionsRequested;
+    }
+
+    private void DetachControllerEventForwarders()
+    {
+        _controller.CoreWebView2Initialized -= ForwardCoreWebView2Initialized;
+        _controller.NavigationStarted -= ForwardNavigationStarted;
+        _controller.NavigationCompleted -= ForwardNavigationCompleted;
+        _controller.WebMessageReceived -= ForwardWebMessageReceived;
+        _controller.OpenDevToolsRequested -= ForwardOpenDevToolsRequested;
+        _controller.DestroyRequested -= ForwardDestroyRequested;
+        _controller.RequestCustomChrome -= ForwardRequestCustomChrome;
+        _controller.RequestParentWindowPosition -= ForwardRequestParentWindowPosition;
+        _controller.BeginMoveDrag -= ForwardBeginMoveDrag;
+        _controller.BeginResizeDrag -= ForwardBeginResizeDrag;
+        _controller.NewWindowRequested -= ForwardNewWindowRequested;
+        _controller.WebResourceRequested -= ForwardWebResourceRequested;
+        _controller.ContextMenuRequested -= ForwardContextMenuRequested;
+        _controller.NavigationHistoryChanged -= ForwardNavigationHistoryChanged;
+        _controller.CoreWebView2EnvironmentRequested -= ForwardCoreWebView2EnvironmentRequested;
+        _controller.CoreWebView2ControllerOptionsRequested -= ForwardCoreWebView2ControllerOptionsRequested;
+    }
+
+    private void ForwardCoreWebView2Initialized(object? sender, CoreWebViewInitializedEventArgs e) =>
+        _coreWebView2Initialized?.Invoke(sender, e);
+
+    private void ForwardNavigationStarted(object? sender, NativeWebViewNavigationStartedEventArgs e) =>
+        _navigationStarted?.Invoke(sender, e);
+
+    private void ForwardNavigationCompleted(object? sender, NativeWebViewNavigationCompletedEventArgs e) =>
+        _navigationCompleted?.Invoke(sender, e);
+
+    private void ForwardWebMessageReceived(object? sender, NativeWebViewMessageReceivedEventArgs e) =>
+        _webMessageReceived?.Invoke(sender, e);
+
+    private void ForwardOpenDevToolsRequested(object? sender, NativeWebViewOpenDevToolsRequestedEventArgs e) =>
+        _openDevToolsRequested?.Invoke(sender, e);
+
+    private void ForwardDestroyRequested(object? sender, NativeWebViewDestroyRequestedEventArgs e) =>
+        _destroyRequested?.Invoke(sender, e);
+
+    private void ForwardRequestCustomChrome(object? sender, NativeWebViewRequestCustomChromeEventArgs e) =>
+        _requestCustomChrome?.Invoke(sender, e);
+
+    private void ForwardRequestParentWindowPosition(object? sender, NativeWebViewRequestParentWindowPositionEventArgs e) =>
+        _requestParentWindowPosition?.Invoke(sender, e);
+
+    private void ForwardBeginMoveDrag(object? sender, NativeWebViewBeginMoveDragEventArgs e) =>
+        _beginMoveDrag?.Invoke(sender, e);
+
+    private void ForwardBeginResizeDrag(object? sender, NativeWebViewBeginResizeDragEventArgs e) =>
+        _beginResizeDrag?.Invoke(sender, e);
+
+    private void ForwardNewWindowRequested(object? sender, NativeWebViewNewWindowRequestedEventArgs e) =>
+        _newWindowRequested?.Invoke(sender, e);
+
+    private void ForwardWebResourceRequested(object? sender, NativeWebViewResourceRequestedEventArgs e) =>
+        _webResourceRequested?.Invoke(sender, e);
+
+    private void ForwardContextMenuRequested(object? sender, NativeWebViewContextMenuRequestedEventArgs e) =>
+        _contextMenuRequested?.Invoke(sender, e);
+
+    private void ForwardNavigationHistoryChanged(object? sender, NativeWebViewNavigationHistoryChangedEventArgs e) =>
+        _navigationHistoryChanged?.Invoke(sender, e);
+
+    private void ForwardCoreWebView2EnvironmentRequested(object? sender, CoreWebViewEnvironmentRequestedEventArgs e) =>
+        _coreWebView2EnvironmentRequested?.Invoke(sender, e);
+
+    private void ForwardCoreWebView2ControllerOptionsRequested(object? sender, CoreWebViewControllerOptionsRequestedEventArgs e) =>
+        _coreWebView2ControllerOptionsRequested?.Invoke(sender, e);
 
     public async Task<bool> SaveRenderFrameAsync(string outputPath, CancellationToken cancellationToken = default)
     {
@@ -811,9 +917,16 @@ public class NativeWebView : NativeControlHost, IDisposable
 
     public void Dispose()
     {
+        if (_isDisposed)
+        {
+            return;
+        }
+
+        _isDisposed = true;
         StopFramePump();
         DisposeRenderSurfaces();
 
+        DetachControllerEventForwarders();
         _controller.CoreWebView2EnvironmentRequested -= OnCoreWebView2EnvironmentRequestedInternal;
         _controller.CoreWebView2ControllerOptionsRequested -= OnCoreWebView2ControllerOptionsRequestedInternal;
 

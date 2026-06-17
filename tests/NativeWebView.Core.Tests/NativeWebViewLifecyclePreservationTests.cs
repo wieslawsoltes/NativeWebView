@@ -111,6 +111,27 @@ public sealed class NativeWebViewLifecyclePreservationTests
     }
 
     [Fact]
+    public void Dispose_PresenterWithExternalInstance_DetachesForwardedEventHandlers()
+    {
+        using var backend = new AttachmentFrameBackend();
+        using var instance = new NativeWebViewInstance(backend);
+        var disposedPresenterCallCount = 0;
+        var activePresenterCallCount = 0;
+
+        var disposedPresenter = new TestableNativeWebView(instance);
+        disposedPresenter.NavigationCompleted += (_, _) => disposedPresenterCallCount++;
+        disposedPresenter.Dispose();
+
+        using var activePresenter = new TestableNativeWebView(instance);
+        activePresenter.NavigationCompleted += (_, _) => activePresenterCallCount++;
+
+        backend.Navigate(new Uri("https://example.com/"));
+
+        Assert.Equal(0, disposedPresenterCallCount);
+        Assert.Equal(1, activePresenterCallCount);
+    }
+
+    [Fact]
     public void DestroyNativeControlCore_AfterExternalInstanceDispose_DoesNotThrow()
     {
         if (!OperatingSystem.IsWindows())
