@@ -10,7 +10,8 @@ public sealed class LinuxNativeWebViewBackend
       INativeWebViewFrameSource,
       INativeWebViewPlatformHandleProvider,
       INativeWebViewInstanceConfigurationTarget,
-      INativeWebViewNativeControlAttachment
+      INativeWebViewNativeControlAttachment,
+      INativeWebViewFaviconProvider
 {
     private static readonly NativePlatformHandle PlaceholderPlatformHandle = new(0x3001, "XID");
     private static readonly NativePlatformHandle PlaceholderViewHandle = new(0x3002, "WebKitWebView");
@@ -109,6 +110,8 @@ public sealed class LinuxNativeWebViewBackend
     private double _zoomFactor;
     private string? _headerString;
     private string? _userAgentString;
+    private Uri? _faviconUri;
+    private int _faviconRefreshVersion;
 
     public LinuxNativeWebViewBackend()
     {
@@ -213,6 +216,8 @@ public sealed class LinuxNativeWebViewBackend
     public event EventHandler<CoreWebViewEnvironmentRequestedEventArgs>? CoreWebView2EnvironmentRequested;
 
     public event EventHandler<CoreWebViewControllerOptionsRequestedEventArgs>? CoreWebView2ControllerOptionsRequested;
+
+    public event EventHandler<NativeWebViewFaviconChangedEventArgs>? FaviconChanged;
 
     public void ApplyInstanceConfiguration(NativeWebViewInstanceConfiguration configuration)
     {
@@ -417,6 +422,27 @@ public sealed class LinuxNativeWebViewBackend
 
         EnsureStubInitialized();
         return "null";
+    }
+
+    public async Task<NativeWebViewFavicon?> GetFaviconAsync(
+        NativeWebViewFaviconFormat format = NativeWebViewFaviconFormat.Original,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        EnsureNotDisposed();
+        EnsureFeature(NativeWebViewFeature.Favicon, nameof(GetFaviconAsync));
+
+        if (!ShouldUseRuntimePath())
+        {
+            return null;
+        }
+
+        await EnsureRuntimeInitializedAsync(cancellationToken).ConfigureAwait(false);
+        var faviconUri = await ResolveRuntimeFaviconUriAsync(cancellationToken).ConfigureAwait(false);
+        return await NativeWebViewFaviconSupport.DownloadFaviconAsync(
+            faviconUri,
+            format,
+            cancellationToken).ConfigureAwait(false);
     }
 
     public async Task PostWebMessageAsJsonAsync(string message, CancellationToken cancellationToken = default)
@@ -785,6 +811,7 @@ public sealed class LinuxNativeWebViewBackend
         }
 
         _disposed = true;
+        System.Threading.Interlocked.Increment(ref _faviconRefreshVersion);
         _preparedEnvironmentOptions = null;
         _preparedControllerOptions = null;
 
@@ -1309,11 +1336,51 @@ public sealed class LinuxNativeWebViewBackend
 
             case LinuxNativeInterop.WebKitLoadEvent.Finished:
                 SyncNavigationSnapshotFromRuntimeOnGtkThread();
+                var faviconRefreshVersion = System.Threading.Interlocked.Increment(ref _faviconRefreshVersion);
+                _ = RefreshRuntimeFaviconAsync(faviconRefreshVersion);
                 NavigationCompleted?.Invoke(
                     this,
                     new NativeWebViewNavigationCompletedEventArgs(_currentUrl, isSuccess: true, httpStatusCode: 200));
                 break;
         }
+    }
+
+    private async Task RefreshRuntimeFaviconAsync(int refreshVersion)
+    {
+        try
+        {
+            var previousUri = _faviconUri;
+            var faviconUri = await NativeWebViewFaviconSupport.ResolveDeclaredFaviconUriAsync(
+                ExecuteScriptAsync,
+                _currentUrl,
+                CancellationToken.None).ConfigureAwait(false);
+            if (_disposed || refreshVersion != System.Threading.Volatile.Read(ref _faviconRefreshVersion))
+            {
+                return;
+            }
+
+            if (AreSameUri(previousUri, faviconUri))
+            {
+                return;
+            }
+
+            _faviconUri = faviconUri;
+            FaviconChanged?.Invoke(this, new NativeWebViewFaviconChangedEventArgs(faviconUri));
+        }
+        catch
+        {
+            // Favicon discovery is best-effort and must not affect navigation.
+        }
+    }
+
+    private async Task<Uri?> ResolveRuntimeFaviconUriAsync(CancellationToken cancellationToken)
+    {
+        var faviconUri = await NativeWebViewFaviconSupport.ResolveDeclaredFaviconUriAsync(
+            ExecuteScriptAsync,
+            _currentUrl,
+            cancellationToken).ConfigureAwait(false);
+        _faviconUri = faviconUri;
+        return faviconUri;
     }
 
     private int OnLoadFailed(IntPtr webView, LinuxNativeInterop.WebKitLoadEvent loadEvent, IntPtr failingUri, IntPtr error, IntPtr userData)
@@ -1479,6 +1546,18 @@ public sealed class LinuxNativeWebViewBackend
         return Uri.TryCreate(uri, UriKind.RelativeOrAbsolute, out var parsed)
             ? parsed
             : null;
+    }
+
+    private static bool AreSameUri(Uri? left, Uri? right)
+    {
+        if (left is null || right is null)
+        {
+            return left is null && right is null;
+        }
+
+        var leftValue = left.IsAbsoluteUri ? left.AbsoluteUri : left.ToString();
+        var rightValue = right.IsAbsoluteUri ? right.AbsoluteUri : right.ToString();
+        return string.Equals(leftValue, rightValue, StringComparison.OrdinalIgnoreCase);
     }
 
     private static LinuxHostWindowHandle CreateHostWindowOnGtkThread()

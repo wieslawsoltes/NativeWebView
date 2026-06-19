@@ -20,5 +20,10 @@ internal static class AndroidPlatformFeatures
         NativeWebViewFeature.WebMessageChannel |
         NativeWebViewFeature.GpuSurfaceRendering |
         NativeWebViewFeature.OffscreenRendering |
-        NativeWebViewFeature.RenderFrameCapture);
+        NativeWebViewFeature.RenderFrameCapture |
+#if NATIVEWEBVIEW_ANDROID_RUNTIME
+        NativeWebViewFeature.Favicon);
+#else
+        NativeWebViewFeature.None);
+#endif
 }

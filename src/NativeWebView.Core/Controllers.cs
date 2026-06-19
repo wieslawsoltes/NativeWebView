@@ -137,6 +137,8 @@ public sealed class NativeWebViewController : IDisposable
 
     public event EventHandler<CoreWebViewControllerOptionsRequestedEventArgs>? CoreWebView2ControllerOptionsRequested;
 
+    public event EventHandler<NativeWebViewFaviconChangedEventArgs>? FaviconChanged;
+
     public ValueTask InitializeAsync(CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
@@ -250,6 +252,21 @@ public sealed class NativeWebViewController : IDisposable
     {
         ThrowIfDisposed();
         return _backend.TryGetCookieManager(out cookieManager);
+    }
+
+    public async Task<NativeWebViewFavicon?> GetFaviconAsync(
+        NativeWebViewFaviconFormat format = NativeWebViewFaviconFormat.Original,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowIfDisposed();
+
+        if (_backend is not INativeWebViewFaviconProvider faviconProvider)
+        {
+            return null;
+        }
+
+        await EnsureInitializedCoreAsync(cancellationToken).ConfigureAwait(false);
+        return await faviconProvider.GetFaviconAsync(format, cancellationToken).ConfigureAwait(false);
     }
 
     public bool TryGetBackend<TBackend>([NotNullWhen(true)] out TBackend? backend)
@@ -373,6 +390,11 @@ public sealed class NativeWebViewController : IDisposable
         _backend.NavigationHistoryChanged += OnNavigationHistoryChanged;
         _backend.CoreWebView2EnvironmentRequested += OnCoreWebView2EnvironmentRequested;
         _backend.CoreWebView2ControllerOptionsRequested += OnCoreWebView2ControllerOptionsRequested;
+
+        if (_backend is INativeWebViewFaviconProvider faviconProvider)
+        {
+            faviconProvider.FaviconChanged += OnFaviconChanged;
+        }
     }
 
     private void DetachBackendEvents()
@@ -393,6 +415,11 @@ public sealed class NativeWebViewController : IDisposable
         _backend.NavigationHistoryChanged -= OnNavigationHistoryChanged;
         _backend.CoreWebView2EnvironmentRequested -= OnCoreWebView2EnvironmentRequested;
         _backend.CoreWebView2ControllerOptionsRequested -= OnCoreWebView2ControllerOptionsRequested;
+
+        if (_backend is INativeWebViewFaviconProvider faviconProvider)
+        {
+            faviconProvider.FaviconChanged -= OnFaviconChanged;
+        }
     }
 
     private void OnCoreWebView2Initialized(object? sender, CoreWebViewInitializedEventArgs e)
@@ -571,6 +598,16 @@ public sealed class NativeWebViewController : IDisposable
         }
 
         CoreWebView2ControllerOptionsRequested?.Invoke(this, e);
+    }
+
+    private void OnFaviconChanged(object? sender, NativeWebViewFaviconChangedEventArgs e)
+    {
+        if (IsDisposed)
+        {
+            return;
+        }
+
+        FaviconChanged?.Invoke(this, e);
     }
 
     private void SyncNavigationStateFromBackend()

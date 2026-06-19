@@ -13,7 +13,8 @@ public sealed class WindowsNativeWebViewBackend
       INativeWebViewFrameSource,
       INativeWebViewPlatformHandleProvider,
       INativeWebViewInstanceConfigurationTarget,
-      INativeWebViewNativeControlAttachment
+      INativeWebViewNativeControlAttachment,
+      INativeWebViewFaviconProvider
 {
     private const int EInvalidArgHResult = unchecked((int)0x80070057);
     private static readonly TimeSpan TransientReparentNavigationSuppressionWindow = TimeSpan.FromMilliseconds(750);
@@ -187,6 +188,8 @@ public sealed class WindowsNativeWebViewBackend
     public event EventHandler<CoreWebViewEnvironmentRequestedEventArgs>? CoreWebView2EnvironmentRequested;
 
     public event EventHandler<CoreWebViewControllerOptionsRequestedEventArgs>? CoreWebView2ControllerOptionsRequested;
+
+    public event EventHandler<NativeWebViewFaviconChangedEventArgs>? FaviconChanged;
 
     public void ApplyInstanceConfiguration(NativeWebViewInstanceConfiguration configuration)
     {
@@ -376,6 +379,41 @@ public sealed class WindowsNativeWebViewBackend
 
         EnsureStubInitialized();
         return "null";
+    }
+
+    public async Task<NativeWebViewFavicon?> GetFaviconAsync(
+        NativeWebViewFaviconFormat format = NativeWebViewFaviconFormat.Original,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        EnsureNotDisposed();
+        EnsureFeature(NativeWebViewFeature.Favicon, nameof(GetFaviconAsync));
+
+        if (!ShouldUseRuntimePath())
+        {
+            return null;
+        }
+
+        await EnsureRuntimeInitializedAsync(cancellationToken).ConfigureAwait(false);
+        var faviconUri = TryCreateFaviconUri();
+
+        if (format == NativeWebViewFaviconFormat.Original &&
+            NativeWebViewFaviconSupport.IsSvgFaviconUri(faviconUri))
+        {
+            var svgFavicon = await NativeWebViewFaviconSupport.DownloadFaviconAsync(
+                faviconUri,
+                NativeWebViewFaviconFormat.Original,
+                cancellationToken).ConfigureAwait(false);
+            if (svgFavicon is not null)
+            {
+                return svgFavicon;
+            }
+        }
+
+        var resolvedFormat = format == NativeWebViewFaviconFormat.Original
+            ? NativeWebViewFaviconFormat.Png
+            : format;
+        return await GetRuntimeFaviconAsync(faviconUri, resolvedFormat, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task PostWebMessageAsJsonAsync(string message, CancellationToken cancellationToken = default)
@@ -1236,6 +1274,7 @@ public sealed class WindowsNativeWebViewBackend
         _coreWebView.NavigationCompleted += OnNavigationCompleted;
         _coreWebView.WebMessageReceived += OnWebMessageReceived;
         _coreWebView.HistoryChanged += OnHistoryChanged;
+        _coreWebView.FaviconChanged += OnFaviconChanged;
         _coreWebView.NewWindowRequested += OnNewWindowRequested;
         _coreWebView.ContextMenuRequested += OnContextMenuRequested;
         _coreWebView.WindowCloseRequested += OnWindowCloseRequested;
@@ -1252,6 +1291,7 @@ public sealed class WindowsNativeWebViewBackend
             _coreWebView.NavigationCompleted -= OnNavigationCompleted;
             _coreWebView.WebMessageReceived -= OnWebMessageReceived;
             _coreWebView.HistoryChanged -= OnHistoryChanged;
+            _coreWebView.FaviconChanged -= OnFaviconChanged;
             _coreWebView.NewWindowRequested -= OnNewWindowRequested;
             _coreWebView.ContextMenuRequested -= OnContextMenuRequested;
             _coreWebView.WindowCloseRequested -= OnWindowCloseRequested;
@@ -1382,6 +1422,11 @@ public sealed class WindowsNativeWebViewBackend
         var statusCode = e.IsSuccess ? TryConvertHttpStatusCode(e.HttpStatusCode) : null;
         var error = e.IsSuccess ? null : e.WebErrorStatus.ToString();
         NavigationCompleted?.Invoke(this, new NativeWebViewNavigationCompletedEventArgs(uri, e.IsSuccess, statusCode, error));
+    }
+
+    private void OnFaviconChanged(object? sender, object? e)
+    {
+        FaviconChanged?.Invoke(this, new NativeWebViewFaviconChangedEventArgs(TryCreateFaviconUri()));
     }
 
     private void SuppressTransientSameUrlNavigation()
@@ -1720,6 +1765,49 @@ public sealed class WindowsNativeWebViewBackend
             ? CoreWebView2PrintOrientation.Landscape
             : CoreWebView2PrintOrientation.Portrait;
         return printSettings;
+    }
+
+    private async Task<NativeWebViewFavicon?> GetRuntimeFaviconAsync(
+        Uri? faviconUri,
+        NativeWebViewFaviconFormat format,
+        CancellationToken cancellationToken)
+    {
+        if (_coreWebView is null)
+        {
+            return null;
+        }
+
+        var imageFormat = format == NativeWebViewFaviconFormat.Jpeg
+            ? CoreWebView2FaviconImageFormat.Jpeg
+            : CoreWebView2FaviconImageFormat.Png;
+
+        using var stream = await _coreWebView.GetFaviconAsync(imageFormat).ConfigureAwait(true);
+        cancellationToken.ThrowIfCancellationRequested();
+        if (stream is null)
+        {
+            return null;
+        }
+
+        using var memory = new MemoryStream();
+        await stream.CopyToAsync(memory, cancellationToken).ConfigureAwait(false);
+        var bytes = memory.ToArray();
+        return NativeWebViewFaviconSupport.CreateFallbackFavicon(
+            faviconUri,
+            format,
+            bytes,
+            NativeWebViewFaviconSupport.GetContentType(format));
+    }
+
+    private Uri? TryCreateFaviconUri()
+    {
+        try
+        {
+            return TryCreateUri(_coreWebView?.FaviconUri);
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     private static string? NormalizePath(string? path)

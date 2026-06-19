@@ -27,7 +27,8 @@ internal static class IOSPlatformFeatures
 #if NATIVEWEBVIEW_IOS_RUNTIME
         (OperatingSystem.IsIOSVersionAtLeast(17)
             ? NativeWebViewFeature.ProxyConfiguration
-            : NativeWebViewFeature.None));
+            : NativeWebViewFeature.None) |
+        NativeWebViewFeature.Favicon);
 #else
         NativeWebViewFeature.None);
 #endif

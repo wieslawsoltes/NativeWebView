@@ -1,0 +1,2 @@
+- Added embedded `NativeWebView` favicon support with `FaviconChanged`, `GetFaviconAsync`, and `NativeWebViewFaviconFormat.Original` for raw favicon bytes including SVG assets.
+- Implemented favicon providers for Windows, Linux, Android runtime, and iOS runtime backends; Browser and the current macOS embedded backend do not advertise the favicon capability.

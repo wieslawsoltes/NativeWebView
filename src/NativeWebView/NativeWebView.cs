@@ -72,6 +72,7 @@ public class NativeWebView : NativeControlHost, IDisposable
     private EventHandler<NativeWebViewNavigationHistoryChangedEventArgs>? _navigationHistoryChanged;
     private EventHandler<CoreWebViewEnvironmentRequestedEventArgs>? _coreWebView2EnvironmentRequested;
     private EventHandler<CoreWebViewControllerOptionsRequestedEventArgs>? _coreWebView2ControllerOptionsRequested;
+    private EventHandler<NativeWebViewFaviconChangedEventArgs>? _faviconChanged;
 
     public static readonly StyledProperty<NativeWebViewRenderMode> RenderModeProperty =
         AvaloniaProperty.Register<NativeWebView, NativeWebViewRenderMode>(nameof(RenderMode), NativeWebViewRenderMode.Embedded);
@@ -299,6 +300,12 @@ public class NativeWebView : NativeControlHost, IDisposable
         remove => _coreWebView2ControllerOptionsRequested -= value;
     }
 
+    public event EventHandler<NativeWebViewFaviconChangedEventArgs>? FaviconChanged
+    {
+        add => _faviconChanged += value;
+        remove => _faviconChanged -= value;
+    }
+
     public event EventHandler<NativeWebViewRenderFrameCapturedEventArgs>? RenderFrameCaptured;
 
     public bool SupportsRenderMode(NativeWebViewRenderMode renderMode)
@@ -384,6 +391,7 @@ public class NativeWebView : NativeControlHost, IDisposable
         _controller.NavigationHistoryChanged += ForwardNavigationHistoryChanged;
         _controller.CoreWebView2EnvironmentRequested += ForwardCoreWebView2EnvironmentRequested;
         _controller.CoreWebView2ControllerOptionsRequested += ForwardCoreWebView2ControllerOptionsRequested;
+        _controller.FaviconChanged += ForwardFaviconChanged;
     }
 
     private void DetachControllerEventForwarders()
@@ -404,6 +412,7 @@ public class NativeWebView : NativeControlHost, IDisposable
         _controller.NavigationHistoryChanged -= ForwardNavigationHistoryChanged;
         _controller.CoreWebView2EnvironmentRequested -= ForwardCoreWebView2EnvironmentRequested;
         _controller.CoreWebView2ControllerOptionsRequested -= ForwardCoreWebView2ControllerOptionsRequested;
+        _controller.FaviconChanged -= ForwardFaviconChanged;
     }
 
     private void ForwardCoreWebView2Initialized(object? sender, CoreWebViewInitializedEventArgs e) =>
@@ -453,6 +462,9 @@ public class NativeWebView : NativeControlHost, IDisposable
 
     private void ForwardCoreWebView2ControllerOptionsRequested(object? sender, CoreWebViewControllerOptionsRequestedEventArgs e) =>
         _coreWebView2ControllerOptionsRequested?.Invoke(sender, e);
+
+    private void ForwardFaviconChanged(object? sender, NativeWebViewFaviconChangedEventArgs e) =>
+        _faviconChanged?.Invoke(sender, e);
 
     public async Task<bool> SaveRenderFrameAsync(string outputPath, CancellationToken cancellationToken = default)
     {
@@ -642,6 +654,13 @@ public class NativeWebView : NativeControlHost, IDisposable
         }
 
         return _controller.ShowPrintUiAsync(cancellationToken);
+    }
+
+    public Task<NativeWebViewFavicon?> GetFaviconAsync(
+        NativeWebViewFaviconFormat format = NativeWebViewFaviconFormat.Original,
+        CancellationToken cancellationToken = default)
+    {
+        return _controller.GetFaviconAsync(format, cancellationToken);
     }
 
     public void SetZoomFactor(double zoomFactor)

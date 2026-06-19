@@ -171,6 +171,16 @@ public sealed class NativeWebViewNavigationHistoryChangedEventArgs : EventArgs
     public bool CanGoForward { get; }
 }
 
+public sealed class NativeWebViewFaviconChangedEventArgs : EventArgs
+{
+    public NativeWebViewFaviconChangedEventArgs(Uri? uri)
+    {
+        Uri = uri;
+    }
+
+    public Uri? Uri { get; }
+}
+
 public sealed class NativeWebViewRenderFrameCapturedEventArgs : EventArgs
 {
     public NativeWebViewRenderFrameCapturedEventArgs(NativeWebViewRenderFrame frame)

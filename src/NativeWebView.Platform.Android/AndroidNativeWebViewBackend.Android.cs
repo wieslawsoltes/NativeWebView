@@ -20,7 +20,8 @@ public sealed class AndroidNativeWebViewBackend
       INativeWebViewFrameSource,
       INativeWebViewPlatformHandleProvider,
       INativeWebViewInstanceConfigurationTarget,
-      INativeWebViewNativeControlAttachment
+      INativeWebViewNativeControlAttachment,
+      INativeWebViewFaviconProvider
 {
     private const string ScriptBridgeName = "nativewebview";
 
@@ -155,6 +156,9 @@ public sealed class AndroidNativeWebViewBackend
     private string? _userAgentString;
     private string? _defaultUserAgentString;
     private string? _suppressedStartedNavigationKey;
+    private Uri? _faviconUri;
+    private byte[]? _faviconPngBytes;
+    private byte[]? _faviconJpegBytes;
 
     public AndroidNativeWebViewBackend()
     {
@@ -270,6 +274,8 @@ public sealed class AndroidNativeWebViewBackend
     public event EventHandler<CoreWebViewEnvironmentRequestedEventArgs>? CoreWebView2EnvironmentRequested;
 
     public event EventHandler<CoreWebViewControllerOptionsRequestedEventArgs>? CoreWebView2ControllerOptionsRequested;
+
+    public event EventHandler<NativeWebViewFaviconChangedEventArgs>? FaviconChanged;
 
     public void ApplyInstanceConfiguration(NativeWebViewInstanceConfiguration configuration)
     {
@@ -452,6 +458,62 @@ public sealed class AndroidNativeWebViewBackend
 
         EnsureStubInitialized();
         return "null";
+    }
+
+    public async Task<NativeWebViewFavicon?> GetFaviconAsync(
+        NativeWebViewFaviconFormat format = NativeWebViewFaviconFormat.Original,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        EnsureNotDisposed();
+        EnsureFeature(NativeWebViewFeature.Favicon, nameof(GetFaviconAsync));
+
+        if (!ShouldUseRuntimePath())
+        {
+            return null;
+        }
+
+        await EnsureRuntimeInitializedAsync(cancellationToken).ConfigureAwait(false);
+        var declaredUri = await NativeWebViewFaviconSupport.ResolveDeclaredFaviconUriAsync(
+            ExecuteScriptAsync,
+            _currentUrl,
+            cancellationToken).ConfigureAwait(false);
+
+        if (declaredUri is not null)
+        {
+            _faviconUri = declaredUri;
+        }
+
+        if (format == NativeWebViewFaviconFormat.Original)
+        {
+            if (NativeWebViewFaviconSupport.IsSvgFaviconUri(declaredUri))
+            {
+                var svgFavicon = await NativeWebViewFaviconSupport.DownloadFaviconAsync(
+                    declaredUri,
+                    NativeWebViewFaviconFormat.Original,
+                    cancellationToken).ConfigureAwait(false);
+                if (svgFavicon is not null)
+                {
+                    return svgFavicon;
+                }
+            }
+
+            return NativeWebViewFaviconSupport.CreateFallbackFavicon(
+                _faviconUri,
+                NativeWebViewFaviconFormat.Png,
+                _faviconPngBytes,
+                "image/png") ??
+                await NativeWebViewFaviconSupport.DownloadFaviconAsync(
+                    declaredUri,
+                    NativeWebViewFaviconFormat.Original,
+                    cancellationToken).ConfigureAwait(false);
+        }
+
+        return NativeWebViewFaviconSupport.CreateFallbackFavicon(
+            _faviconUri,
+            format,
+            format == NativeWebViewFaviconFormat.Jpeg ? _faviconJpegBytes : _faviconPngBytes,
+            NativeWebViewFaviconSupport.GetContentType(format));
     }
 
     public async Task PostWebMessageAsJsonAsync(string message, CancellationToken cancellationToken = default)
@@ -1170,7 +1232,34 @@ public sealed class AndroidNativeWebViewBackend
             return;
         }
 
+        ClearRuntimeFavicon();
         NavigationStarted?.Invoke(this, new NativeWebViewNavigationStartedEventArgs(uri, isRedirected));
+    }
+
+    private void ClearRuntimeFavicon()
+    {
+        _faviconUri = null;
+        _faviconPngBytes = null;
+        _faviconJpegBytes = null;
+    }
+
+    private void OnRuntimeFaviconChanged(Bitmap? favicon)
+    {
+        if (favicon is null || favicon.IsRecycled)
+        {
+            return;
+        }
+
+        var pngBytes = EncodeBitmap(favicon, Bitmap.CompressFormat.Png);
+        var jpegBytes = EncodeBitmap(favicon, Bitmap.CompressFormat.Jpeg);
+        if (pngBytes is null && jpegBytes is null)
+        {
+            return;
+        }
+
+        _faviconPngBytes = pngBytes;
+        _faviconJpegBytes = jpegBytes;
+        FaviconChanged?.Invoke(this, new NativeWebViewFaviconChangedEventArgs(_faviconUri ?? _currentUrl));
     }
 
     private void OnRuntimeNavigationCompleted(WebView webView, string? url)
@@ -1195,6 +1284,14 @@ public sealed class AndroidNativeWebViewBackend
         }
 
         NavigationCompleted?.Invoke(this, new NativeWebViewNavigationCompletedEventArgs(_currentUrl, isSuccess: true, httpStatusCode: 200));
+    }
+
+    private static byte[]? EncodeBitmap(Bitmap bitmap, Bitmap.CompressFormat format)
+    {
+        using var stream = new MemoryStream();
+        return bitmap.Compress(format, 100, stream)
+            ? stream.ToArray()
+            : null;
     }
 
     private void OnRuntimeNavigationFailed(WebView? webView, Uri? uri, int? httpStatusCode, string? error)
@@ -1437,6 +1534,7 @@ public sealed class AndroidNativeWebViewBackend
             if (_owner.TryGetTarget(out var owner))
             {
                 owner.OnRuntimeNavigationStarted(url, isRedirected: false);
+                owner.OnRuntimeFaviconChanged(favicon);
             }
         }
 
@@ -1540,6 +1638,16 @@ public sealed class AndroidNativeWebViewBackend
         public AndroidChromeClient(AndroidNativeWebViewBackend owner)
         {
             _owner = new WeakReference<AndroidNativeWebViewBackend>(owner);
+        }
+
+        public override void OnReceivedIcon(WebView? view, Bitmap? icon)
+        {
+            base.OnReceivedIcon(view, icon);
+
+            if (_owner.TryGetTarget(out var owner))
+            {
+                owner.OnRuntimeFaviconChanged(icon);
+            }
         }
 
         public override bool OnCreateWindow(WebView? view, bool isDialog, bool isUserGesture, Message? resultMsg)

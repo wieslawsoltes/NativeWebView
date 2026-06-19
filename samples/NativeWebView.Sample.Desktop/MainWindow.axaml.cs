@@ -1,16 +1,16 @@
 using System.Globalization;
-using System.IO;
 using System.Text;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using NativeWebView.Auth;
 using NativeWebView.Core;
 using NativeWebView.Dialog;
 using NativeWebView.Interop;
 using NativeWebView.Platform.Linux;
-using NativeWebView.Platform.Windows;
 using NativeWebView.Platform.macOS;
+using NativeWebView.Platform.Windows;
 using NativeWebViewControl = NativeWebView.Controls.NativeWebView;
 using NativeWebViewInstance = NativeWebView.Controls.NativeWebViewInstance;
 
@@ -40,6 +40,13 @@ public partial class MainWindow : Window
     private readonly List<NativeWebViewControl> _retiredPreservedPresenters = [];
     private bool _preservedPresenterInPrimarySlot = true;
     private int _preservedPresenterVersion;
+    private Bitmap? _faviconBitmap;
+    private Uri? _lastFaviconUri;
+    private string? _lastFaviconContentType;
+    private NativeWebViewFaviconFormat? _lastFaviconFormat;
+    private int? _lastFaviconByteLength;
+    private bool _lastFaviconDisplayed;
+    private int _faviconRequestVersion;
 
     public MainWindow()
     {
@@ -62,6 +69,7 @@ public partial class MainWindow : Window
         }
 
         _preservedInstance?.Dispose();
+        ClearFaviconUi(invalidatePendingRequests: true);
         WebViewControl.Dispose();
     }
 
@@ -239,10 +247,19 @@ public partial class MainWindow : Window
             AddLog($"CoreWebView2Initialized: success={e.IsSuccess}");
 
         WebViewControl.NavigationStarted += (_, e) =>
+        {
+            ClearFaviconUi(invalidatePendingRequests: true);
             AddLog($"NavigationStarted: uri={e.Uri}");
+        };
 
         WebViewControl.NavigationCompleted += (_, e) =>
+        {
             AddLog($"NavigationCompleted: uri={e.Uri}, success={e.IsSuccess}, status={e.HttpStatusCode}");
+            if (e.IsSuccess)
+            {
+                _ = RefreshFaviconAsync("NavigationCompleted");
+            }
+        };
 
         WebViewControl.WebMessageReceived += (_, e) =>
             AddLog($"WebMessageReceived: message={e.Message ?? "<null>"}, json={e.Json ?? "<null>"}");
@@ -274,6 +291,12 @@ public partial class MainWindow : Window
         WebViewControl.NavigationHistoryChanged += (_, e) =>
             AddLog($"NavigationHistoryChanged: canGoBack={e.CanGoBack}, canGoForward={e.CanGoForward}");
 
+        WebViewControl.FaviconChanged += (_, e) =>
+        {
+            AddLog($"FaviconChanged: uri={e.Uri?.ToString() ?? "<null>"}");
+            _ = RefreshFaviconAsync("FaviconChanged");
+        };
+
         WebViewControl.CoreWebView2EnvironmentRequested += (_, e) =>
         {
             e.Options.Language ??= "en-US";
@@ -287,6 +310,143 @@ public partial class MainWindow : Window
             e.Options.ScriptLocale ??= "en-US";
             AddLog("CoreWebView2ControllerOptionsRequested");
         };
+    }
+
+    private async Task RefreshFaviconAsync(string reason)
+    {
+        var requestVersion = Interlocked.Increment(ref _faviconRequestVersion);
+
+        try
+        {
+            if (!WebViewControl.Features.Supports(NativeWebViewFeature.Favicon))
+            {
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    if (requestVersion != Volatile.Read(ref _faviconRequestVersion))
+                    {
+                        return;
+                    }
+
+                    ApplyFaviconResult(null, reason, "favicon feature not supported");
+                });
+                return;
+            }
+
+            var favicon = await WebViewControl.GetFaviconAsync(NativeWebViewFaviconFormat.Original);
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (requestVersion != Volatile.Read(ref _faviconRequestVersion))
+                {
+                    return;
+                }
+
+                ApplyFaviconResult(favicon, reason, favicon is null ? "no favicon returned" : null);
+            });
+        }
+        catch (Exception ex)
+        {
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (requestVersion != Volatile.Read(ref _faviconRequestVersion))
+                {
+                    return;
+                }
+
+                ApplyFaviconResult(null, reason, FormatException(ex));
+            });
+        }
+    }
+
+    private void ApplyFaviconResult(NativeWebViewFavicon? favicon, string reason, string? unavailableReason)
+    {
+        DisposeCurrentFaviconBitmap();
+
+        _lastFaviconUri = favicon?.Uri;
+        _lastFaviconContentType = favicon?.ContentType;
+        _lastFaviconFormat = favicon?.Format;
+        _lastFaviconByteLength = favicon?.Bytes.Length;
+        _lastFaviconDisplayed = false;
+
+        if (favicon is null)
+        {
+            FaviconPlaceholderIcon.IsVisible = true;
+            ToolTip.SetTip(FaviconSlotBorder, $"No favicon available ({unavailableReason ?? "unknown reason"}).");
+            AddLog($"Favicon refresh ({reason}): {unavailableReason ?? "no favicon available"}.");
+            RefreshSummaries();
+            return;
+        }
+
+        if (TryCreateFaviconBitmap(favicon, out var bitmap))
+        {
+            _faviconBitmap = bitmap;
+            FaviconImage.Source = bitmap;
+            FaviconImage.IsVisible = true;
+            FaviconPlaceholderIcon.IsVisible = false;
+            _lastFaviconDisplayed = true;
+        }
+        else
+        {
+            FaviconImage.IsVisible = false;
+            FaviconPlaceholderIcon.IsVisible = true;
+        }
+
+        ToolTip.SetTip(FaviconSlotBorder, FormatFaviconSummary());
+        AddLog($"Favicon refresh ({reason}): {FormatFaviconSummary()}");
+        RefreshSummaries();
+    }
+
+    private void ClearFaviconUi(bool invalidatePendingRequests)
+    {
+        if (invalidatePendingRequests)
+        {
+            Interlocked.Increment(ref _faviconRequestVersion);
+        }
+
+        DisposeCurrentFaviconBitmap();
+        _lastFaviconUri = null;
+        _lastFaviconContentType = null;
+        _lastFaviconFormat = null;
+        _lastFaviconByteLength = null;
+        _lastFaviconDisplayed = false;
+        FaviconImage.IsVisible = false;
+        FaviconPlaceholderIcon.IsVisible = true;
+        ToolTip.SetTip(FaviconSlotBorder, "No favicon loaded.");
+    }
+
+    private void DisposeCurrentFaviconBitmap()
+    {
+        FaviconImage.Source = null;
+        _faviconBitmap?.Dispose();
+        _faviconBitmap = null;
+    }
+
+    private static bool TryCreateFaviconBitmap(NativeWebViewFavicon favicon, out Bitmap? bitmap)
+    {
+        bitmap = null;
+
+        if (IsSvgFavicon(favicon))
+        {
+            return false;
+        }
+
+        try
+        {
+            using var stream = new MemoryStream(favicon.Bytes);
+            bitmap = new Bitmap(stream);
+            return true;
+        }
+        catch
+        {
+            bitmap?.Dispose();
+            bitmap = null;
+            return false;
+        }
+    }
+
+    private static bool IsSvgFavicon(NativeWebViewFavicon favicon)
+    {
+        return string.Equals(favicon.ContentType, "image/svg+xml", StringComparison.OrdinalIgnoreCase) ||
+               favicon.Uri?.AbsolutePath.EndsWith(".svg", StringComparison.OrdinalIgnoreCase) == true;
     }
 
     private void AttachDialogEvents(NativeWebDialog dialog)
@@ -527,6 +687,12 @@ public partial class MainWindow : Window
             .Append("Lifecycle: ").AppendLine(WebViewControl.LifecycleState.ToString())
             .Append("Initialized: ").AppendLine(WebViewControl.IsInitialized.ToString(CultureInfo.InvariantCulture))
             .Append("Current URL: ").AppendLine(WebViewControl.CurrentUrl?.ToString() ?? "<null>")
+            .Append("Favicon Feature: ").AppendLine(WebViewControl.Features.Supports(NativeWebViewFeature.Favicon).ToString(CultureInfo.InvariantCulture))
+            .Append("Favicon URI: ").AppendLine(_lastFaviconUri?.ToString() ?? "<null>")
+            .Append("Favicon Format: ").AppendLine(_lastFaviconFormat?.ToString() ?? "<null>")
+            .Append("Favicon ContentType: ").AppendLine(_lastFaviconContentType ?? "<null>")
+            .Append("Favicon Bytes: ").AppendLine(_lastFaviconByteLength?.ToString(CultureInfo.InvariantCulture) ?? "<null>")
+            .Append("Favicon Displayed: ").AppendLine(_lastFaviconDisplayed.ToString(CultureInfo.InvariantCulture))
             .Append("CanGoBack: ").AppendLine(WebViewControl.CanGoBack.ToString(CultureInfo.InvariantCulture))
             .Append("CanGoForward: ").AppendLine(WebViewControl.CanGoForward.ToString(CultureInfo.InvariantCulture))
             .Append("ZoomFactor: ").AppendLine(WebViewControl.ZoomFactor.ToString("0.###", CultureInfo.InvariantCulture))
@@ -622,6 +788,15 @@ public partial class MainWindow : Window
     private static string FormatException(Exception ex)
     {
         return $"{ex.GetType().Name}: {ex.Message}";
+    }
+
+    private string FormatFaviconSummary()
+    {
+        return $"uri={_lastFaviconUri?.ToString() ?? "<null>"}, " +
+               $"format={_lastFaviconFormat?.ToString() ?? "<null>"}, " +
+               $"contentType={_lastFaviconContentType ?? "<null>"}, " +
+               $"bytes={_lastFaviconByteLength?.ToString(CultureInfo.InvariantCulture) ?? "<null>"}, " +
+               $"displayed={_lastFaviconDisplayed.ToString(CultureInfo.InvariantCulture)}";
     }
 
     private static string FormatPassthroughOverride(bool? value)
@@ -974,6 +1149,11 @@ public partial class MainWindow : Window
     {
         RefreshSummaries();
         AddLog("State summary refreshed.");
+    }
+
+    private async void RefreshFaviconMenuItemOnClick(object? sender, RoutedEventArgs e)
+    {
+        await RefreshFaviconAsync("ManualRefresh");
     }
 
     private void ToggleAdvancedPanelsMenuItemOnClick(object? sender, RoutedEventArgs e)

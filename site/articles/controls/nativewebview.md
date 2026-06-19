@@ -17,6 +17,7 @@ Companion surfaces are available when embedding is not the right fit: [`NativeWe
 - Feature toggles for DevTools, context menu, status bar, and zoom controls where supported.
 - Printing and print UI where supported.
 - Cookie manager and command manager access where supported.
+- Favicon change notifications and favicon byte retrieval where supported, including raw SVG assets through the `Original` format.
 - Native handle interop.
 - Airspace-mitigation render modes: `Embedded`, `GpuSurface`, and `Offscreen`.
 
@@ -42,6 +43,7 @@ Companion surfaces are available when embedding is not the right fit: [`NativeWe
 - `PostWebMessageAsJsonAsync`, `PostWebMessageAsStringAsync`
 - `OpenDevToolsWindow`
 - `PrintAsync`, `ShowPrintUiAsync`
+- `GetFaviconAsync`
 - `SetZoomFactor`, `SetUserAgent`, `SetHeader`
 - `TryGetCommandManager`, `TryGetCookieManager`
 - `MoveFocus`
@@ -55,6 +57,7 @@ Companion surfaces are available when embedding is not the right fit: [`NativeWe
 
 - Initialization: `CoreWebView2Initialized`, `CoreWebView2EnvironmentRequested`, `CoreWebView2ControllerOptionsRequested`
 - Navigation: `NavigationStarted`, `NavigationCompleted`, `NavigationHistoryChanged`
+- Favicons: `FaviconChanged`
 - Messaging and interception: `WebMessageReceived`, `NewWindowRequested`, `WebResourceRequested`, `ContextMenuRequested`
 - Window integration: `RequestCustomChrome`, `RequestParentWindowPosition`, `BeginMoveDrag`, `BeginResizeDrag`, `DestroyRequested`
 - Rendering: `RenderFrameCaptured`
@@ -91,6 +94,13 @@ Render statistics expose capture counters and last-frame metadata, including att
 
 Sidecar metadata includes `FrameId`, `CapturedAtUtc`, `RenderMode`, `Origin`, `PixelDataLength`, and `PixelDataSha256`.
 Use `NativeWebViewRenderFrameMetadataSerializer.ReadFromFileAsync` to load the sidecar JSON and `TryVerifyIntegrity` to validate captured frames against the stored integrity fields.
+
+## Favicon Notes
+
+- Check `Features.Supports(NativeWebViewFeature.Favicon)` before calling `GetFaviconAsync`.
+- `GetFaviconAsync(NativeWebViewFaviconFormat.Original)` returns raw favicon bytes when available. SVG favicons are returned as `image/svg+xml` bytes and are not rasterized by the control.
+- Windows uses WebView2 favicon APIs for PNG/JPEG and downloads the favicon URI for SVG originals. Linux and iOS resolve declared document favicon links and download the resolved URI. Android uses native bitmap callbacks for PNG/JPEG and document-link resolution for SVG originals.
+- Browser targets do not currently advertise favicon support because cross-origin iframe restrictions make document favicon discovery unreliable.
 
 ## Proxy Notes
 

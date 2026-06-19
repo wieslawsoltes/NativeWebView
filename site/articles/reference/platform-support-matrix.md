@@ -6,14 +6,14 @@ title: "Platform Support Matrix"
 
 ## Current Repo Runtime Status
 
-| Platform | `NativeWebView` control | `NativeWebDialog` | `WebAuthenticationBroker` | Per-instance proxy |
-| --- | --- | --- | --- | --- |
-| Windows | Implemented | Implemented | Implemented | Implemented |
-| macOS | Implemented | Implemented | Implemented | Implemented on macOS 14+ |
-| Linux | Implemented | Implemented | Implemented | Implemented |
-| iOS | Implemented when built with the .NET 8 Apple workload | Unsupported | Implemented when built with the .NET 8 Apple workload | Implemented on iOS 17+ when built with the .NET 8 Apple workload |
-| Android | Implemented when built with the .NET 8 Android workload | Unsupported | Implemented when built with the .NET 8 Android workload | Contract-only, app-wide platform API only |
-| Browser | Implemented when built for the browser target | Unsupported | Implemented when built for the browser target | Unsupported |
+| Platform | `NativeWebView` control | `NativeWebDialog` | `WebAuthenticationBroker` | Per-instance proxy | Favicon |
+| --- | --- | --- | --- | --- | --- |
+| Windows | Implemented | Implemented | Implemented | Implemented | Implemented, including SVG originals via favicon URI |
+| macOS | Implemented | Implemented | Implemented | Implemented on macOS 14+ | Not advertised by the current embedded backend |
+| Linux | Implemented | Implemented | Implemented | Implemented | Implemented through document favicon link resolution |
+| iOS | Implemented when built with the .NET 8 Apple workload | Unsupported | Implemented when built with the .NET 8 Apple workload | Implemented on iOS 17+ when built with the .NET 8 Apple workload | Implemented in the iOS runtime assembly |
+| Android | Implemented when built with the .NET 8 Android workload | Unsupported | Implemented when built with the .NET 8 Android workload | Contract-only, app-wide platform API only | Implemented in the Android runtime assembly |
+| Browser | Implemented when built for the browser target | Unsupported | Implemented when built for the browser target | Unsupported | Unsupported |
 
 Use `NativeWebViewPlatformImplementationStatusMatrix.Get(platform)` to inspect the current repo status in code. Use `NativeWebViewProxyPlatformSupportMatrix.Get(platform)` for proxy-specific status.
 

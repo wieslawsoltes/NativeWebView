@@ -40,7 +40,8 @@ public enum NativeWebViewFeature
     GpuSurfaceRendering = 1 << 20,
     OffscreenRendering = 1 << 21,
     RenderFrameCapture = 1 << 22,
-    ProxyConfiguration = 1 << 23
+    ProxyConfiguration = 1 << 23,
+    Favicon = 1 << 24
 }
 
 [Flags]
@@ -502,6 +503,47 @@ public interface INativeWebViewCookieManager
     Task SetCookieAsync(Uri uri, string name, string value, CancellationToken cancellationToken = default);
 
     Task DeleteCookieAsync(Uri uri, string name, CancellationToken cancellationToken = default);
+}
+
+public enum NativeWebViewFaviconFormat
+{
+    Original = 0,
+    Png,
+    Jpeg
+}
+
+public sealed class NativeWebViewFavicon
+{
+    public NativeWebViewFavicon(
+        Uri? uri,
+        string? contentType,
+        NativeWebViewFaviconFormat format,
+        byte[] bytes)
+    {
+        ArgumentNullException.ThrowIfNull(bytes);
+
+        Uri = uri;
+        ContentType = string.IsNullOrWhiteSpace(contentType) ? null : contentType;
+        Format = format;
+        Bytes = bytes;
+    }
+
+    public Uri? Uri { get; }
+
+    public string? ContentType { get; }
+
+    public NativeWebViewFaviconFormat Format { get; }
+
+    public byte[] Bytes { get; }
+}
+
+public interface INativeWebViewFaviconProvider
+{
+    event EventHandler<NativeWebViewFaviconChangedEventArgs>? FaviconChanged;
+
+    Task<NativeWebViewFavicon?> GetFaviconAsync(
+        NativeWebViewFaviconFormat format = NativeWebViewFaviconFormat.Original,
+        CancellationToken cancellationToken = default);
 }
 
 public enum NativeWebViewRenderPixelFormat
