@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="Platform Support Matrix | NativeWebView">
-<meta name="twitter:description" content="Platform Support Matrix Current Repo Runtime Status Platform NativeWebView control NativeWebDialog WebAuthenticationBroker Per-instance proxy Windows Implemented Implemented Implemented Implemented macOS Implemented Implemented Implemented Implemented on macOS 14+ Linux Implemented Implemented Implemented Implemented iOS Implemented when built with the .NET 8 Apple workload Unsupported Implemented when built with the .NET 8 Apple workload Implemented on iOS 17+ when built with the .NET 8 Apple workload Android Implemented when built with the...">
+<meta name="twitter:description" content="Platform Support Matrix Current Repo Runtime Status Platform NativeWebView control NativeWebDialog WebAuthenticationBroker Per-instance proxy Favicon Windows Implemented Implemented Implemented Implemented Implemented, including SVG originals via favicon URI macOS Implemented Implemented Implemented Implemented on macOS 14+ Not advertised by the current embedded backend Linux Implemented Implemented Implemented Implemented Implemented through document favicon link resolution iOS Implemented when built with the .NET 8 Apple workload Unsupported Implemented when built with the .NET...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta name="twitter:image:alt" content="Platform Support Matrix | NativeWebView">
 <meta property="og:title" content="Platform Support Matrix | NativeWebView">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/NativeWebView">
-<meta property="og:description" content="Platform Support Matrix Current Repo Runtime Status Platform NativeWebView control NativeWebDialog WebAuthenticationBroker Per-instance proxy Windows Implemented Implemented Implemented Implemented macOS Implemented Implemented Implemented Implemented on macOS 14+ Linux Implemented Implemented Implemented Implemented iOS Implemented when built with the .NET 8 Apple workload Unsupported Implemented when built with the .NET 8 Apple workload Implemented on iOS 17+ when built with the .NET 8 Apple workload Android Implemented when built with the...">
+<meta property="og:description" content="Platform Support Matrix Current Repo Runtime Status Platform NativeWebView control NativeWebDialog WebAuthenticationBroker Per-instance proxy Favicon Windows Implemented Implemented Implemented Implemented Implemented, including SVG originals via favicon URI macOS Implemented Implemented Implemented Implemented on macOS 14+ Not advertised by the current embedded backend Linux Implemented Implemented Implemented Implemented Implemented through document favicon link resolution iOS Implemented when built with the .NET 8 Apple workload Unsupported Implemented when built with the .NET...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta property="og:image:alt" content="Platform Support Matrix | NativeWebView">
   </head>
@@ -165,6 +165,7 @@
 <th><code>NativeWebDialog</code></th>
 <th><code>WebAuthenticationBroker</code></th>
 <th>Per-instance proxy</th>
+<th>Favicon</th>
 </tr>
 </thead>
 <tbody>
@@ -174,6 +175,7 @@
 <td>Implemented</td>
 <td>Implemented</td>
 <td>Implemented</td>
+<td>Implemented, including SVG originals via favicon URI</td>
 </tr>
 <tr>
 <td>macOS</td>
@@ -181,6 +183,7 @@
 <td>Implemented</td>
 <td>Implemented</td>
 <td>Implemented on macOS 14+</td>
+<td>Not advertised by the current embedded backend</td>
 </tr>
 <tr>
 <td>Linux</td>
@@ -188,6 +191,7 @@
 <td>Implemented</td>
 <td>Implemented</td>
 <td>Implemented</td>
+<td>Implemented through document favicon link resolution</td>
 </tr>
 <tr>
 <td>iOS</td>
@@ -195,6 +199,7 @@
 <td>Unsupported</td>
 <td>Implemented when built with the .NET 8 Apple workload</td>
 <td>Implemented on iOS 17+ when built with the .NET 8 Apple workload</td>
+<td>Implemented in the iOS runtime assembly</td>
 </tr>
 <tr>
 <td>Android</td>
@@ -202,12 +207,14 @@
 <td>Unsupported</td>
 <td>Implemented when built with the .NET 8 Android workload</td>
 <td>Contract-only, app-wide platform API only</td>
+<td>Implemented in the Android runtime assembly</td>
 </tr>
 <tr>
 <td>Browser</td>
 <td>Implemented when built for the browser target</td>
 <td>Unsupported</td>
 <td>Implemented when built for the browser target</td>
+<td>Unsupported</td>
 <td>Unsupported</td>
 </tr>
 </tbody>

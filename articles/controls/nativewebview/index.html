@@ -164,6 +164,7 @@
 <li>Feature toggles for DevTools, context menu, status bar, and zoom controls where supported.</li>
 <li>Printing and print UI where supported.</li>
 <li>Cookie manager and command manager access where supported.</li>
+<li>Favicon change notifications and favicon byte retrieval where supported, including raw SVG assets through the <code>Original</code> format.</li>
 <li>Native handle interop.</li>
 <li>Airspace-mitigation render modes: <code>Embedded</code>, <code>GpuSurface</code>, and <code>Offscreen</code>.</li>
 </ul>
@@ -222,6 +223,7 @@
 <li><code>PostWebMessageAsJsonAsync</code>, <code>PostWebMessageAsStringAsync</code></li>
 <li><code>OpenDevToolsWindow</code></li>
 <li><code>PrintAsync</code>, <code>ShowPrintUiAsync</code></li>
+<li><code>GetFaviconAsync</code></li>
 <li><code>SetZoomFactor</code>, <code>SetUserAgent</code>, <code>SetHeader</code></li>
 <li><code>TryGetCommandManager</code>, <code>TryGetCookieManager</code></li>
 <li><code>MoveFocus</code></li>
@@ -235,6 +237,7 @@
 <ul>
 <li>Initialization: <code>CoreWebView2Initialized</code>, <code>CoreWebView2EnvironmentRequested</code>, <code>CoreWebView2ControllerOptionsRequested</code></li>
 <li>Navigation: <code>NavigationStarted</code>, <code>NavigationCompleted</code>, <code>NavigationHistoryChanged</code></li>
+<li>Favicons: <code>FaviconChanged</code></li>
 <li>Messaging and interception: <code>WebMessageReceived</code>, <code>NewWindowRequested</code>, <code>WebResourceRequested</code>, <code>ContextMenuRequested</code></li>
 <li>Window integration: <code>RequestCustomChrome</code>, <code>RequestParentWindowPosition</code>, <code>BeginMoveDrag</code>, <code>BeginResizeDrag</code>, <code>DestroyRequested</code></li>
 <li>Rendering: <code>RenderFrameCaptured</code></li>
@@ -263,6 +266,13 @@ WebViewControl.Navigate(&quot;https://example.com&quot;);
 <p>Render statistics expose capture counters and last-frame metadata, including attempt, success, failure, and skip counts together with last failure details.</p>
 <p>Sidecar metadata includes <code>FrameId</code>, <code>CapturedAtUtc</code>, <code>RenderMode</code>, <code>Origin</code>, <code>PixelDataLength</code>, and <code>PixelDataSha256</code>.
 Use <code>NativeWebViewRenderFrameMetadataSerializer.ReadFromFileAsync</code> to load the sidecar JSON and <code>TryVerifyIntegrity</code> to validate captured frames against the stored integrity fields.</p>
+<h2 id="favicon-notes">Favicon Notes</h2>
+<ul>
+<li>Check <code>Features.Supports(NativeWebViewFeature.Favicon)</code> before calling <code>GetFaviconAsync</code>.</li>
+<li><code>GetFaviconAsync(NativeWebViewFaviconFormat.Original)</code> returns raw favicon bytes when available. SVG favicons are returned as <code>image/svg+xml</code> bytes and are not rasterized by the control.</li>
+<li>Windows uses WebView2 favicon APIs for PNG/JPEG and downloads the favicon URI for SVG originals. Linux and iOS resolve declared document favicon links and download the resolved URI. Android uses native bitmap callbacks for PNG/JPEG and document-link resolution for SVG originals.</li>
+<li>Browser targets do not currently advertise favicon support because cross-origin iframe restrictions make document favicon discovery unreliable.</li>
+</ul>
 <h2 id="proxy-notes">Proxy Notes</h2>
 <ul>
 <li>Check <code>NativeWebViewPlatformImplementationStatusMatrix.Get(platform)</code> before assuming the current target has a real embedded runtime path.</li>

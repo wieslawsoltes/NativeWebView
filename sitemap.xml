@@ -1,23 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/platforms/ios</loc>
-    <lastmod>2026-06-22</lastmod>
-  </url>
-  <url>
-    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles</loc>
-    <lastmod>2026-06-22</lastmod>
-  </url>
-  <url>
-    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/reference/package-layout</loc>
-    <lastmod>2026-06-22</lastmod>
-  </url>
-  <url>
-    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/platforms/android</loc>
-    <lastmod>2026-06-22</lastmod>
-  </url>
-  <url>
-    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/platforms/macos</loc>
+    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/diagnostics/platform-prerequisites</loc>
     <lastmod>2026-06-22</lastmod>
   </url>
   <url>
@@ -25,23 +9,11 @@
     <lastmod>2026-06-22</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/reference/lunet-docs-pipeline</loc>
+    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/diagnostics/ci-and-release</loc>
     <lastmod>2026-06-22</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/reference</loc>
-    <lastmod>2026-06-22</lastmod>
-  </url>
-  <url>
-    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/diagnostics/platform-diagnostics-report</loc>
-    <lastmod>2026-06-22</lastmod>
-  </url>
-  <url>
-    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/platforms/linux</loc>
-    <lastmod>2026-06-22</lastmod>
-  </url>
-  <url>
-    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/platforms/windows</loc>
+    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView</loc>
     <lastmod>2026-06-22</lastmod>
   </url>
   <url>
@@ -49,15 +21,7 @@
     <lastmod>2026-06-22</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/reference/platform-support-matrix</loc>
-    <lastmod>2026-06-22</lastmod>
-  </url>
-  <url>
-    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/rendering/native-handle-interop</loc>
-    <lastmod>2026-06-22</lastmod>
-  </url>
-  <url>
-    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/rendering</loc>
+    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/controls</loc>
     <lastmod>2026-06-22</lastmod>
   </url>
   <url>
@@ -69,43 +33,27 @@
     <lastmod>2026-06-22</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/diagnostics/platform-prerequisites</loc>
+    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles</loc>
     <lastmod>2026-06-22</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/getting-started/installation</loc>
+    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/platforms/android</loc>
     <lastmod>2026-06-22</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/getting-started</loc>
+    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/platforms/ios</loc>
     <lastmod>2026-06-22</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/getting-started/overview</loc>
+    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/platforms/linux</loc>
     <lastmod>2026-06-22</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/getting-started/quickstart</loc>
+    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/platforms/macos</loc>
     <lastmod>2026-06-22</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/platforms/browser</loc>
-    <lastmod>2026-06-22</lastmod>
-  </url>
-  <url>
-    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView</loc>
-    <lastmod>2026-06-22</lastmod>
-  </url>
-  <url>
-    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/controls</loc>
-    <lastmod>2026-06-22</lastmod>
-  </url>
-  <url>
-    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/rendering/render-modes</loc>
-    <lastmod>2026-06-22</lastmod>
-  </url>
-  <url>
-    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/rendering/environment-and-controller-options</loc>
+    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/platforms</loc>
     <lastmod>2026-06-22</lastmod>
   </url>
   <url>
@@ -113,11 +61,63 @@
     <lastmod>2026-06-22</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/diagnostics/ci-and-release</loc>
+    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/platforms/windows</loc>
     <lastmod>2026-06-22</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/platforms</loc>
+    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/reference/package-layout</loc>
+    <lastmod>2026-06-22</lastmod>
+  </url>
+  <url>
+    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/reference/lunet-docs-pipeline</loc>
+    <lastmod>2026-06-22</lastmod>
+  </url>
+  <url>
+    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/reference/platform-support-matrix</loc>
+    <lastmod>2026-06-22</lastmod>
+  </url>
+  <url>
+    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/reference</loc>
+    <lastmod>2026-06-22</lastmod>
+  </url>
+  <url>
+    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/diagnostics/platform-diagnostics-report</loc>
+    <lastmod>2026-06-22</lastmod>
+  </url>
+  <url>
+    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/rendering/environment-and-controller-options</loc>
+    <lastmod>2026-06-22</lastmod>
+  </url>
+  <url>
+    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/rendering/native-handle-interop</loc>
+    <lastmod>2026-06-22</lastmod>
+  </url>
+  <url>
+    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/rendering</loc>
+    <lastmod>2026-06-22</lastmod>
+  </url>
+  <url>
+    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/platforms/browser</loc>
+    <lastmod>2026-06-22</lastmod>
+  </url>
+  <url>
+    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/getting-started/installation</loc>
+    <lastmod>2026-06-22</lastmod>
+  </url>
+  <url>
+    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/getting-started/overview</loc>
+    <lastmod>2026-06-22</lastmod>
+  </url>
+  <url>
+    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/getting-started</loc>
+    <lastmod>2026-06-22</lastmod>
+  </url>
+  <url>
+    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/getting-started/quickstart</loc>
+    <lastmod>2026-06-22</lastmod>
+  </url>
+  <url>
+    <loc>https://wieslawsoltes.github.io/NativeWebView/NativeWebView/articles/rendering/render-modes</loc>
     <lastmod>2026-06-22</lastmod>
   </url>
   <url>
