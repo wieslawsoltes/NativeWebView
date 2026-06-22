@@ -123,6 +123,30 @@ public sealed class NativeWebDialog : IDisposable
         remove => _controller.ContextMenuRequested -= value;
     }
 
+    public event EventHandler<NativeWebViewDownloadStartingEventArgs>? DownloadStarting
+    {
+        add => _controller.DownloadStarting += value;
+        remove => _controller.DownloadStarting -= value;
+    }
+
+    public event EventHandler<NativeWebViewDownloadItemEventArgs>? DownloadStarted
+    {
+        add => _controller.DownloadStarted += value;
+        remove => _controller.DownloadStarted -= value;
+    }
+
+    public event EventHandler<NativeWebViewDownloadItemEventArgs>? DownloadChanged
+    {
+        add => _controller.DownloadChanged += value;
+        remove => _controller.DownloadChanged -= value;
+    }
+
+    public event EventHandler<NativeWebViewDownloadItemEventArgs>? DownloadCompleted
+    {
+        add => _controller.DownloadCompleted += value;
+        remove => _controller.DownloadCompleted -= value;
+    }
+
     public void Show(NativeWebDialogShowOptions? options = null)
     {
         ApplyInstanceConfigurationToBackend();
@@ -219,6 +243,11 @@ public sealed class NativeWebDialog : IDisposable
     public void SetHeader(string? header)
     {
         _controller.SetHeader(header);
+    }
+
+    public bool TryGetDownloadManager(out INativeWebViewDownloadManager? downloadManager)
+    {
+        return _controller.TryGetDownloadManager(out downloadManager);
     }
 
     public bool TryGetPlatformHandle(out NativePlatformHandle handle)

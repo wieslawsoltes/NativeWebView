@@ -38,6 +38,7 @@ public sealed class WindowsNativeWebViewBackend
     private readonly List<Uri> _history = [];
     private readonly INativeWebViewCommandManager _commandManager = NativeWebViewBackendSupport.NoopCommandManagerInstance;
     private readonly INativeWebViewCookieManager _cookieManager = NativeWebViewBackendSupport.NoopCookieManagerInstance;
+    private readonly NativeWebViewDownloadManager _downloadManager;
 
     private TaskCompletionSource<bool> _attachmentTcs = CreatePendingAttachmentSource();
     private NativeWebViewInstanceConfiguration _instanceConfiguration = new();
@@ -81,11 +82,14 @@ public sealed class WindowsNativeWebViewBackend
     private bool _suppressNextSameUrlNavigationCompletion;
     private string? _headerString;
     private string? _userAgentString;
+    private readonly Lock _pendingDownloadGate = new();
+    private readonly List<PendingProgrammaticDownload> _pendingProgrammaticDownloads = [];
 
     public WindowsNativeWebViewBackend()
     {
         Platform = NativeWebViewPlatform.Windows;
         Features = WindowsPlatformFeatures.Instance;
+        _downloadManager = new NativeWebViewDownloadManager(StartDownloadAsyncCore);
         _zoomFactor = 1.0;
         _isDevToolsEnabled = Features.Supports(NativeWebViewFeature.DevTools);
         _isContextMenuEnabled = Features.Supports(NativeWebViewFeature.ContextMenu);
@@ -598,6 +602,20 @@ public sealed class WindowsNativeWebViewBackend
         }
 
         cookieManager = null;
+        return false;
+    }
+
+    public bool TryGetDownloadManager(out INativeWebViewDownloadManager? downloadManager)
+    {
+        EnsureNotDisposed();
+
+        if (Features.Supports(NativeWebViewFeature.Downloads))
+        {
+            downloadManager = _downloadManager;
+            return true;
+        }
+
+        downloadManager = null;
         return false;
     }
 
@@ -1275,6 +1293,7 @@ public sealed class WindowsNativeWebViewBackend
         _coreWebView.WebMessageReceived += OnWebMessageReceived;
         _coreWebView.HistoryChanged += OnHistoryChanged;
         _coreWebView.FaviconChanged += OnFaviconChanged;
+        _coreWebView.DownloadStarting += OnDownloadStarting;
         _coreWebView.NewWindowRequested += OnNewWindowRequested;
         _coreWebView.ContextMenuRequested += OnContextMenuRequested;
         _coreWebView.WindowCloseRequested += OnWindowCloseRequested;
@@ -1292,6 +1311,7 @@ public sealed class WindowsNativeWebViewBackend
             _coreWebView.WebMessageReceived -= OnWebMessageReceived;
             _coreWebView.HistoryChanged -= OnHistoryChanged;
             _coreWebView.FaviconChanged -= OnFaviconChanged;
+            _coreWebView.DownloadStarting -= OnDownloadStarting;
             _coreWebView.NewWindowRequested -= OnNewWindowRequested;
             _coreWebView.ContextMenuRequested -= OnContextMenuRequested;
             _coreWebView.WindowCloseRequested -= OnWindowCloseRequested;
@@ -1485,6 +1505,163 @@ public sealed class WindowsNativeWebViewBackend
         UpdateHistorySnapshot(_coreWebView.CanGoBack, _coreWebView.CanGoForward);
     }
 
+    private void OnDownloadStarting(object? sender, CoreWebView2DownloadStartingEventArgs e)
+    {
+        _ = sender;
+
+        var operation = e.DownloadOperation;
+        if (operation is null)
+        {
+            e.Cancel = true;
+            return;
+        }
+
+        var deferral = e.GetDeferral();
+        var synchronizationContext = SynchronizationContext.Current;
+        if (synchronizationContext is not null)
+        {
+            synchronizationContext.Post(
+                async state =>
+                {
+                    var (backend, args, downloadOperation, nativeDeferral) =
+                        ((WindowsNativeWebViewBackend, CoreWebView2DownloadStartingEventArgs, CoreWebView2DownloadOperation, CoreWebView2Deferral))state!;
+                    await backend.ProcessDownloadStartingAsync(args, downloadOperation, nativeDeferral).ConfigureAwait(true);
+                },
+                (this, e, operation, deferral));
+            return;
+        }
+
+        _ = ProcessDownloadStartingAsync(e, operation, deferral);
+    }
+
+    private async Task ProcessDownloadStartingAsync(
+        CoreWebView2DownloadStartingEventArgs e,
+        CoreWebView2DownloadOperation operation,
+        CoreWebView2Deferral deferral)
+    {
+        NativeWebViewDownloadManager.NativeWebViewDownloadItem? item = null;
+        PendingProgrammaticDownload? pendingRequest = null;
+
+        try
+        {
+            var uri = TryCreateUri(operation.Uri) ?? _currentUrl ?? new Uri("about:blank", UriKind.Relative);
+            pendingRequest = TakePendingProgrammaticDownload(uri);
+            var options = MergeDownloadOptions(
+                pendingRequest?.Options,
+                new NativeWebViewDownloadRequestOptions
+            {
+                SuggestedFileName = TryGetFileName(e.ResultFilePath),
+                DestinationPath = e.ResultFilePath,
+                MimeType = NormalizeEmpty(operation.MimeType),
+                ContentDisposition = NormalizeEmpty(operation.ContentDisposition),
+                TotalBytesToReceive = NormalizeTotalBytes(operation.TotalBytesToReceive),
+            });
+
+            var nativeOperation = new NativeWebViewDownloadNativeOperation
+            {
+                PauseAsync = cancellationToken =>
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    operation.Pause();
+                    item?.MarkPaused();
+                    return Task.FromResult(NativeWebViewDownloadActionResult.Success());
+                },
+                ResumeAsync = cancellationToken =>
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    if (!operation.CanResume)
+                    {
+                        return Task.FromResult(NativeWebViewDownloadActionResult.Unsupported("This WebView2 download cannot be resumed."));
+                    }
+
+                    operation.Resume();
+                    item?.MarkResumed();
+                    return Task.FromResult(NativeWebViewDownloadActionResult.Success());
+                },
+                CancelAsync = cancellationToken =>
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    operation.Cancel();
+                    item?.MarkCanceled("Download was canceled.");
+                    return Task.FromResult(NativeWebViewDownloadActionResult.Success());
+                },
+            };
+
+            var starting = await _downloadManager
+                .PrepareDownloadAsync(uri, options, nativeOperation, cancellationToken: CancellationToken.None)
+                .ConfigureAwait(true);
+            item = (NativeWebViewDownloadManager.NativeWebViewDownloadItem)starting.Item;
+            pendingRequest?.TrySetResult(item);
+
+            if (starting.Cancel || string.IsNullOrWhiteSpace(starting.DestinationPath))
+            {
+                e.Cancel = true;
+                item.MarkCanceled("Download was canceled before a destination was selected.");
+                return;
+            }
+
+            e.Handled = true;
+            e.ResultFilePath = starting.DestinationPath;
+
+            AttachDownloadOperation(operation, item);
+            item.MarkStarted();
+            item.UpdateProgress(NormalizeBytesReceived(operation.BytesReceived), NormalizeTotalBytes(operation.TotalBytesToReceive));
+            UpdateDownloadState(operation, item);
+        }
+        catch (Exception ex)
+        {
+            e.Cancel = true;
+            item?.MarkFailed(ex.Message, ex.GetType().Name);
+            pendingRequest?.TrySetException(ex);
+        }
+        finally
+        {
+            deferral.Complete();
+        }
+    }
+
+    private void AttachDownloadOperation(
+        CoreWebView2DownloadOperation operation,
+        NativeWebViewDownloadManager.NativeWebViewDownloadItem item)
+    {
+        operation.BytesReceivedChanged += (_, _) =>
+            item.UpdateProgress(NormalizeBytesReceived(operation.BytesReceived), NormalizeTotalBytes(operation.TotalBytesToReceive));
+        operation.StateChanged += (_, _) => UpdateDownloadState(operation, item);
+    }
+
+    private void UpdateDownloadState(
+        CoreWebView2DownloadOperation operation,
+        NativeWebViewDownloadManager.NativeWebViewDownloadItem item)
+    {
+        item.UpdateProgress(NormalizeBytesReceived(operation.BytesReceived), NormalizeTotalBytes(operation.TotalBytesToReceive));
+
+        switch (operation.State)
+        {
+            case CoreWebView2DownloadState.InProgress:
+                item.UpdateState(NativeWebViewDownloadState.InProgress);
+                break;
+            case CoreWebView2DownloadState.Completed:
+                item.MarkCompleted();
+                break;
+            case CoreWebView2DownloadState.Interrupted:
+                var reason = operation.InterruptReason.ToString();
+                if (operation.InterruptReason == CoreWebView2DownloadInterruptReason.UserCanceled)
+                {
+                    item.MarkCanceled(reason);
+                }
+                else if (operation.InterruptReason == CoreWebView2DownloadInterruptReason.UserPaused)
+                {
+                    item.MarkPaused();
+                }
+                else
+                {
+                    item.MarkFailed(reason, reason);
+                }
+
+                break;
+        }
+    }
+
     private void OnZoomFactorChanged(object? sender, object e)
     {
         if (_controller is not null)
@@ -1502,10 +1679,57 @@ public sealed class WindowsNativeWebViewBackend
 
     private void OnContextMenuRequested(object? sender, CoreWebView2ContextMenuRequestedEventArgs e)
     {
+        AddDownloadLinkContextMenuItem(e);
+
         var forwarded = new NativeWebViewContextMenuRequestedEventArgs(e.Location.X, e.Location.Y);
         ContextMenuRequested?.Invoke(this, forwarded);
         e.Handled = forwarded.Handled;
     }
+
+    private void AddDownloadLinkContextMenuItem(CoreWebView2ContextMenuRequestedEventArgs e)
+    {
+        if (_environment is null ||
+            e.ContextMenuTarget.HasLinkUri is not true ||
+            !Uri.TryCreate(e.ContextMenuTarget.LinkUri, UriKind.Absolute, out var uri))
+        {
+            return;
+        }
+
+        var item = _environment.CreateContextMenuItem(
+            "Save Link As...",
+            iconStream: null,
+            CoreWebView2ContextMenuItemKind.Command);
+
+        item.CustomItemSelected += async (_, _) =>
+        {
+            try
+            {
+                await _downloadManager.StartDownloadAsync(uri).ConfigureAwait(true);
+            }
+            catch
+            {
+                // The download manager reports unsupported or failed downloads through its queue.
+            }
+        };
+
+        RemoveDefaultDownloadContextMenuItems(e.MenuItems);
+        e.MenuItems.Insert(0, item);
+    }
+
+    private static void RemoveDefaultDownloadContextMenuItems(IList<CoreWebView2ContextMenuItem> menuItems)
+    {
+        for (var i = menuItems.Count - 1; i >= 0; i--)
+        {
+            var item = menuItems[i];
+            if (IsDefaultDownloadContextMenuItem(item))
+            {
+                menuItems.RemoveAt(i);
+            }
+        }
+    }
+
+    private static bool IsDefaultDownloadContextMenuItem(CoreWebView2ContextMenuItem item) =>
+        item.Name is "saveLinkAs" or "saveImageAs" or "saveAudioAs" or "saveVideoAs";
 
     private void OnWindowCloseRequested(object? sender, object e)
     {
@@ -1810,6 +2034,117 @@ public sealed class WindowsNativeWebViewBackend
         }
     }
 
+    private async Task<INativeWebViewDownloadItem> StartDownloadAsyncCore(
+        Uri uri,
+        NativeWebViewDownloadRequestOptions? options,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(uri);
+        cancellationToken.ThrowIfCancellationRequested();
+        if (!OperatingSystem.IsWindows())
+        {
+            throw new PlatformNotSupportedException("Programmatic downloads are only supported by this backend on Windows.");
+        }
+
+        await EnsureRuntimeInitializedAsync(cancellationToken).ConfigureAwait(true);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var pending = new PendingProgrammaticDownload(uri, options);
+        using var registration = cancellationToken.Register(static state =>
+            ((PendingProgrammaticDownload)state!).TrySetCanceled(), pending);
+
+        lock (_pendingDownloadGate)
+        {
+            _pendingProgrammaticDownloads.Add(pending);
+        }
+
+        Navigate(uri);
+
+        try
+        {
+            return await pending.Task.ConfigureAwait(true);
+        }
+        finally
+        {
+            RemovePendingProgrammaticDownload(pending);
+        }
+    }
+
+    private PendingProgrammaticDownload? TakePendingProgrammaticDownload(Uri uri)
+    {
+        lock (_pendingDownloadGate)
+        {
+            for (var i = 0; i < _pendingProgrammaticDownloads.Count; i++)
+            {
+                var pending = _pendingProgrammaticDownloads[i];
+                if (!UriEquals(pending.Uri, uri))
+                {
+                    continue;
+                }
+
+                _pendingProgrammaticDownloads.RemoveAt(i);
+                return pending;
+            }
+        }
+
+        return null;
+    }
+
+    private void RemovePendingProgrammaticDownload(PendingProgrammaticDownload pending)
+    {
+        lock (_pendingDownloadGate)
+        {
+            _pendingProgrammaticDownloads.Remove(pending);
+        }
+    }
+
+    private static NativeWebViewDownloadRequestOptions MergeDownloadOptions(
+        NativeWebViewDownloadRequestOptions? preferred,
+        NativeWebViewDownloadRequestOptions fallback)
+    {
+        if (preferred is null)
+        {
+            return fallback;
+        }
+
+        return new NativeWebViewDownloadRequestOptions
+        {
+            SuggestedFileName = preferred.SuggestedFileName ?? fallback.SuggestedFileName,
+            DestinationPath = preferred.DestinationPath ?? fallback.DestinationPath,
+            AllowOverwrite = preferred.AllowOverwrite || fallback.AllowOverwrite,
+            MimeType = preferred.MimeType ?? fallback.MimeType,
+            ContentDisposition = preferred.ContentDisposition ?? fallback.ContentDisposition,
+            TotalBytesToReceive = preferred.TotalBytesToReceive ?? fallback.TotalBytesToReceive,
+        };
+    }
+
+    private static bool UriEquals(Uri left, Uri right) =>
+        string.Equals(left.AbsoluteUri, right.AbsoluteUri, StringComparison.OrdinalIgnoreCase);
+
+    private static string? TryGetFileName(string? path)
+    {
+        return string.IsNullOrWhiteSpace(path)
+            ? null
+            : Path.GetFileName(path);
+    }
+
+    private static string? NormalizeEmpty(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? null : value;
+    }
+
+    private static long NormalizeBytesReceived(long bytesReceived)
+    {
+        return Math.Max(0, bytesReceived);
+    }
+
+    private static long? NormalizeTotalBytes(ulong? totalBytes)
+    {
+        return totalBytes is null
+            ? null
+            : checked((long)Math.Min(totalBytes.Value, (ulong)long.MaxValue));
+    }
+
     private static string? NormalizePath(string? path)
     {
         return string.IsNullOrWhiteSpace(path)
@@ -1834,6 +2169,33 @@ public sealed class WindowsNativeWebViewBackend
         return statusCode is >= int.MinValue and <= int.MaxValue
             ? (int)statusCode
             : null;
+    }
+
+    private sealed class PendingProgrammaticDownload
+    {
+        private readonly TaskCompletionSource<INativeWebViewDownloadItem> _completion =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public PendingProgrammaticDownload(Uri uri, NativeWebViewDownloadRequestOptions? options)
+        {
+            Uri = uri;
+            Options = options;
+        }
+
+        public Uri Uri { get; }
+
+        public NativeWebViewDownloadRequestOptions? Options { get; }
+
+        public Task<INativeWebViewDownloadItem> Task => _completion.Task;
+
+        public void TrySetResult(INativeWebViewDownloadItem item) =>
+            _completion.TrySetResult(item);
+
+        public void TrySetException(Exception exception) =>
+            _completion.TrySetException(exception);
+
+        public void TrySetCanceled() =>
+            _completion.TrySetCanceled();
     }
 
     private static void ReleaseComHandle(ref nint handle)

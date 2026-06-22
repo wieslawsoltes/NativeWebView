@@ -18,6 +18,7 @@ Companion surfaces are available when embedding is not the right fit: [`NativeWe
 - Printing and print UI where supported.
 - Cookie manager and command manager access where supported.
 - Favicon change notifications and favicon byte retrieval where supported, including raw SVG assets through the `Original` format.
+- Download queue access where supported.
 - Native handle interop.
 - Airspace-mitigation render modes: `Embedded`, `GpuSurface`, and `Offscreen`.
 
@@ -44,6 +45,7 @@ Companion surfaces are available when embedding is not the right fit: [`NativeWe
 - `OpenDevToolsWindow`
 - `PrintAsync`, `ShowPrintUiAsync`
 - `GetFaviconAsync`
+- `TryGetDownloadManager`
 - `SetZoomFactor`, `SetUserAgent`, `SetHeader`
 - `TryGetCommandManager`, `TryGetCookieManager`
 - `MoveFocus`
@@ -58,6 +60,7 @@ Companion surfaces are available when embedding is not the right fit: [`NativeWe
 - Initialization: `CoreWebView2Initialized`, `CoreWebView2EnvironmentRequested`, `CoreWebView2ControllerOptionsRequested`
 - Navigation: `NavigationStarted`, `NavigationCompleted`, `NavigationHistoryChanged`
 - Favicons: `FaviconChanged`
+- Downloads: `DownloadStarting`, `DownloadStarted`, `DownloadChanged`, `DownloadCompleted`
 - Messaging and interception: `WebMessageReceived`, `NewWindowRequested`, `WebResourceRequested`, `ContextMenuRequested`
 - Window integration: `RequestCustomChrome`, `RequestParentWindowPosition`, `BeginMoveDrag`, `BeginResizeDrag`, `DestroyRequested`
 - Rendering: `RenderFrameCaptured`
@@ -101,6 +104,17 @@ Use `NativeWebViewRenderFrameMetadataSerializer.ReadFromFileAsync` to load the s
 - `GetFaviconAsync(NativeWebViewFaviconFormat.Original)` returns raw favicon bytes when available. SVG favicons are returned as `image/svg+xml` bytes and are not rasterized by the control.
 - Windows uses WebView2 favicon APIs for PNG/JPEG and downloads the favicon URI for SVG originals. Linux and iOS resolve declared document favicon links and download the resolved URI. Android uses native bitmap callbacks for PNG/JPEG and document-link resolution for SVG originals.
 - Browser targets do not currently advertise favicon support because cross-origin iframe restrictions make document favicon discovery unreliable.
+
+## Download Notes
+
+- Check `Features.Supports(NativeWebViewFeature.Downloads)` or `TryGetDownloadManager` before showing download UI.
+- Downloads are currently advertised by the Windows and Linux desktop backends. macOS, mobile, and browser targets do not advertise downloads in this repo version.
+- `DownloadStarting` is raised before the transfer starts. Use `GetDeferral()` when showing an async save-location picker, then set `DestinationPath` or set `Cancel = true`.
+- The download manager keeps an in-memory queue per view instance. Items remain available after completed, canceled, or failed states until the manager is cleared or the owning view is disposed.
+- Use immutable `NativeWebViewDownloadSnapshot` values from `DownloadStarted`, `DownloadChanged`, and `DownloadCompleted` to update UI. Snapshots include URI, suggested filename, destination, state, bytes, progress, transfer rate, timestamps, error details, and action capability flags.
+- Windows maps to WebView2 download operations and supports progress, completion/failure, cancel, and native pause/resume when WebView2 reports those actions as available.
+- Linux maps to WebKitGTK download signals and supports destination selection, progress, completion/failure, and cancel. Native pause/resume is not available.
+- Restart is intentionally not advertised in this iteration because the programmatic restart pipeline is not yet reliable across backends.
 
 ## Proxy Notes
 

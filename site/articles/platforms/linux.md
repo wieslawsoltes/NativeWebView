@@ -30,6 +30,7 @@ title: "Linux"
 - Environment and controller options
 - Native handles
 - Cookie manager and command manager
+- Downloads
 
 ## Registration
 
@@ -57,3 +58,11 @@ The embedded control runtime expects GTK3/WebKitGTK on an X11-capable Linux sess
 - `UserDataFolder`, `CacheFolder`, and `SessionDataFolder` remain backend-specific configuration contracts on Linux in the current repo.
 - `PrintAsync()` delegates to the native WebKitGTK print pipeline, but direct PDF export through `OutputPath` is not implemented.
 - `WebAuthenticationBroker.UseHttpPost` is not currently implemented on the Linux runtime path.
+
+## Download Notes
+
+- Linux advertises `NativeWebViewFeature.Downloads` for `NativeWebView` and `NativeWebDialog` on the WebKitGTK runtime path.
+- Downloads use WebKitGTK `download-started`, `decide-destination`, `received-data`, `failed`, and `finished` signals.
+- Destination selection is handled through `DownloadStarting`; set `DestinationPath` or cancel before WebKitGTK receives the final destination.
+- Progress, completion, cancellation, and failure are surfaced through download item snapshots.
+- Native pause/resume and restart are not advertised in this iteration.

@@ -30,6 +30,7 @@ title: "Windows"
 - Environment and controller options
 - Native handles
 - Cookie manager and command manager
+- Downloads
 
 ## Registration
 
@@ -55,3 +56,11 @@ When WebView2 rejects controller options with an invalid-argument failure, the W
 
 - The current Windows `WebAuthenticationBroker` implementation uses a dedicated dialog-hosted WebView2 session and completes when navigation reaches the callback scheme/host/path.
 - `UseHttpPost` is not currently implemented on the Windows runtime path.
+
+## Download Notes
+
+- Windows advertises `NativeWebViewFeature.Downloads` for `NativeWebView` and `NativeWebDialog`.
+- Downloads use WebView2 `DownloadStarting` and native download operation events.
+- Destination selection is handled through `DownloadStarting`; set `DestinationPath` or cancel before the WebView2 deferral completes.
+- Progress, completion, cancellation, failure, and native pause/resume are surfaced through download item snapshots when WebView2 supports the action.
+- Restart is not advertised in this iteration.

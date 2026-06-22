@@ -70,6 +70,10 @@ public class NativeWebView : NativeControlHost, IDisposable
     private EventHandler<NativeWebViewResourceRequestedEventArgs>? _webResourceRequested;
     private EventHandler<NativeWebViewContextMenuRequestedEventArgs>? _contextMenuRequested;
     private EventHandler<NativeWebViewNavigationHistoryChangedEventArgs>? _navigationHistoryChanged;
+    private EventHandler<NativeWebViewDownloadStartingEventArgs>? _downloadStarting;
+    private EventHandler<NativeWebViewDownloadItemEventArgs>? _downloadStarted;
+    private EventHandler<NativeWebViewDownloadItemEventArgs>? _downloadChanged;
+    private EventHandler<NativeWebViewDownloadItemEventArgs>? _downloadCompleted;
     private EventHandler<CoreWebViewEnvironmentRequestedEventArgs>? _coreWebView2EnvironmentRequested;
     private EventHandler<CoreWebViewControllerOptionsRequestedEventArgs>? _coreWebView2ControllerOptionsRequested;
     private EventHandler<NativeWebViewFaviconChangedEventArgs>? _faviconChanged;
@@ -288,6 +292,30 @@ public class NativeWebView : NativeControlHost, IDisposable
         remove => _navigationHistoryChanged -= value;
     }
 
+    public event EventHandler<NativeWebViewDownloadStartingEventArgs>? DownloadStarting
+    {
+        add => _downloadStarting += value;
+        remove => _downloadStarting -= value;
+    }
+
+    public event EventHandler<NativeWebViewDownloadItemEventArgs>? DownloadStarted
+    {
+        add => _downloadStarted += value;
+        remove => _downloadStarted -= value;
+    }
+
+    public event EventHandler<NativeWebViewDownloadItemEventArgs>? DownloadChanged
+    {
+        add => _downloadChanged += value;
+        remove => _downloadChanged -= value;
+    }
+
+    public event EventHandler<NativeWebViewDownloadItemEventArgs>? DownloadCompleted
+    {
+        add => _downloadCompleted += value;
+        remove => _downloadCompleted -= value;
+    }
+
     public event EventHandler<CoreWebViewEnvironmentRequestedEventArgs>? CoreWebView2EnvironmentRequested
     {
         add => _coreWebView2EnvironmentRequested += value;
@@ -389,6 +417,10 @@ public class NativeWebView : NativeControlHost, IDisposable
         _controller.WebResourceRequested += ForwardWebResourceRequested;
         _controller.ContextMenuRequested += ForwardContextMenuRequested;
         _controller.NavigationHistoryChanged += ForwardNavigationHistoryChanged;
+        _controller.DownloadStarting += ForwardDownloadStarting;
+        _controller.DownloadStarted += ForwardDownloadStarted;
+        _controller.DownloadChanged += ForwardDownloadChanged;
+        _controller.DownloadCompleted += ForwardDownloadCompleted;
         _controller.CoreWebView2EnvironmentRequested += ForwardCoreWebView2EnvironmentRequested;
         _controller.CoreWebView2ControllerOptionsRequested += ForwardCoreWebView2ControllerOptionsRequested;
         _controller.FaviconChanged += ForwardFaviconChanged;
@@ -410,6 +442,10 @@ public class NativeWebView : NativeControlHost, IDisposable
         _controller.WebResourceRequested -= ForwardWebResourceRequested;
         _controller.ContextMenuRequested -= ForwardContextMenuRequested;
         _controller.NavigationHistoryChanged -= ForwardNavigationHistoryChanged;
+        _controller.DownloadStarting -= ForwardDownloadStarting;
+        _controller.DownloadStarted -= ForwardDownloadStarted;
+        _controller.DownloadChanged -= ForwardDownloadChanged;
+        _controller.DownloadCompleted -= ForwardDownloadCompleted;
         _controller.CoreWebView2EnvironmentRequested -= ForwardCoreWebView2EnvironmentRequested;
         _controller.CoreWebView2ControllerOptionsRequested -= ForwardCoreWebView2ControllerOptionsRequested;
         _controller.FaviconChanged -= ForwardFaviconChanged;
@@ -456,6 +492,18 @@ public class NativeWebView : NativeControlHost, IDisposable
 
     private void ForwardNavigationHistoryChanged(object? sender, NativeWebViewNavigationHistoryChangedEventArgs e) =>
         _navigationHistoryChanged?.Invoke(sender, e);
+
+    private void ForwardDownloadStarting(object? sender, NativeWebViewDownloadStartingEventArgs e) =>
+        _downloadStarting?.Invoke(sender, e);
+
+    private void ForwardDownloadStarted(object? sender, NativeWebViewDownloadItemEventArgs e) =>
+        _downloadStarted?.Invoke(sender, e);
+
+    private void ForwardDownloadChanged(object? sender, NativeWebViewDownloadItemEventArgs e) =>
+        _downloadChanged?.Invoke(sender, e);
+
+    private void ForwardDownloadCompleted(object? sender, NativeWebViewDownloadItemEventArgs e) =>
+        _downloadCompleted?.Invoke(sender, e);
 
     private void ForwardCoreWebView2EnvironmentRequested(object? sender, CoreWebViewEnvironmentRequestedEventArgs e) =>
         _coreWebView2EnvironmentRequested?.Invoke(sender, e);
@@ -688,6 +736,11 @@ public class NativeWebView : NativeControlHost, IDisposable
     public bool TryGetCookieManager(out INativeWebViewCookieManager? cookieManager)
     {
         return _controller.TryGetCookieManager(out cookieManager);
+    }
+
+    public bool TryGetDownloadManager(out INativeWebViewDownloadManager? downloadManager)
+    {
+        return _controller.TryGetDownloadManager(out downloadManager);
     }
 
     public bool TryGetPlatformHandle(out NativePlatformHandle handle)

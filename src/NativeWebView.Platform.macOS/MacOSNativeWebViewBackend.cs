@@ -8,6 +8,7 @@ public sealed class MacOSNativeWebViewBackend : NativeWebViewBackendStubBase, IN
     private static readonly NativePlatformHandle PlatformHandle = new((nint)0x2001, "NSView");
     private static readonly NativePlatformHandle ViewHandle = new((nint)0x2002, "WKWebView");
     private static readonly NativePlatformHandle ControllerHandle = new((nint)0x2003, "WKWebViewConfiguration");
+    private readonly NativeWebViewDownloadManager _downloadManager = new();
 
     public MacOSNativeWebViewBackend()
         : base(NativeWebViewPlatform.MacOS, MacOSPlatformFeatures.Instance)
@@ -30,5 +31,17 @@ public sealed class MacOSNativeWebViewBackend : NativeWebViewBackendStubBase, IN
     {
         handle = ControllerHandle;
         return true;
+    }
+
+    public bool TryGetDownloadManager(out INativeWebViewDownloadManager? downloadManager)
+    {
+        if (Features.Supports(NativeWebViewFeature.Downloads))
+        {
+            downloadManager = _downloadManager;
+            return true;
+        }
+
+        downloadManager = null;
+        return false;
     }
 }

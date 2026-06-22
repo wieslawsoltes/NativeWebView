@@ -25,5 +25,6 @@ internal static class LinuxPlatformFeatures
         NativeWebViewFeature.OffscreenRendering |
         NativeWebViewFeature.RenderFrameCapture |
         NativeWebViewFeature.ProxyConfiguration |
-        NativeWebViewFeature.Favicon);
+        NativeWebViewFeature.Favicon |
+        NativeWebViewFeature.Downloads);
 }

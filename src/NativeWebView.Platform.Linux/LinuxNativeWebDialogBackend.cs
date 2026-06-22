@@ -280,6 +280,12 @@ public sealed class LinuxNativeWebDialogBackend : INativeWebDialogBackend, INati
         _backend.SetHeader(header);
     }
 
+    public bool TryGetDownloadManager(out INativeWebViewDownloadManager? downloadManager)
+    {
+        EnsureNotDisposed();
+        return _backend.TryGetDownloadManager(out downloadManager);
+    }
+
     public bool TryGetPlatformHandle(out NativePlatformHandle handle)
     {
         handle = _gtkWindow != IntPtr.Zero

@@ -52,3 +52,8 @@ macOS supports composited hosting paths and passthrough decisions for scenarios 
 
 - The current macOS `WebAuthenticationBroker` implementation uses a dedicated dialog-hosted `WKWebView` session and completes when navigation reaches the callback scheme/host/path.
 - `UseHttpPost` is not currently implemented on the macOS runtime path.
+
+## Download Notes
+
+- macOS does not advertise `NativeWebViewFeature.Downloads` in this iteration.
+- A real `WKDownload` delegate bridge is required before macOS download queue, destination, progress, and completion events can be exposed truthfully.

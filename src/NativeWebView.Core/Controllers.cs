@@ -21,7 +21,7 @@ public sealed class NativeWebViewController : IDisposable
 {
     private readonly INativeWebViewBackend _backend;
     private readonly SemaphoreSlim _initializeGate = new(1, 1);
-    private readonly object _taskGate = new();
+    private readonly Lock _taskGate = new();
     private Task? _initializeTask;
 
     private int _state = (int)NativeWebComponentState.Created;
@@ -132,6 +132,14 @@ public sealed class NativeWebViewController : IDisposable
     public event EventHandler<NativeWebViewContextMenuRequestedEventArgs>? ContextMenuRequested;
 
     public event EventHandler<NativeWebViewNavigationHistoryChangedEventArgs>? NavigationHistoryChanged;
+
+    public event EventHandler<NativeWebViewDownloadStartingEventArgs>? DownloadStarting;
+
+    public event EventHandler<NativeWebViewDownloadItemEventArgs>? DownloadStarted;
+
+    public event EventHandler<NativeWebViewDownloadItemEventArgs>? DownloadChanged;
+
+    public event EventHandler<NativeWebViewDownloadItemEventArgs>? DownloadCompleted;
 
     public event EventHandler<CoreWebViewEnvironmentRequestedEventArgs>? CoreWebView2EnvironmentRequested;
 
@@ -252,6 +260,12 @@ public sealed class NativeWebViewController : IDisposable
     {
         ThrowIfDisposed();
         return _backend.TryGetCookieManager(out cookieManager);
+    }
+
+    public bool TryGetDownloadManager(out INativeWebViewDownloadManager? downloadManager)
+    {
+        ThrowIfDisposed();
+        return _backend.TryGetDownloadManager(out downloadManager);
     }
 
     public async Task<NativeWebViewFavicon?> GetFaviconAsync(
@@ -388,6 +402,7 @@ public sealed class NativeWebViewController : IDisposable
         _backend.WebResourceRequested += OnWebResourceRequested;
         _backend.ContextMenuRequested += OnContextMenuRequested;
         _backend.NavigationHistoryChanged += OnNavigationHistoryChanged;
+        AttachDownloadManagerEvents();
         _backend.CoreWebView2EnvironmentRequested += OnCoreWebView2EnvironmentRequested;
         _backend.CoreWebView2ControllerOptionsRequested += OnCoreWebView2ControllerOptionsRequested;
 
@@ -413,6 +428,7 @@ public sealed class NativeWebViewController : IDisposable
         _backend.WebResourceRequested -= OnWebResourceRequested;
         _backend.ContextMenuRequested -= OnContextMenuRequested;
         _backend.NavigationHistoryChanged -= OnNavigationHistoryChanged;
+        DetachDownloadManagerEvents();
         _backend.CoreWebView2EnvironmentRequested -= OnCoreWebView2EnvironmentRequested;
         _backend.CoreWebView2ControllerOptionsRequested -= OnCoreWebView2ControllerOptionsRequested;
 
@@ -554,6 +570,60 @@ public sealed class NativeWebViewController : IDisposable
         }
 
         WebResourceRequested?.Invoke(this, e);
+    }
+
+    private void AttachDownloadManagerEvents()
+    {
+        if (_backend.TryGetDownloadManager(out var manager) && manager is not null)
+        {
+            manager.DownloadStarting += OnDownloadStarting;
+            manager.DownloadStarted += OnDownloadStarted;
+            manager.DownloadChanged += OnDownloadChanged;
+            manager.DownloadCompleted += OnDownloadCompleted;
+        }
+    }
+
+    private void DetachDownloadManagerEvents()
+    {
+        if (_backend.TryGetDownloadManager(out var manager) && manager is not null)
+        {
+            manager.DownloadStarting -= OnDownloadStarting;
+            manager.DownloadStarted -= OnDownloadStarted;
+            manager.DownloadChanged -= OnDownloadChanged;
+            manager.DownloadCompleted -= OnDownloadCompleted;
+        }
+    }
+
+    private void OnDownloadStarting(object? sender, NativeWebViewDownloadStartingEventArgs e)
+    {
+        if (!IsDisposed)
+        {
+            DownloadStarting?.Invoke(this, e);
+        }
+    }
+
+    private void OnDownloadStarted(object? sender, NativeWebViewDownloadItemEventArgs e)
+    {
+        if (!IsDisposed)
+        {
+            DownloadStarted?.Invoke(this, e);
+        }
+    }
+
+    private void OnDownloadChanged(object? sender, NativeWebViewDownloadItemEventArgs e)
+    {
+        if (!IsDisposed)
+        {
+            DownloadChanged?.Invoke(this, e);
+        }
+    }
+
+    private void OnDownloadCompleted(object? sender, NativeWebViewDownloadItemEventArgs e)
+    {
+        if (!IsDisposed)
+        {
+            DownloadCompleted?.Invoke(this, e);
+        }
     }
 
     private void OnContextMenuRequested(object? sender, NativeWebViewContextMenuRequestedEventArgs e)
@@ -730,6 +800,14 @@ public sealed class NativeWebDialogController : IDisposable
 
     public event EventHandler<NativeWebViewContextMenuRequestedEventArgs>? ContextMenuRequested;
 
+    public event EventHandler<NativeWebViewDownloadStartingEventArgs>? DownloadStarting;
+
+    public event EventHandler<NativeWebViewDownloadItemEventArgs>? DownloadStarted;
+
+    public event EventHandler<NativeWebViewDownloadItemEventArgs>? DownloadChanged;
+
+    public event EventHandler<NativeWebViewDownloadItemEventArgs>? DownloadCompleted;
+
     public void Show(NativeWebDialogShowOptions? options = null)
     {
         ThrowIfDisposed();
@@ -826,6 +904,12 @@ public sealed class NativeWebDialogController : IDisposable
         return _backend.ShowPrintUiAsync(cancellationToken);
     }
 
+    public bool TryGetDownloadManager(out INativeWebViewDownloadManager? downloadManager)
+    {
+        ThrowIfDisposed();
+        return _backend.TryGetDownloadManager(out downloadManager);
+    }
+
     public void SetZoomFactor(double zoomFactor)
     {
         ThrowIfDisposed();
@@ -875,6 +959,7 @@ public sealed class NativeWebDialogController : IDisposable
         _backend.NewWindowRequested += OnNewWindowRequested;
         _backend.WebResourceRequested += OnWebResourceRequested;
         _backend.ContextMenuRequested += OnContextMenuRequested;
+        AttachDownloadManagerEvents();
     }
 
     private void DetachBackendEvents()
@@ -887,6 +972,7 @@ public sealed class NativeWebDialogController : IDisposable
         _backend.NewWindowRequested -= OnNewWindowRequested;
         _backend.WebResourceRequested -= OnWebResourceRequested;
         _backend.ContextMenuRequested -= OnContextMenuRequested;
+        DetachDownloadManagerEvents();
     }
 
     private void OnShown(object? sender, EventArgs e)
@@ -982,6 +1068,60 @@ public sealed class NativeWebDialogController : IDisposable
         }
 
         ContextMenuRequested?.Invoke(this, e);
+    }
+
+    private void AttachDownloadManagerEvents()
+    {
+        if (_backend.TryGetDownloadManager(out var manager) && manager is not null)
+        {
+            manager.DownloadStarting += OnDownloadStarting;
+            manager.DownloadStarted += OnDownloadStarted;
+            manager.DownloadChanged += OnDownloadChanged;
+            manager.DownloadCompleted += OnDownloadCompleted;
+        }
+    }
+
+    private void DetachDownloadManagerEvents()
+    {
+        if (_backend.TryGetDownloadManager(out var manager) && manager is not null)
+        {
+            manager.DownloadStarting -= OnDownloadStarting;
+            manager.DownloadStarted -= OnDownloadStarted;
+            manager.DownloadChanged -= OnDownloadChanged;
+            manager.DownloadCompleted -= OnDownloadCompleted;
+        }
+    }
+
+    private void OnDownloadStarting(object? sender, NativeWebViewDownloadStartingEventArgs e)
+    {
+        if (!IsDisposed)
+        {
+            DownloadStarting?.Invoke(this, e);
+        }
+    }
+
+    private void OnDownloadStarted(object? sender, NativeWebViewDownloadItemEventArgs e)
+    {
+        if (!IsDisposed)
+        {
+            DownloadStarted?.Invoke(this, e);
+        }
+    }
+
+    private void OnDownloadChanged(object? sender, NativeWebViewDownloadItemEventArgs e)
+    {
+        if (!IsDisposed)
+        {
+            DownloadChanged?.Invoke(this, e);
+        }
+    }
+
+    private void OnDownloadCompleted(object? sender, NativeWebViewDownloadItemEventArgs e)
+    {
+        if (!IsDisposed)
+        {
+            DownloadCompleted?.Invoke(this, e);
+        }
     }
 
     private void SyncStateFromBackend()

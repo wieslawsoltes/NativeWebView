@@ -41,7 +41,8 @@ public enum NativeWebViewFeature
     OffscreenRendering = 1 << 21,
     RenderFrameCapture = 1 << 22,
     ProxyConfiguration = 1 << 23,
-    Favicon = 1 << 24
+    Favicon = 1 << 24,
+    Downloads = 1 << 25
 }
 
 [Flags]
@@ -505,6 +506,41 @@ public interface INativeWebViewCookieManager
     Task DeleteCookieAsync(Uri uri, string name, CancellationToken cancellationToken = default);
 }
 
+public interface INativeWebViewDownloadManager
+{
+    event EventHandler<NativeWebViewDownloadStartingEventArgs>? DownloadStarting;
+
+    event EventHandler<NativeWebViewDownloadItemEventArgs>? DownloadStarted;
+
+    event EventHandler<NativeWebViewDownloadItemEventArgs>? DownloadChanged;
+
+    event EventHandler<NativeWebViewDownloadItemEventArgs>? DownloadCompleted;
+
+    IReadOnlyList<INativeWebViewDownloadItem> Items { get; }
+
+    bool TryGetItem(Guid id, out INativeWebViewDownloadItem? item);
+
+    void ClearCompleted();
+
+    Task<INativeWebViewDownloadItem> StartDownloadAsync(
+        Uri uri,
+        NativeWebViewDownloadRequestOptions? options = null,
+        CancellationToken cancellationToken = default);
+}
+
+public interface INativeWebViewDownloadItem
+{
+    NativeWebViewDownloadSnapshot Snapshot { get; }
+
+    Task<NativeWebViewDownloadActionResult> PauseAsync(CancellationToken cancellationToken = default);
+
+    Task<NativeWebViewDownloadActionResult> ResumeAsync(CancellationToken cancellationToken = default);
+
+    Task<NativeWebViewDownloadActionResult> CancelAsync(CancellationToken cancellationToken = default);
+
+    Task<NativeWebViewDownloadActionResult> RestartAsync(CancellationToken cancellationToken = default);
+}
+
 public enum NativeWebViewFaviconFormat
 {
     Original = 0,
@@ -746,6 +782,12 @@ public interface INativeWebViewBackend : IDisposable
 
     bool TryGetCookieManager(out INativeWebViewCookieManager? cookieManager);
 
+    bool TryGetDownloadManager(out INativeWebViewDownloadManager? downloadManager)
+    {
+        downloadManager = null;
+        return false;
+    }
+
     void MoveFocus(NativeWebViewFocusMoveDirection direction);
 }
 
@@ -830,6 +872,12 @@ public interface INativeWebDialogBackend : IDisposable
     void SetUserAgent(string? userAgent);
 
     void SetHeader(string? header);
+
+    bool TryGetDownloadManager(out INativeWebViewDownloadManager? downloadManager)
+    {
+        downloadManager = null;
+        return false;
+    }
 }
 
 public interface IWebAuthenticationBrokerBackend : IDisposable

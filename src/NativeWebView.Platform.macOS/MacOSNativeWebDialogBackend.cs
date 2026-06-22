@@ -74,6 +74,7 @@ public sealed class MacOSNativeWebDialogBackend : INativeWebDialogBackend, INati
     }
 
     private readonly List<Uri> _history = [];
+    private readonly NativeWebViewDownloadManager _downloadManager = new();
     private readonly bool _useNative;
     private NativeWebViewInstanceConfiguration _instanceConfiguration = new();
     private int _historyIndex = -1;
@@ -483,6 +484,20 @@ public sealed class MacOSNativeWebDialogBackend : INativeWebDialogBackend, INati
         EnsureNotDisposed();
         EnsureFeature(NativeWebViewFeature.Dialog, nameof(SetHeader));
         HeaderString = header;
+    }
+
+    public bool TryGetDownloadManager(out INativeWebViewDownloadManager? downloadManager)
+    {
+        EnsureNotDisposed();
+
+        if (Features.Supports(NativeWebViewFeature.Downloads))
+        {
+            downloadManager = _downloadManager;
+            return true;
+        }
+
+        downloadManager = null;
+        return false;
     }
 
     public bool TryGetPlatformHandle(out NativePlatformHandle handle)

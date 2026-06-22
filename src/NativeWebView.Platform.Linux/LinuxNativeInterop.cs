@@ -258,6 +258,21 @@ internal static class LinuxNativeInterop
     internal delegate int DeleteEventSignal(IntPtr widget, IntPtr eventHandle, IntPtr userData);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    internal delegate void DownloadStartedSignal(IntPtr context, IntPtr download, IntPtr userData);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    internal delegate int DownloadDecideDestinationSignal(IntPtr download, IntPtr suggestedFilename, IntPtr userData);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    internal delegate void DownloadReceivedDataSignal(IntPtr download, ulong dataLength, IntPtr userData);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    internal delegate void DownloadFailedSignal(IntPtr download, IntPtr error, IntPtr userData);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    internal delegate void DownloadFinishedSignal(IntPtr download, IntPtr userData);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate void JavaScriptFinishedCallback(IntPtr webView, IntPtr asyncResult, IntPtr userData);
 
     private sealed class ConnectedSignal : IDisposable
@@ -556,10 +571,30 @@ internal static class LinuxNativeInterop
     internal static extern void webkit_policy_decision_use(IntPtr decision);
 
     [DllImport(WebKitName)]
+    internal static extern void webkit_policy_decision_download(IntPtr decision);
+
+    [DllImport(WebKitName)]
     internal static extern IntPtr webkit_uri_request_get_uri(IntPtr request);
 
     [DllImport(WebKitName)]
     internal static extern IntPtr webkit_uri_request_get_http_method(IntPtr request);
+
+    [DllImport(WebKitName)]
+    internal static extern IntPtr webkit_download_get_uri(IntPtr download);
+
+    [DllImport(WebKitName)]
+    internal static extern void webkit_download_set_destination(
+        IntPtr download,
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string destinationUri);
+
+    [DllImport(WebKitName)]
+    internal static extern ulong webkit_download_get_received_data_length(IntPtr download);
+
+    [DllImport(WebKitName)]
+    internal static extern double webkit_download_get_estimated_progress(IntPtr download);
+
+    [DllImport(WebKitName)]
+    internal static extern void webkit_download_cancel(IntPtr download);
 
     [DllImport(WebKitName)]
     internal static extern void webkit_web_inspector_show(IntPtr inspector);

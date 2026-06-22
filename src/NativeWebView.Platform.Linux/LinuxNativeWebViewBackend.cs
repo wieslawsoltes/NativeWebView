@@ -71,6 +71,9 @@ public sealed class LinuxNativeWebViewBackend
     private readonly List<IDisposable> _signalSubscriptions = [];
     private readonly INativeWebViewCommandManager _commandManager = NativeWebViewBackendSupport.NoopCommandManagerInstance;
     private readonly INativeWebViewCookieManager _cookieManager = NativeWebViewBackendSupport.NoopCookieManagerInstance;
+    private readonly NativeWebViewDownloadManager _downloadManager;
+    private readonly Dictionary<IntPtr, NativeWebViewDownloadManager.NativeWebViewDownloadItem> _downloadItems = [];
+    private readonly Dictionary<IntPtr, Uri> _downloadUris = [];
 
     private TaskCompletionSource<bool> _attachmentTcs = CreatePendingAttachmentSource();
     private NativeWebViewInstanceConfiguration _instanceConfiguration = new();
@@ -117,6 +120,7 @@ public sealed class LinuxNativeWebViewBackend
     {
         Platform = NativeWebViewPlatform.Linux;
         Features = LinuxPlatformFeatures.Instance;
+        _downloadManager = new NativeWebViewDownloadManager(StartDownloadAsyncCore);
         _zoomFactor = 1.0;
         _isDevToolsEnabled = Features.Supports(NativeWebViewFeature.DevTools);
         _isContextMenuEnabled = Features.Supports(NativeWebViewFeature.ContextMenu);
@@ -632,6 +636,20 @@ public sealed class LinuxNativeWebViewBackend
         return false;
     }
 
+    public bool TryGetDownloadManager(out INativeWebViewDownloadManager? downloadManager)
+    {
+        EnsureNotDisposed();
+
+        if (Features.Supports(NativeWebViewFeature.Downloads))
+        {
+            downloadManager = _downloadManager;
+            return true;
+        }
+
+        downloadManager = null;
+        return false;
+    }
+
     public void MoveFocus(NativeWebViewFocusMoveDirection direction)
     {
         EnsureNotDisposed();
@@ -811,7 +829,7 @@ public sealed class LinuxNativeWebViewBackend
         }
 
         _disposed = true;
-        System.Threading.Interlocked.Increment(ref _faviconRefreshVersion);
+        Interlocked.Increment(ref _faviconRefreshVersion);
         _preparedEnvironmentOptions = null;
         _preparedControllerOptions = null;
 
@@ -1172,6 +1190,10 @@ public sealed class LinuxNativeWebViewBackend
         }
 
         ApplyEnvironmentOptionsToContextOnGtkThread(_webContext, _preparedEnvironmentOptions, isPrivateMode);
+        _signalSubscriptions.Add(LinuxNativeInterop.ConnectSignal(
+            _webContext,
+            "download-started",
+            new LinuxNativeInterop.DownloadStartedSignal(OnDownloadStarted)));
 
         _websiteDataManager = LinuxNativeInterop.webkit_web_context_get_website_data_manager(_webContext);
         _webView = LinuxNativeInterop.webkit_web_view_new_with_context(_webContext);
@@ -1336,7 +1358,7 @@ public sealed class LinuxNativeWebViewBackend
 
             case LinuxNativeInterop.WebKitLoadEvent.Finished:
                 SyncNavigationSnapshotFromRuntimeOnGtkThread();
-                var faviconRefreshVersion = System.Threading.Interlocked.Increment(ref _faviconRefreshVersion);
+                var faviconRefreshVersion = Interlocked.Increment(ref _faviconRefreshVersion);
                 _ = RefreshRuntimeFaviconAsync(faviconRefreshVersion);
                 NavigationCompleted?.Invoke(
                     this,
@@ -1354,7 +1376,7 @@ public sealed class LinuxNativeWebViewBackend
                 ExecuteScriptAsync,
                 _currentUrl,
                 CancellationToken.None).ConfigureAwait(false);
-            if (_disposed || refreshVersion != System.Threading.Volatile.Read(ref _faviconRefreshVersion))
+            if (_disposed || refreshVersion != Volatile.Read(ref _faviconRefreshVersion))
             {
                 return;
             }
@@ -1398,6 +1420,174 @@ public sealed class LinuxNativeWebViewBackend
             new NativeWebViewNavigationCompletedEventArgs(uri, isSuccess: false, error: message));
 
         return 0;
+    }
+
+    private void OnDownloadStarted(IntPtr context, IntPtr download, IntPtr userData)
+    {
+        _ = context;
+        _ = userData;
+
+        if (download == IntPtr.Zero)
+        {
+            return;
+        }
+
+        LinuxNativeInterop.g_object_ref(download);
+
+        var uri = TryCreateUri(LinuxNativeInterop.ConvertUtf8Pointer(LinuxNativeInterop.webkit_download_get_uri(download)))
+            ?? _currentUrl
+            ?? new Uri("about:blank", UriKind.Relative);
+
+        lock (_downloadUris)
+        {
+            _downloadUris[download] = uri;
+        }
+
+        _signalSubscriptions.Add(LinuxNativeInterop.ConnectSignal(
+            download,
+            "decide-destination",
+            new LinuxNativeInterop.DownloadDecideDestinationSignal(OnDownloadDecideDestination)));
+        _signalSubscriptions.Add(LinuxNativeInterop.ConnectSignal(
+            download,
+            "received-data",
+            new LinuxNativeInterop.DownloadReceivedDataSignal(OnDownloadReceivedData)));
+        _signalSubscriptions.Add(LinuxNativeInterop.ConnectSignal(
+            download,
+            "failed",
+            new LinuxNativeInterop.DownloadFailedSignal(OnDownloadFailed)));
+        _signalSubscriptions.Add(LinuxNativeInterop.ConnectSignal(
+            download,
+            "finished",
+            new LinuxNativeInterop.DownloadFinishedSignal(OnDownloadFinished)));
+    }
+
+    private int OnDownloadDecideDestination(IntPtr download, IntPtr suggestedFilename, IntPtr userData)
+    {
+        _ = userData;
+
+        var uri = GetDownloadUri(download) ?? new Uri("about:blank", UriKind.Relative);
+        NativeWebViewDownloadManager.NativeWebViewDownloadItem? item = null;
+        var options = new NativeWebViewDownloadRequestOptions
+        {
+            SuggestedFileName = LinuxNativeInterop.ConvertUtf8Pointer(suggestedFilename),
+        };
+
+        try
+        {
+            var args = _downloadManager
+                .PrepareDownloadAsync(uri, options, new NativeWebViewDownloadNativeOperation
+                {
+                    CancelAsync = cancellationToken =>
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        LinuxNativeInterop.webkit_download_cancel(download);
+                        item?.MarkCanceled("Download was canceled.");
+                        return Task.FromResult(NativeWebViewDownloadActionResult.Success());
+                    },
+                })
+                .GetAwaiter()
+                .GetResult();
+            item = (NativeWebViewDownloadManager.NativeWebViewDownloadItem)args.Item;
+
+            if (args.Cancel || string.IsNullOrWhiteSpace(args.DestinationPath))
+            {
+                LinuxNativeInterop.webkit_download_cancel(download);
+                item.MarkCanceled("Download was canceled before a destination was selected.");
+                return 1;
+            }
+
+            item.SetDestination(args.DestinationPath, args.AllowOverwrite);
+            var destinationUri = new Uri(Path.GetFullPath(args.DestinationPath)).AbsoluteUri;
+            LinuxNativeInterop.webkit_download_set_destination(download, destinationUri);
+            item.MarkStarted();
+            lock (_downloadItems)
+            {
+                _downloadItems[download] = item;
+            }
+
+            return 1;
+        }
+        catch (Exception ex)
+        {
+            LinuxNativeInterop.webkit_download_cancel(download);
+            item?.MarkFailed(ex.Message, ex.GetType().Name);
+            return 1;
+        }
+    }
+
+    private void OnDownloadReceivedData(IntPtr download, ulong dataLength, IntPtr userData)
+    {
+        _ = dataLength;
+        _ = userData;
+
+        if (TryGetDownloadItem(download, out var item))
+        {
+            item.UpdateProgress(
+                checked((long)Math.Min((ulong)long.MaxValue, LinuxNativeInterop.webkit_download_get_received_data_length(download))),
+                totalBytesToReceive: null,
+                progress: LinuxNativeInterop.webkit_download_get_estimated_progress(download));
+        }
+    }
+
+    private void OnDownloadFailed(IntPtr download, IntPtr error, IntPtr userData)
+    {
+        _ = userData;
+
+        if (TryGetDownloadItem(download, out var item))
+        {
+            item.MarkFailed(LinuxNativeInterop.GetErrorMessageAndFree(error), "WebKitDownloadFailed");
+        }
+
+        RemoveDownloadItem(download);
+    }
+
+    private void OnDownloadFinished(IntPtr download, IntPtr userData)
+    {
+        _ = userData;
+
+        if (TryGetDownloadItem(download, out var item))
+        {
+            item.UpdateProgress(
+                checked((long)Math.Min((ulong)long.MaxValue, LinuxNativeInterop.webkit_download_get_received_data_length(download))),
+                totalBytesToReceive: null,
+                progress: 1);
+            item.MarkCompleted();
+        }
+
+        RemoveDownloadItem(download);
+    }
+
+    private bool TryGetDownloadItem(
+        IntPtr download,
+        out NativeWebViewDownloadManager.NativeWebViewDownloadItem item)
+    {
+        lock (_downloadItems)
+        {
+            return _downloadItems.TryGetValue(download, out item!);
+        }
+    }
+
+    private void RemoveDownloadItem(IntPtr download)
+    {
+        lock (_downloadItems)
+        {
+            _downloadItems.Remove(download);
+        }
+
+        lock (_downloadUris)
+        {
+            _downloadUris.Remove(download);
+        }
+
+        LinuxNativeInterop.g_object_unref(download);
+    }
+
+    private Uri? GetDownloadUri(IntPtr download)
+    {
+        lock (_downloadUris)
+        {
+            return _downloadUris.TryGetValue(download, out var uri) ? uri : null;
+        }
     }
 
     private int OnDecidePolicy(IntPtr webView, IntPtr decision, LinuxNativeInterop.WebKitPolicyDecisionType decisionType, IntPtr userData)
@@ -1612,6 +1802,31 @@ public sealed class LinuxNativeWebViewBackend
         }
 
         return new LinuxHostWindowHandle(gtkWindow, xid);
+    }
+
+    private async Task<INativeWebViewDownloadItem> StartDownloadAsyncCore(
+        Uri uri,
+        NativeWebViewDownloadRequestOptions? options,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(uri);
+        cancellationToken.ThrowIfCancellationRequested();
+        if (!OperatingSystem.IsLinux())
+        {
+            throw new PlatformNotSupportedException("Programmatic downloads are only supported by this backend on Linux.");
+        }
+
+        await EnsureRuntimeInitializedAsync(cancellationToken).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        Navigate(uri);
+
+        var pending = _downloadManager.AddStartedDownload(
+            uri,
+            options,
+            new NativeWebViewDownloadNativeOperation());
+        pending.MarkFailed("The backend initiated navigation for the URI; no native download operation was provided yet.", "PendingNativeDownload");
+        return pending;
     }
 
     private void EnsureFeature(NativeWebViewFeature feature, string operation)

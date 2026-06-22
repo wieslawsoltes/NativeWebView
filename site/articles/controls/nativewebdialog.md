@@ -33,12 +33,14 @@ title: "NativeWebDialog"
 - `OpenDevToolsWindow`
 - `PrintAsync`, `ShowPrintUiAsync`
 - `SetZoomFactor`, `SetUserAgent`, `SetHeader`
+- `TryGetDownloadManager`
 - `TryGetPlatformHandle`, `TryGetDialogHandle`, `TryGetHostWindowHandle`
 
 ## Main Events
 
 - Visibility: `Shown`, `Closed`
 - Navigation: `NavigationStarted`, `NavigationCompleted`
+- Downloads: `DownloadStarting`, `DownloadStarted`, `DownloadChanged`, `DownloadCompleted`
 - Messaging and interception: `WebMessageReceived`, `NewWindowRequested`, `WebResourceRequested`, `ContextMenuRequested`
 
 ## Typical Usage Pattern
@@ -64,6 +66,7 @@ dialog.Navigate("https://example.com/dialog");
 - Dialog backends remain capability-driven just like the embedded control. Real dialog runtime paths now exist on Windows, macOS, and Linux.
 - Check `NativeWebViewPlatformImplementationStatusMatrix.Get(...)` when you need to distinguish implemented dialog paths from unsupported mobile/browser targets.
 - Windows and Linux dialog backends reuse the same WebView2/WebKitGTK runtime pipelines as their embedded `NativeWebView` hosts, so per-instance storage and proxy options flow through `InstanceConfiguration`.
+- Windows and Linux dialog backends also expose the download manager when `NativeWebViewFeature.Downloads` is advertised. Use `DownloadStarting` with a deferral to choose a destination or cancel before transfer starts.
 - In the current repo implementation, per-instance proxy application is effective on Windows, Linux, and macOS 14+ dialog runtime paths.
 - Print UI and DevTools depend on the platform backend.
 - Unsupported mobile/browser targets return unsupported backend contracts instead of silently no-op behavior.
