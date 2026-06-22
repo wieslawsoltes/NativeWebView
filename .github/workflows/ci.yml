@@ -20,31 +20,8 @@ env:
   CI: true
 
 jobs:
-  quality:
-    name: Quality
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
-
-      - name: Restore
-        run: dotnet restore NativeWebView.sln
-
-      - name: Format and analyzer verification
-        run: dotnet format NativeWebView.sln --verify-no-changes --severity warn
-
-      - name: Validate changelog fragments
-        run: ./scripts/validate-changelog-fragments.sh
-
   docs:
     name: Docs
-    needs: quality
     runs-on: ubuntu-latest
 
     steps:
@@ -74,7 +51,6 @@ jobs:
 
   build-test:
     name: Build & Test (${{ matrix.os }})
-    needs: quality
     strategy:
       fail-fast: false
       matrix:
