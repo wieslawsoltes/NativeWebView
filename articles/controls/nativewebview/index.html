@@ -165,6 +165,7 @@
 <li>Printing and print UI where supported.</li>
 <li>Cookie manager and command manager access where supported.</li>
 <li>Favicon change notifications and favicon byte retrieval where supported, including raw SVG assets through the <code>Original</code> format.</li>
+<li>Download queue access where supported.</li>
 <li>Native handle interop.</li>
 <li>Airspace-mitigation render modes: <code>Embedded</code>, <code>GpuSurface</code>, and <code>Offscreen</code>.</li>
 </ul>
@@ -224,6 +225,7 @@
 <li><code>OpenDevToolsWindow</code></li>
 <li><code>PrintAsync</code>, <code>ShowPrintUiAsync</code></li>
 <li><code>GetFaviconAsync</code></li>
+<li><code>TryGetDownloadManager</code></li>
 <li><code>SetZoomFactor</code>, <code>SetUserAgent</code>, <code>SetHeader</code></li>
 <li><code>TryGetCommandManager</code>, <code>TryGetCookieManager</code></li>
 <li><code>MoveFocus</code></li>
@@ -238,6 +240,7 @@
 <li>Initialization: <code>CoreWebView2Initialized</code>, <code>CoreWebView2EnvironmentRequested</code>, <code>CoreWebView2ControllerOptionsRequested</code></li>
 <li>Navigation: <code>NavigationStarted</code>, <code>NavigationCompleted</code>, <code>NavigationHistoryChanged</code></li>
 <li>Favicons: <code>FaviconChanged</code></li>
+<li>Downloads: <code>DownloadStarting</code>, <code>DownloadStarted</code>, <code>DownloadChanged</code>, <code>DownloadCompleted</code></li>
 <li>Messaging and interception: <code>WebMessageReceived</code>, <code>NewWindowRequested</code>, <code>WebResourceRequested</code>, <code>ContextMenuRequested</code></li>
 <li>Window integration: <code>RequestCustomChrome</code>, <code>RequestParentWindowPosition</code>, <code>BeginMoveDrag</code>, <code>BeginResizeDrag</code>, <code>DestroyRequested</code></li>
 <li>Rendering: <code>RenderFrameCaptured</code></li>
@@ -272,6 +275,17 @@ Use <code>NativeWebViewRenderFrameMetadataSerializer.ReadFromFileAsync</code> to
 <li><code>GetFaviconAsync(NativeWebViewFaviconFormat.Original)</code> returns raw favicon bytes when available. SVG favicons are returned as <code>image/svg+xml</code> bytes and are not rasterized by the control.</li>
 <li>Windows uses WebView2 favicon APIs for PNG/JPEG and downloads the favicon URI for SVG originals. Linux and iOS resolve declared document favicon links and download the resolved URI. Android uses native bitmap callbacks for PNG/JPEG and document-link resolution for SVG originals.</li>
 <li>Browser targets do not currently advertise favicon support because cross-origin iframe restrictions make document favicon discovery unreliable.</li>
+</ul>
+<h2 id="download-notes">Download Notes</h2>
+<ul>
+<li>Check <code>Features.Supports(NativeWebViewFeature.Downloads)</code> or <code>TryGetDownloadManager</code> before showing download UI.</li>
+<li>Downloads are currently advertised by the Windows and Linux desktop backends. macOS, mobile, and browser targets do not advertise downloads in this repo version.</li>
+<li><code>DownloadStarting</code> is raised before the transfer starts. Use <code>GetDeferral()</code> when showing an async save-location picker, then set <code>DestinationPath</code> or set <code>Cancel = true</code>.</li>
+<li>The download manager keeps an in-memory queue per view instance. Items remain available after completed, canceled, or failed states until the manager is cleared or the owning view is disposed.</li>
+<li>Use immutable <code>NativeWebViewDownloadSnapshot</code> values from <code>DownloadStarted</code>, <code>DownloadChanged</code>, and <code>DownloadCompleted</code> to update UI. Snapshots include URI, suggested filename, destination, state, bytes, progress, transfer rate, timestamps, error details, and action capability flags.</li>
+<li>Windows maps to WebView2 download operations and supports progress, completion/failure, cancel, and native pause/resume when WebView2 reports those actions as available.</li>
+<li>Linux maps to WebKitGTK download signals and supports destination selection, progress, completion/failure, and cancel. Native pause/resume is not available.</li>
+<li>Restart is intentionally not advertised in this iteration because the programmatic restart pipeline is not yet reliable across backends.</li>
 </ul>
 <h2 id="proxy-notes">Proxy Notes</h2>
 <ul>

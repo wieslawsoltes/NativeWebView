@@ -186,6 +186,7 @@
 <li>Environment and controller options</li>
 <li>Native handles</li>
 <li>Cookie manager and command manager</li>
+<li>Downloads</li>
 </ul>
 <h2 id="registration">Registration</h2>
 <pre><code class="language-csharp">factory.UseNativeWebViewLinux();
@@ -208,6 +209,14 @@ The embedded control runtime expects GTK3/WebKitGTK on an X11-capable Linux sess
 <li><code>UserDataFolder</code>, <code>CacheFolder</code>, and <code>SessionDataFolder</code> remain backend-specific configuration contracts on Linux in the current repo.</li>
 <li><code>PrintAsync()</code> delegates to the native WebKitGTK print pipeline, but direct PDF export through <code>OutputPath</code> is not implemented.</li>
 <li><code>WebAuthenticationBroker.UseHttpPost</code> is not currently implemented on the Linux runtime path.</li>
+</ul>
+<h2 id="download-notes">Download Notes</h2>
+<ul>
+<li>Linux advertises <code>NativeWebViewFeature.Downloads</code> for <code>NativeWebView</code> and <code>NativeWebDialog</code> on the WebKitGTK runtime path.</li>
+<li>Downloads use WebKitGTK <code>download-started</code>, <code>decide-destination</code>, <code>received-data</code>, <code>failed</code>, and <code>finished</code> signals.</li>
+<li>Destination selection is handled through <code>DownloadStarting</code>; set <code>DestinationPath</code> or cancel before WebKitGTK receives the final destination.</li>
+<li>Progress, completion, cancellation, and failure are surfaced through download item snapshots.</li>
+<li>Native pause/resume and restart are not advertised in this iteration.</li>
 </ul>
 
       </div>

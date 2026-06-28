@@ -186,6 +186,7 @@
 <li>Environment and controller options</li>
 <li>Native handles</li>
 <li>Cookie manager and command manager</li>
+<li>Downloads</li>
 </ul>
 <h2 id="registration">Registration</h2>
 <pre><code class="language-csharp">factory.UseNativeWebViewWindows();
@@ -204,6 +205,14 @@
 <ul>
 <li>The current Windows <code>WebAuthenticationBroker</code> implementation uses a dedicated dialog-hosted WebView2 session and completes when navigation reaches the callback scheme/host/path.</li>
 <li><code>UseHttpPost</code> is not currently implemented on the Windows runtime path.</li>
+</ul>
+<h2 id="download-notes">Download Notes</h2>
+<ul>
+<li>Windows advertises <code>NativeWebViewFeature.Downloads</code> for <code>NativeWebView</code> and <code>NativeWebDialog</code>.</li>
+<li>Downloads use WebView2 <code>DownloadStarting</code> and native download operation events.</li>
+<li>Destination selection is handled through <code>DownloadStarting</code>; set <code>DestinationPath</code> or cancel before the WebView2 deferral completes.</li>
+<li>Progress, completion, cancellation, failure, and native pause/resume are surfaced through download item snapshots when WebView2 supports the action.</li>
+<li>Restart is not advertised in this iteration.</li>
 </ul>
 
       </div>

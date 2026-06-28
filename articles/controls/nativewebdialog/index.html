@@ -206,12 +206,14 @@
 <li><code>OpenDevToolsWindow</code></li>
 <li><code>PrintAsync</code>, <code>ShowPrintUiAsync</code></li>
 <li><code>SetZoomFactor</code>, <code>SetUserAgent</code>, <code>SetHeader</code></li>
+<li><code>TryGetDownloadManager</code></li>
 <li><code>TryGetPlatformHandle</code>, <code>TryGetDialogHandle</code>, <code>TryGetHostWindowHandle</code></li>
 </ul>
 <h2 id="main-events">Main Events</h2>
 <ul>
 <li>Visibility: <code>Shown</code>, <code>Closed</code></li>
 <li>Navigation: <code>NavigationStarted</code>, <code>NavigationCompleted</code></li>
+<li>Downloads: <code>DownloadStarting</code>, <code>DownloadStarted</code>, <code>DownloadChanged</code>, <code>DownloadCompleted</code></li>
 <li>Messaging and interception: <code>WebMessageReceived</code>, <code>NewWindowRequested</code>, <code>WebResourceRequested</code>, <code>ContextMenuRequested</code></li>
 </ul>
 <h2 id="typical-usage-pattern">Typical Usage Pattern</h2>
@@ -234,6 +236,7 @@ dialog.Navigate(&quot;https://example.com/dialog&quot;);
 <li>Dialog backends remain capability-driven just like the embedded control. Real dialog runtime paths now exist on Windows, macOS, and Linux.</li>
 <li>Check <code>NativeWebViewPlatformImplementationStatusMatrix.Get(...)</code> when you need to distinguish implemented dialog paths from unsupported mobile/browser targets.</li>
 <li>Windows and Linux dialog backends reuse the same WebView2/WebKitGTK runtime pipelines as their embedded <code>NativeWebView</code> hosts, so per-instance storage and proxy options flow through <code>InstanceConfiguration</code>.</li>
+<li>Windows and Linux dialog backends also expose the download manager when <code>NativeWebViewFeature.Downloads</code> is advertised. Use <code>DownloadStarting</code> with a deferral to choose a destination or cancel before transfer starts.</li>
 <li>In the current repo implementation, per-instance proxy application is effective on Windows, Linux, and macOS 14+ dialog runtime paths.</li>
 <li>Print UI and DevTools depend on the platform backend.</li>
 <li>Unsupported mobile/browser targets return unsupported backend contracts instead of silently no-op behavior.</li>

@@ -204,6 +204,11 @@
 <li>The current macOS <code>WebAuthenticationBroker</code> implementation uses a dedicated dialog-hosted <code>WKWebView</code> session and completes when navigation reaches the callback scheme/host/path.</li>
 <li><code>UseHttpPost</code> is not currently implemented on the macOS runtime path.</li>
 </ul>
+<h2 id="download-notes">Download Notes</h2>
+<ul>
+<li>macOS does not advertise <code>NativeWebViewFeature.Downloads</code> in this iteration.</li>
+<li>A real <code>WKDownload</code> delegate bridge is required before macOS download queue, destination, progress, and completion events can be exposed truthfully.</li>
+</ul>
 
       </div>
   </div>

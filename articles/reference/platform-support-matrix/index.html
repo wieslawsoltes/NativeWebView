@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="Platform Support Matrix | NativeWebView">
-<meta name="twitter:description" content="Platform Support Matrix Current Repo Runtime Status Platform NativeWebView control NativeWebDialog WebAuthenticationBroker Per-instance proxy Favicon Windows Implemented Implemented Implemented Implemented Implemented, including SVG originals via favicon URI macOS Implemented Implemented Implemented Implemented on macOS 14+ Not advertised by the current embedded backend Linux Implemented Implemented Implemented Implemented Implemented through document favicon link resolution iOS Implemented when built with the .NET 8 Apple workload Unsupported Implemented when built with the .NET...">
+<meta name="twitter:description" content="Platform Support Matrix Current Repo Runtime Status Platform NativeWebView control NativeWebDialog WebAuthenticationBroker Per-instance proxy Favicon Downloads Windows Implemented Implemented Implemented Implemented Implemented, including SVG originals via favicon URI Implemented through WebView2 macOS Implemented Implemented Implemented Implemented on macOS 14+ Not advertised by the current embedded backend Not advertised; WKDownload bridge pending Linux Implemented Implemented Implemented Implemented Implemented through document favicon link resolution Implemented through WebKitGTK iOS Implemented when built with...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta name="twitter:image:alt" content="Platform Support Matrix | NativeWebView">
 <meta property="og:title" content="Platform Support Matrix | NativeWebView">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/NativeWebView">
-<meta property="og:description" content="Platform Support Matrix Current Repo Runtime Status Platform NativeWebView control NativeWebDialog WebAuthenticationBroker Per-instance proxy Favicon Windows Implemented Implemented Implemented Implemented Implemented, including SVG originals via favicon URI macOS Implemented Implemented Implemented Implemented on macOS 14+ Not advertised by the current embedded backend Linux Implemented Implemented Implemented Implemented Implemented through document favicon link resolution iOS Implemented when built with the .NET 8 Apple workload Unsupported Implemented when built with the .NET...">
+<meta property="og:description" content="Platform Support Matrix Current Repo Runtime Status Platform NativeWebView control NativeWebDialog WebAuthenticationBroker Per-instance proxy Favicon Downloads Windows Implemented Implemented Implemented Implemented Implemented, including SVG originals via favicon URI Implemented through WebView2 macOS Implemented Implemented Implemented Implemented on macOS 14+ Not advertised by the current embedded backend Not advertised; WKDownload bridge pending Linux Implemented Implemented Implemented Implemented Implemented through document favicon link resolution Implemented through WebKitGTK iOS Implemented when built with...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta property="og:image:alt" content="Platform Support Matrix | NativeWebView">
   </head>
@@ -166,6 +166,7 @@
 <th><code>WebAuthenticationBroker</code></th>
 <th>Per-instance proxy</th>
 <th>Favicon</th>
+<th>Downloads</th>
 </tr>
 </thead>
 <tbody>
@@ -176,6 +177,7 @@
 <td>Implemented</td>
 <td>Implemented</td>
 <td>Implemented, including SVG originals via favicon URI</td>
+<td>Implemented through WebView2</td>
 </tr>
 <tr>
 <td>macOS</td>
@@ -184,6 +186,7 @@
 <td>Implemented</td>
 <td>Implemented on macOS 14+</td>
 <td>Not advertised by the current embedded backend</td>
+<td>Not advertised; WKDownload bridge pending</td>
 </tr>
 <tr>
 <td>Linux</td>
@@ -192,6 +195,7 @@
 <td>Implemented</td>
 <td>Implemented</td>
 <td>Implemented through document favicon link resolution</td>
+<td>Implemented through WebKitGTK</td>
 </tr>
 <tr>
 <td>iOS</td>
@@ -200,6 +204,7 @@
 <td>Implemented when built with the .NET 8 Apple workload</td>
 <td>Implemented on iOS 17+ when built with the .NET 8 Apple workload</td>
 <td>Implemented in the iOS runtime assembly</td>
+<td>Unsupported</td>
 </tr>
 <tr>
 <td>Android</td>
@@ -208,12 +213,14 @@
 <td>Implemented when built with the .NET 8 Android workload</td>
 <td>Contract-only, app-wide platform API only</td>
 <td>Implemented in the Android runtime assembly</td>
+<td>Unsupported</td>
 </tr>
 <tr>
 <td>Browser</td>
 <td>Implemented when built for the browser target</td>
 <td>Unsupported</td>
 <td>Implemented when built for the browser target</td>
+<td>Unsupported</td>
 <td>Unsupported</td>
 <td>Unsupported</td>
 </tr>
@@ -225,6 +232,7 @@
 <li>Registered backend modules and <code>Features</code> continue to describe the broader platform capability contract for that engine family.</li>
 <li>Current repo runtime status is intentionally tracked separately so docs and applications can distinguish stubbed contracts from implemented native host paths.</li>
 <li>Today, Windows, macOS, and Linux have real embedded <code>NativeWebView</code> control hosts in the default desktop build. iOS and Android runtime paths are built from their platform-targeted backend assemblies rather than the default <code>net10.0</code> contract build, and the Browser runtime is built from the browser-targeted backend assembly and hosts an <code>iframe</code> plus popup/browser-auth integration through Avalonia Browser native control hosting.</li>
+<li>Download support is currently an in-memory per-view queue on Windows and Linux only. Windows supports native WebView2 pause/resume/cancel capabilities where available; Linux supports WebKitGTK destination, progress, completion/failure, and cancel.</li>
 </ul>
 <h2 id="practical-notes">Practical Notes</h2>
 <ul>
