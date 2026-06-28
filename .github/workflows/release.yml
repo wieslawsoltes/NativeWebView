@@ -37,9 +37,6 @@ jobs:
       - name: Restore
         run: dotnet restore NativeWebView.sln
 
-      - name: Validate changelog fragments
-        run: ./scripts/validate-changelog-fragments.sh
-
       - name: Build release
         run: dotnet build NativeWebView.sln -c Release --no-restore -p:ContinuousIntegrationBuild=true
 
@@ -71,39 +68,6 @@ jobs:
           if-no-files-found: error
           path: |
             artifacts/packages/*
-
-      - name: Build release notes
-        run: ./scripts/build-release-notes.sh --version "${{ env.PACKAGE_VERSION }}" --output artifacts/release-notes.md
-
-      - name: Append diagnostics summary to release notes
-        run: |
-          {
-            echo
-            cat "artifacts/diagnostics/release-platform-diagnostics-${{ env.PACKAGE_VERSION }}.md"
-            echo
-            cat "artifacts/diagnostics/release-blocking-regression-${{ env.PACKAGE_VERSION }}.md"
-            echo
-            cat "artifacts/diagnostics/release-gate-evaluation-${{ env.PACKAGE_VERSION }}.md"
-            echo
-            cat "artifacts/diagnostics/exit-code-contract-${{ env.PACKAGE_VERSION }}/exit-code-contract-summary.md"
-            if [[ -f "artifacts/diagnostics/exit-code-contract-${{ env.PACKAGE_VERSION }}/fingerprint-baseline-comparison.md" ]]; then
-              echo
-              cat "artifacts/diagnostics/exit-code-contract-${{ env.PACKAGE_VERSION }}/fingerprint-baseline-comparison.md"
-            fi
-          } >> artifacts/release-notes.md
-
-      - name: Append package validation summary to release notes
-        run: |
-          if [[ -f artifacts/packages/package-validation.md ]]; then
-            echo >> artifacts/release-notes.md
-            cat artifacts/packages/package-validation.md >> artifacts/release-notes.md
-          fi
-
-      - name: Upload release notes artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-notes-${{ env.PACKAGE_VERSION }}
-          path: artifacts/release-notes.md
 
       - name: Upload diagnostics report artifact
         uses: actions/upload-artifact@v4
@@ -143,7 +107,6 @@ jobs:
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          body_path: artifacts/release-notes.md
           files: |
             artifacts/packages/*.nupkg
             artifacts/packages/*.snupkg
