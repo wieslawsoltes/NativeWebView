@@ -1498,6 +1498,7 @@ public sealed class LinuxNativeWebViewBackend
 
             item.SetDestination(args.DestinationPath, args.AllowOverwrite);
             var destinationUri = new Uri(Path.GetFullPath(args.DestinationPath)).AbsoluteUri;
+            LinuxNativeInterop.webkit_download_set_allow_overwrite(download, args.AllowOverwrite);
             LinuxNativeInterop.webkit_download_set_destination(download, destinationUri);
             item.MarkStarted();
             lock (_downloadItems)

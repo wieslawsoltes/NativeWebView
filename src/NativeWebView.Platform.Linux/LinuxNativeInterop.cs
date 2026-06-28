@@ -588,6 +588,11 @@ internal static class LinuxNativeInterop
         [MarshalAs(UnmanagedType.LPUTF8Str)] string destinationUri);
 
     [DllImport(WebKitName)]
+    internal static extern void webkit_download_set_allow_overwrite(
+        IntPtr download,
+        [MarshalAs(UnmanagedType.Bool)] bool allowed);
+
+    [DllImport(WebKitName)]
     internal static extern ulong webkit_download_get_received_data_length(IntPtr download);
 
     [DllImport(WebKitName)]
