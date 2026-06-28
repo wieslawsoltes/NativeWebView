@@ -35,6 +35,7 @@ public sealed class WindowsNativeWebViewBackend
     private static ushort _childWindowClassAtom;
 
     private readonly SemaphoreSlim _runtimeGate = new(1, 1);
+    private readonly SemaphoreSlim _programmaticDownloadGate = new(1, 1);
     private readonly List<Uri> _history = [];
     private readonly INativeWebViewCommandManager _commandManager = NativeWebViewBackendSupport.NoopCommandManagerInstance;
     private readonly INativeWebViewCookieManager _cookieManager = NativeWebViewBackendSupport.NoopCookieManagerInstance;
@@ -817,6 +818,7 @@ public sealed class WindowsNativeWebViewBackend
 
         DestroyRequested?.Invoke(this, new NativeWebViewDestroyRequestedEventArgs("Disposed"));
         _runtimeGate.Dispose();
+        _programmaticDownloadGate.Dispose();
     }
 
     private void DetachFromNativeParentCore(bool preserveRuntime)
@@ -2049,24 +2051,32 @@ public sealed class WindowsNativeWebViewBackend
         await EnsureRuntimeInitializedAsync(cancellationToken).ConfigureAwait(true);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var pending = new PendingProgrammaticDownload(uri, options);
-        using var registration = cancellationToken.Register(static state =>
-            ((PendingProgrammaticDownload)state!).TrySetCanceled(), pending);
-
-        lock (_pendingDownloadGate)
-        {
-            _pendingProgrammaticDownloads.Add(pending);
-        }
-
-        Navigate(uri);
-
+        await _programmaticDownloadGate.WaitAsync(cancellationToken).ConfigureAwait(true);
         try
         {
-            return await pending.Task.ConfigureAwait(true);
+            var pending = new PendingProgrammaticDownload(uri, options);
+            using var registration = cancellationToken.Register(static state =>
+                ((PendingProgrammaticDownload)state!).TrySetCanceled(), pending);
+
+            lock (_pendingDownloadGate)
+            {
+                _pendingProgrammaticDownloads.Add(pending);
+            }
+
+            Navigate(uri);
+
+            try
+            {
+                return await pending.Task.ConfigureAwait(true);
+            }
+            finally
+            {
+                RemovePendingProgrammaticDownload(pending);
+            }
         }
         finally
         {
-            RemovePendingProgrammaticDownload(pending);
+            _programmaticDownloadGate.Release();
         }
     }
 
@@ -2083,6 +2093,15 @@ public sealed class WindowsNativeWebViewBackend
                 }
 
                 _pendingProgrammaticDownloads.RemoveAt(i);
+                return pending;
+            }
+
+            if (_pendingProgrammaticDownloads.Count == 1)
+            {
+                // WebView2 reports the final response URI here, so redirected programmatic downloads
+                // may no longer match the originally requested URI.
+                var pending = _pendingProgrammaticDownloads[0];
+                _pendingProgrammaticDownloads.RemoveAt(0);
                 return pending;
             }
         }
