@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="Platform Prerequisites and Diagnostics | NativeWebView">
-<meta name="twitter:description" content="Platform Prerequisites and Diagnostics NativeWebView exposes runtime prerequisite diagnostics so applications can validate host setup before creating controls or dialogs. API Use the backend factory after registering a platform module: using NativeWebView.Core; using NativeWebView.Platform.Linux; var factory = new NativeWebViewBackendFactory() .UseNativeWebViewLinux(); var diagnostics = factory.GetPlatformDiagnosticsOrDefault(NativeWebViewPlatform.Linux); if (!diagnostics.IsReady) { throw new InvalidOperationException(&quot;Platform prerequisites are not satisfied.&quot;); } foreach (var issue in diagnostics.Issues) { Console.WriteLine($&quot;{issue.Severity}: {issue.Code} - {issue.Message}&quot;); }...">
+<meta name="twitter:description" content="Platform Prerequisites and Diagnostics NativeWebView exposes runtime prerequisite diagnostics so applications can validate host setup before creating controls or dialogs. API Use the backend factory after registering a platform module: using NativeWebView.Core; using NativeWebView.Platform.Linux; var factory = new NativeWebViewBackendFactory() .UseNativeWebViewLinux(); var diagnostics = factory.GetPlatformDiagnosticsOrDefault(NativeWebViewPlatform.Linux); if (!diagnostics.IsReady) { throw new InvalidOperationException(&quot;Platform prerequisites are not satisfied.&quot;); } foreach (var issue in diagnostics.Issues) { Console.WriteLine($&quot;{issue.Severity}: {issue.Code} - {issue.Message}&quot;); if (issue.Remediation is { Kind:...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta name="twitter:image:alt" content="Platform Prerequisites and Diagnostics | NativeWebView">
 <meta property="og:title" content="Platform Prerequisites and Diagnostics | NativeWebView">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/NativeWebView">
-<meta property="og:description" content="Platform Prerequisites and Diagnostics NativeWebView exposes runtime prerequisite diagnostics so applications can validate host setup before creating controls or dialogs. API Use the backend factory after registering a platform module: using NativeWebView.Core; using NativeWebView.Platform.Linux; var factory = new NativeWebViewBackendFactory() .UseNativeWebViewLinux(); var diagnostics = factory.GetPlatformDiagnosticsOrDefault(NativeWebViewPlatform.Linux); if (!diagnostics.IsReady) { throw new InvalidOperationException(&quot;Platform prerequisites are not satisfied.&quot;); } foreach (var issue in diagnostics.Issues) { Console.WriteLine($&quot;{issue.Severity}: {issue.Code} - {issue.Message}&quot;); }...">
+<meta property="og:description" content="Platform Prerequisites and Diagnostics NativeWebView exposes runtime prerequisite diagnostics so applications can validate host setup before creating controls or dialogs. API Use the backend factory after registering a platform module: using NativeWebView.Core; using NativeWebView.Platform.Linux; var factory = new NativeWebViewBackendFactory() .UseNativeWebViewLinux(); var diagnostics = factory.GetPlatformDiagnosticsOrDefault(NativeWebViewPlatform.Linux); if (!diagnostics.IsReady) { throw new InvalidOperationException(&quot;Platform prerequisites are not satisfied.&quot;); } foreach (var issue in diagnostics.Issues) { Console.WriteLine($&quot;{issue.Severity}: {issue.Code} - {issue.Message}&quot;); if (issue.Remediation is { Kind:...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta property="og:image:alt" content="Platform Prerequisites and Diagnostics | NativeWebView">
   </head>
@@ -172,6 +172,10 @@ if (!diagnostics.IsReady)
 foreach (var issue in diagnostics.Issues)
 {
     Console.WriteLine($&quot;{issue.Severity}: {issue.Code} - {issue.Message}&quot;);
+    if (issue.Remediation is { Kind: NativeWebViewDiagnosticRemediationKind.InstallRuntime } remediation)
+    {
+        Console.WriteLine($&quot;Install the required runtime from {remediation.Uri}&quot;);
+    }
 }
 </code></pre>
 <p>You can also use runtime auto-registration:</p>
