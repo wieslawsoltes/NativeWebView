@@ -222,6 +222,8 @@
 <li>The embedded backend advertises <code>NativeWebViewFeature.Downloads</code> and provides a <code>WKDownload</code> delegate bridge with destination, progress, completion/failure and cancellation handling.</li>
 <li>Use the download manager's events to enforce application policy, including canceling downloads when they are not permitted. Verify native behavior on the deployed macOS/WebKit version.</li>
 </ul>
+<h2 id="direct-connections">Direct connections</h2>
+<p><code>Proxy.NoProxy = true</code> requests direct connections before initialization. See <a href="/NativeWebView/articles/rendering/no-proxy">NoProxy configuration and qualification</a> for runtime requirements, macOS storage isolation, and release gates.</p>
 
       </div>
   </div>

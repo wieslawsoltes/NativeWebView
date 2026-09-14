@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="Environment and Controller Options | NativeWebView">
-<meta name="twitter:description" content="Environment and Controller Options NativeWebView exposes two option-request events during initialization so applications can adjust backend defaults before the platform engine is created. For multi-instance hosting, use NativeWebView.InstanceConfiguration to seed per-instance defaults before these public handlers run. Environment Options Event Event: CoreWebView2EnvironmentRequested Option model: BrowserExecutableFolder UserDataFolder CacheFolder CookieDataFolder SessionDataFolder Language AdditionalBrowserArguments TargetCompatibleBrowserVersion AllowSingleSignOnUsingOSPrimaryAccount Proxy.Server Proxy.BypassList Proxy.AutoConfigUrl Use this event to mutate environment defaults before initialization completes....">
+<meta name="twitter:description" content="Environment and Controller Options NativeWebView exposes two option-request events during initialization so applications can adjust backend defaults before the platform engine is created. For multi-instance hosting, use NativeWebView.InstanceConfiguration to seed per-instance defaults before these public handlers run. When multiple presenters share a NativeWebViewInstance, defaults are seeded once per option request. Live presenters contribute to the same options in registration order; later assignments to the same property take precedence. macOS retains...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta name="twitter:image:alt" content="Environment and Controller Options | NativeWebView">
 <meta property="og:title" content="Environment and Controller Options | NativeWebView">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/NativeWebView">
-<meta property="og:description" content="Environment and Controller Options NativeWebView exposes two option-request events during initialization so applications can adjust backend defaults before the platform engine is created. For multi-instance hosting, use NativeWebView.InstanceConfiguration to seed per-instance defaults before these public handlers run. Environment Options Event Event: CoreWebView2EnvironmentRequested Option model: BrowserExecutableFolder UserDataFolder CacheFolder CookieDataFolder SessionDataFolder Language AdditionalBrowserArguments TargetCompatibleBrowserVersion AllowSingleSignOnUsingOSPrimaryAccount Proxy.Server Proxy.BypassList Proxy.AutoConfigUrl Use this event to mutate environment defaults before initialization completes....">
+<meta property="og:description" content="Environment and Controller Options NativeWebView exposes two option-request events during initialization so applications can adjust backend defaults before the platform engine is created. For multi-instance hosting, use NativeWebView.InstanceConfiguration to seed per-instance defaults before these public handlers run. When multiple presenters share a NativeWebViewInstance, defaults are seeded once per option request. Live presenters contribute to the same options in registration order; later assignments to the same property take precedence. macOS retains...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
 <meta property="og:image:alt" content="Environment and Controller Options | NativeWebView">
   </head>
@@ -106,6 +106,8 @@
             <li id='menu-item-rendering-3' class='menu-item  active'>
               <span class='menu-item-row'><a href='/NativeWebView/articles/rendering/environment-and-controller-options/' class='menu-link  '>Environment and Controller Options</a></span>  </li>
             <li id='menu-item-rendering-4' class='menu-item '>
+              <span class='menu-item-row'><a href='/NativeWebView/articles/rendering/no-proxy/' class='menu-link  '>Direct Connections (NoProxy)</a></span>  </li>
+            <li id='menu-item-rendering-5' class='menu-item '>
               <span class='menu-item-row'><a href='/NativeWebView/articles/rendering/native-handle-interop/' class='menu-link  '>Native Handle Interop</a></span>  </li>
           </ol>
 
@@ -155,6 +157,7 @@
 <!-- lunet:summarize -->
 <h1 id="environment-and-controller-options">Environment and Controller Options</h1>
 <p><code>NativeWebView</code> exposes two option-request events during initialization so applications can adjust backend defaults before the platform engine is created. For multi-instance hosting, use <code>NativeWebView.InstanceConfiguration</code> to seed per-instance defaults before these public handlers run.</p>
+<p>When multiple presenters share a <code>NativeWebViewInstance</code>, defaults are seeded once per option request. Live presenters contribute to the same options in registration order; later assignments to the same property take precedence. macOS retains the final options after all callbacks finish. Disposing the instance or the attaching presenter during initialization aborts native host creation.</p>
 <h2 id="environment-options-event">Environment Options Event</h2>
 <p>Event: <code>CoreWebView2EnvironmentRequested</code></p>
 <p>Option model:</p>
@@ -168,6 +171,7 @@
 <li><code>AdditionalBrowserArguments</code></li>
 <li><code>TargetCompatibleBrowserVersion</code></li>
 <li><code>AllowSingleSignOnUsingOSPrimaryAccount</code></li>
+<li><code>Proxy.NoProxy</code> (default <code>false</code>; see <a href="/NativeWebView/articles/rendering/no-proxy">Direct connections</a>)</li>
 <li><code>Proxy.Server</code></li>
 <li><code>Proxy.BypassList</code></li>
 <li><code>Proxy.AutoConfigUrl</code></li>

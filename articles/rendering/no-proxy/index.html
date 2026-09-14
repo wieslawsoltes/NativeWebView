@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html data-lunet-theme-mode="system" data-lunet-theme-storage-key="lunet-theme" data-lunet-css-prefix="lunet" lang="en" itemscope itemtype="http://schema.org/WebPage">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="lunet 1.0.10.0">
+    <script>(function(){const root=document.documentElement;const key=root.getAttribute("data-lunet-theme-storage-key")||"lunet-theme";const fallback=root.getAttribute("data-lunet-theme-mode")||"system";let stored=null;try{stored=localStorage.getItem(key);}catch(_){stored=null;}const mode=(stored==="light"||stored==="dark"||stored==="system")?stored:fallback;const prefersDark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;const resolved=mode==="system"?(prefersDark?"dark":"light"):mode;root.setAttribute("data-lunet-theme-mode",mode);root.setAttribute("data-bs-theme",resolved);}());</script>
+    <link rel='icon' href='/NativeWebView/favicon.ico' sizes='32x32'>
+    <title>Direct connections (NoProxy) | NativeWebView</title>
+    <link rel="stylesheet" href="/NativeWebView/css/lite.css">
+    <script src="/NativeWebView/js/lite-defer.js" defer></script>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@wieslawsoltes">
+<meta name="twitter:title" content="Direct connections (NoProxy) | NativeWebView">
+<meta name="twitter:description" content="Direct connections (NoProxy) Set NativeWebViewProxyOptions.NoProxy before initialization to request direct connections for supported web traffic. The default is false, preserving existing system/default and explicit-proxy behavior. using NativeWebView.Core; using NativeWebView.Dialog; var configuration = new NativeWebViewInstanceConfiguration(); configuration.EnvironmentOptions.Proxy = new NativeWebViewProxyOptions { NoProxy = true, }; var webView = new NativeWebView.Controls.NativeWebView(configuration); // Configure a dialog before Show(). Dispose it when its lifetime ends. using var dialog = new NativeWebDialog(); dialog.InstanceConfiguration = configuration.Clone(); dialog.Show();...">
+<meta name="twitter:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
+<meta name="twitter:image:alt" content="Direct connections (NoProxy) | NativeWebView">
+<meta property="og:title" content="Direct connections (NoProxy) | NativeWebView">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wieslawsoltes.github.io/NativeWebView">
+<meta property="og:description" content="Direct connections (NoProxy) Set NativeWebViewProxyOptions.NoProxy before initialization to request direct connections for supported web traffic. The default is false, preserving existing system/default and explicit-proxy behavior. using NativeWebView.Core; using NativeWebView.Dialog; var configuration = new NativeWebViewInstanceConfiguration(); configuration.EnvironmentOptions.Proxy = new NativeWebViewProxyOptions { NoProxy = true, }; var webView = new NativeWebView.Controls.NativeWebView(configuration); // Configure a dialog before Show(). Dispose it when its lifetime ends. using var dialog = new NativeWebDialog(); dialog.InstanceConfiguration = configuration.Clone(); dialog.Show();...">
+<meta property="og:image" content="https://wieslawsoltes.github.io/NativeWebView/images/logo.svg">
+<meta property="og:image:alt" content="Direct connections (NoProxy) | NativeWebView">
+  </head>
+  <body>
+
+    <div id="lunet" class="container">
+      <nav class="navbar navbar-expand-md sticky-top">
+        <a class="navbar-brand" href="/NativeWebView/">
+          <img class="lunet-logo" src="/NativeWebView/images/logo.svg" alt="NativeWebView" width="96" height="96">
+          <span class="visually-hidden">Home</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="navbarSupportedContent" class="collapse navbar-collapse justify-content-between">
+<ol id='nav-id-home-0' class='navbar-nav nav-level0 show '>
+  <li id='nav-item-home-1' class='nav-item '>
+    <span class='nav-item-row'><a href='/NativeWebView/' class='nav-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a></span>  </li>
+  <li id='nav-item-home-2' class='nav-item  active'>
+    <span class='nav-item-row'><a href='/NativeWebView/articles/' class='nav-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a></span>  </li>
+  <li id='nav-item-home-3' class='nav-item '>
+    <span class='nav-item-row'><a href='/NativeWebView/api/' class='nav-link  '><i class='bi bi-braces' aria-hidden='true'></i> API</a></span>  </li>
+</ol>
+          <ol class="navbar-nav flex-grow-1" style="padding-right: 0.5rem;">
+            <li class="nav-item w-100">
+                <div class="lunet-search dropdown w-100">
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input id="search-input" type="search" class="form-control" placeholder="Search... (Alt+s)" aria-label="Search" aria-controls="search-results" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-search-empty-message="Enter words to search..." data-search-no-results-message="No results found.">
+                    <ul id="search-results" class="dropdown-menu w-100 p-0" style="max-height: 50vh;" role="listbox" aria-labelledby="search-input"></ul>
+                  </div>
+                </div>
+            </li>
+          </ol>
+          <div class="d-flex align-items-center gap-2 flex-shrink-0 navbar-right">
+            <div class="dropdown">
+              <button
+                id="theme-mode-toggle"
+                class="btn btn-outline-secondary btn-sm lunet-theme-toggle dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                aria-label="Theme">
+                <i class="bi bi-circle-half" data-lunet-theme-toggle-icon aria-hidden="true"></i>
+                <span
+                  data-lunet-theme-toggle-label
+                  data-theme-system-label="System"
+                  data-theme-light-label="Light"
+                  data-theme-dark-label="Dark">Theme</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="theme-mode-toggle">
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="system"><i class="bi bi-circle-half me-2"></i>System</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="light"><i class="bi bi-sun-fill me-2"></i>Light</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="dark"><i class="bi bi-moon-stars-fill me-2"></i>Dark</button></li>
+              </ul>
+            </div>
+<ol id='nav-id-home2-0' class='navbar-nav nav-level0 show flex-shrink-0'>
+  <li id='nav-item-home2-1' class='nav-item '>
+    <span class='nav-item-row'><a href='https://github.com/wieslawsoltes/NativeWebView' class='nav-link  btn btn-info'><i class="bi bi-github"></i> GitHub</a></span>  </li>
+</ol>
+          </div>
+        </div>
+      </nav>
+      <div class="lunet lunet-articles">
+        <section data-prismjs-copy="" data-prismjs-copy-success="" data-prismjs-copy-timeout="1200" data-copy-tooltip="Copy to Clipboard." data-copy-tooltip-success="Copied!" data-copy-tooltip-error="Failed to copy!">
+
+<div class="container-xxl">
+  <div class="row">
+      <!-- Left sidebar - responsive offcanvas (offcanvas on mobile, visible sidebar on md+) -->
+      <nav id="docs-sidebar-menu" class="col-md-3 col-lg-3 col-xl-3 col-xxl-2 offcanvas-md offcanvas-start sticky-md-top menu-sidebar align-self-start order-1 order-md-0" tabindex="-1" aria-labelledby="docs-sidebar-menu-label" aria-expanded="true">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="docs-sidebar-menu-label">Menu</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+          <ol id='menu-id-rendering-0' class='menu menu-level0 show '>
+            <li id='menu-item-rendering-1' class='menu-item '>
+              <span class='menu-item-row'><a href='/NativeWebView/articles/rendering/' class='menu-link  '>Rendering and Interop</a></span>  </li>
+            <li id='menu-item-rendering-2' class='menu-item '>
+              <span class='menu-item-row'><a href='/NativeWebView/articles/rendering/render-modes/' class='menu-link  '>Render Modes</a></span>  </li>
+            <li id='menu-item-rendering-3' class='menu-item '>
+              <span class='menu-item-row'><a href='/NativeWebView/articles/rendering/environment-and-controller-options/' class='menu-link  '>Environment and Controller Options</a></span>  </li>
+            <li id='menu-item-rendering-4' class='menu-item  active'>
+              <span class='menu-item-row'><a href='/NativeWebView/articles/rendering/no-proxy/' class='menu-link  '>Direct Connections (NoProxy)</a></span>  </li>
+            <li id='menu-item-rendering-5' class='menu-item '>
+              <span class='menu-item-row'><a href='/NativeWebView/articles/rendering/native-handle-interop/' class='menu-link  '>Native Handle Interop</a></span>  </li>
+          </ol>
+
+        </div>
+      </nav>
+      <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
+      <aside id="docs-sidebar-toc" class="col-12 col-xxl-2 sticky-xxl-top menu-sidebar align-self-start order-0 order-xxl-2 collapse d-xxl-block" aria-expanded="true">
+        <h3 class="toc-title">On this page</h3>
+        <nav class="js-toc"></nav>
+      </aside>
+      <!-- Main content column -->
+      <div class="col-12 col-md-9 col-lg-9 col-xl-9 col-xxl-8 order-2 order-md-1 js-toc-content">
+        <ol class='breadcrumb'>
+          <li class='breadcrumb-item '>
+            <a href='/NativeWebView/' class='breadcrumb-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/NativeWebView/articles/' class='breadcrumb-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/NativeWebView/articles/rendering/' class='breadcrumb-link  '>Rendering and Interop</a>  </li>
+          <li class='breadcrumb-item  active'>
+            Direct Connections (NoProxy)  </li>
+        </ol>
+
+        <p id="lunet-results"></p>
+        <!-- Toggle buttons visible only on small screens -->
+        <div class="d-md-none mb-3">
+          <button
+            class="btn btn-outline-secondary btn-sm me-2"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#docs-sidebar-menu"
+            aria-controls="docs-sidebar-menu"
+            aria-label="Toggle docs menu">
+            Menu
+          </button>
+          <button
+            class="btn btn-outline-secondary btn-sm d-xxl-none"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#docs-sidebar-toc"
+            aria-controls="docs-sidebar-toc"
+            aria-expanded="false"
+            aria-label="Toggle Table Of Contents">
+            On this page
+          </button>
+        </div>
+<!-- lunet:summarize -->
+<h1 id="direct-connections-noproxy">Direct connections (NoProxy)</h1>
+<p>Set <code>NativeWebViewProxyOptions.NoProxy</code> before initialization to request direct connections for supported web traffic. The default is <code>false</code>, preserving existing system/default and explicit-proxy behavior.</p>
+<pre><code class="language-csharp">using NativeWebView.Core;
+using NativeWebView.Dialog;
+
+var configuration = new NativeWebViewInstanceConfiguration();
+configuration.EnvironmentOptions.Proxy = new NativeWebViewProxyOptions
+{
+    NoProxy = true,
+};
+
+var webView = new NativeWebView.Controls.NativeWebView(configuration);
+
+// Configure a dialog before Show(). Dispose it when its lifetime ends.
+using var dialog = new NativeWebDialog();
+dialog.InstanceConfiguration = configuration.Clone();
+dialog.Show();
+</code></pre>
+<p><code>NoProxy = true</code> cannot be combined with a nonblank <code>Server</code>, <code>AutoConfigUrl</code>, or <code>BypassList</code>; contradictory settings throw <code>ArgumentException</code>. A bypass list by itself continues to have its previous behavior and is not a substitute for Direct mode. Configuration is applied during initialization, not changed underneath a running view.</p>
+<p>For embedded macOS views, <code>CoreWebView2EnvironmentRequested</code> can also set <code>e.Options.Proxy.NoProxy</code> during initialization. Register handlers before native attachment or explicit initialization. The finalized environment and profile options are captured before WKWebView creation and retained when the presenter is replaced.</p>
+<p><code>NativeWebViewProxyPlatformSupportMatrix.Get(platform).SupportsNoProxy</code> describes the implementation capability, subject to minimum OS and runtime availability. It is not a certification of every OS release or network configuration.</p>
+<table class="table">
+<thead>
+<tr>
+<th>Platform</th>
+<th>Implementation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Windows</td>
+<td>WebView2 <code>--no-proxy-server</code>; explicit proxy policy prevents initialization fallback without environment options.</td>
+</tr>
+<tr>
+<td>Linux</td>
+<td>WebKitGTK <code>NoProxy</code> with a null settings pointer on the supported X11 runtime path.</td>
+</tr>
+<tr>
+<td>macOS 14+</td>
+<td>Authenticated app-owned loopback SOCKS5 forwarding with direct outbound sockets and native failover disabled. Minimum-version runtime qualification remains pending.</td>
+</tr>
+<tr>
+<td>iOS, Android, Browser</td>
+<td><code>NoProxy</code> is rejected as unsupported.</td>
+</tr>
+</tbody>
+</table>
+<p>On Windows, concurrent WebView2 environments with different proxy policies require separate <code>UserDataFolder</code> values. The library does not change that folder automatically or discard proxy options to work around an incompatible shared environment.</p>
+<h2 id="macos-profiles-and-lifetime">macOS profiles and lifetime</h2>
+<p>System, Direct, and Custom routes use separate data-store identities. Changing an existing profile to Direct therefore uses a separate cookie/storage profile and can require signing in again. Direct cookies persist across restarts; generated listener ports and credentials never participate in persistent identity. Existing System and Custom identities are unchanged.</p>
+<p>Embedded views and dialogs with matching persistent Direct configuration share one store and forwarding service. Private stores are independent. Closing one owner does not stop another owner's service. The final owner cancels its operations, releases native resources, and closes the service. The same persistent Direct profile cannot be acquired concurrently by another process in the same application storage scope. Unrelated applications can use their own default Direct profiles concurrently.</p>
+<p>The helper binds exclusively to loopback and requires generated per-service credentials. It has five-second handshake/connect deadlines, a 128-connection limit per context, at most 16 pending unauthenticated handshakes within that total, bounded relay buffers, and no fixed lifetime for established connections. Excess connections are rejected. TLS remains end to end and platform certificate validation is unchanged. Credentials remain in memory and are not exported in diagnostics.</p>
+<p>A startup failure fails initialization. A failed forwarding service cancels its tunnels and retains the original bound listening socket until the final native owner releases the context. It rejects new connections when accepting is possible; persistent accept errors retry with a delay on the same socket. It never resumes forwarding, rebinds the endpoint, or clears the native override to recover through the system proxy. Retaining the port prevents another local process from taking over the endpoint while owners still reference it. Dispose all owners of a failed context before recreating it. Desktop managed favicon retrieval and macOS fallback downloads also disable proxy discovery in Direct mode.</p>
+<p>Loopback is not private to an application. The handshake limit bounds unauthenticated occupancy and leaves established tunnels running during connection floods, but cannot guarantee new connections will succeed under a sustained local attack. SOCKS username/password authentication does not authenticate the server and sends credentials in cleartext over loopback. This design does not protect against an attacker able to inspect process memory or capture loopback traffic. Authenticated clients can request any TCP destination reachable by the application; HTTPS should be preferred where device support permits it.</p>
+<p>If native cleanup fails, the affected Direct context is disabled and retained until process exit, including its bound endpoint and persistent profile lock. Closing the remaining owners does not release this reservation. Restart the application to use that persistent profile again. This deliberate resource retention prevents endpoint takeover while native objects may still reference the route; uncertain native releases are not retried.</p>
+<h2 id="traffic-scope-and-qualification">Traffic scope and qualification</h2>
+<p>Direct controls configured application/system proxy selection for supported traffic. It does not override DNS configuration, VPN routes, firewalls, or network extensions. WKWebView can connect directly to local destinations without consulting the SOCKS listener; this is not an assertion that every connection traverses the helper or fails whenever the helper stops.</p>
+<p>The prototype qualified public HTTP/HTTPS navigation against instrumented manual system HTTP/HTTPS proxies on macOS 27.0 build 26A428, arm64. It also exercised authentication, shared nonpersistent stores, and forwarding failures. Supplementary fetch/XHR and WebSocket coverage was run separately with system proxies disabled. Prototype results do not qualify the production integration.</p>
+<p>Before advertising a macOS 14+ release, execute the production routing matrix on macOS 14 and the available current release, including persistent cookies, shared embedded/dialog owners, rollback, and disposal. System SOCKS and PAC/WPAD require separate qualification before general system-proxy bypass claims. Downloads, service workers, external application handoff, WebRTC, UDP/QUIC, and public IPv6 routing must not be assumed covered by the TCP prototype.</p>
+<p>The native qualification procedure and outstanding checks are in <code>tests/proxy-qualification.md</code> in the repository.</p>
+
+      </div>
+  </div>
+</div>
+
+        </section>
+        <footer>
+          <hr>
+          <p>Copyright &copy; 2026, Wieslaw Soltes aka <a href="https://github.com/wieslawsoltes">wieslawsoltes</a> - Content licensed under the <a href="https://github.com/wieslawsoltes/NativeWebView/blob/main/LICENSE">MIT license</a> | Site generated by <a href="https://github.com/lunet-io/lunet">lunet</a> hosted on <a href="https://pages.github.com/">GitHub Pages</a></p>
+        </footer>
+      </div>
+    </div>
+
+  </body>
+</html>

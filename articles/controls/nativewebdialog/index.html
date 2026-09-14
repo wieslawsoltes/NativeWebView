@@ -242,6 +242,8 @@ dialog.Navigate(&quot;https://example.com/dialog&quot;);
 <li>Print UI and DevTools depend on the platform backend.</li>
 <li>Unsupported mobile/browser targets return unsupported backend contracts instead of silently no-op behavior.</li>
 </ul>
+<h2 id="direct-connections">Direct connections</h2>
+<p>Set <code>InstanceConfiguration.EnvironmentOptions.Proxy = new NativeWebViewProxyOptions { NoProxy = true }</code> before initialization/showing. Do not combine it with a server, PAC URL, or bypass list. See <a href="/NativeWebView/articles/rendering/no-proxy">NoProxy</a> for platform support and profile behavior.</p>
 
       </div>
   </div>
