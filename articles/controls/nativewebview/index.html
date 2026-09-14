@@ -236,6 +236,38 @@
 <li><code>TryGetPlatformHandle</code>, <code>TryGetViewHandle</code>, <code>TryGetControllerHandle</code></li>
 </ul>
 <h2 id="main-events">Main Events</h2>
+<h3 id="navigation-cancellation-and-failures">Navigation cancellation and failures</h3>
+<p>Starting with 12.0.4.9, check
+<code>Features.Supports(NativeWebViewFeature.NavigationCancellation)</code> before relying on
+navigation interception. Windows and embedded macOS advertise this capability;
+macOS dialog and authentication-broker instances do not advertise it.</p>
+<p>Set <code>NavigationStarted</code> event arguments' <code>Cancel</code> property synchronously in the
+handler. Posting a decision to the UI dispatcher or awaiting work in the handler
+cannot cancel a navigation that has already been allowed. Attach handlers before
+calling <code>Navigate</code>. On embedded macOS, both WebKit policy callback variants honor
+the decision exactly once; subscriber failures, disposal and superseded requests
+cancel the affected navigation. Subframe loads do not raise page-navigation events;
+handle popups separately through <code>NewWindowRequested</code>.</p>
+<p>Terminal browser-process failures on Windows and embedded macOS are reported through
+<code>NavigationCompleted</code> with <code>IsSuccess = false</code> and <code>Error = &quot;browser-process-failed&quot;</code>.
+Applications should cancel pending browser operations or offer recovery rather than
+waiting indefinitely for an authentication redirect.</p>
+<h3 id="embedded-macos-messaging-and-state">Embedded macOS messaging and state</h3>
+<p>The page bridge supports <code>window.chrome.webview.postMessage</code>,
+<code>addEventListener(&quot;message&quot;, handler)</code> and <code>removeEventListener(&quot;message&quot;, handler)</code>.
+<code>PostWebMessageAsJsonAsync</code> delivers parsed JSON in the listener's <code>event.data</code>;
+<code>PostWebMessageAsStringAsync</code> delivers a string. Host messages are not echoed back as
+managed <code>WebMessageReceived</code> events. JSON is decoded as data, including properties
+named <code>__proto__</code>.</p>
+<p>The macOS native view must be attached before host-to-page messaging; otherwise the
+operation throws <code>InvalidOperationException</code>. Cancellation and disposal are honored.
+Each document owns its listeners; register them again after a new document loads.</p>
+<p><code>Source</code>, <code>CurrentUrl</code>, <code>CanGoBack</code> and <code>CanGoForward</code> reflect the retained WKWebView.
+Reattaching a presenter preserves its document and history without restarting the
+current navigation. Read control/native state on the UI thread; applications that
+need background access should publish a snapshot. <code>IsContextMenuEnabled</code> is applied
+to both newly created and retained native views.</p>
+<h3 id="event-list">Event list</h3>
 <ul>
 <li>Initialization: <code>CoreWebView2Initialized</code>, <code>CoreWebView2EnvironmentRequested</code>, <code>CoreWebView2ControllerOptionsRequested</code></li>
 <li>Browser state: <code>StatusTextChanged</code>, <code>ZoomFactorChanged</code>, <code>FaviconChanged</code></li>

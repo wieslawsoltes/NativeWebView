@@ -180,8 +180,49 @@
 <li><code>ProfileName</code></li>
 <li><code>IsInPrivateModeEnabled</code></li>
 <li><code>ScriptLocale</code></li>
+<li><code>IsJavaScriptEnabled</code> (default <code>true</code>)</li>
+<li><code>IsPasswordAutosaveEnabled</code> (default <code>true</code>)</li>
+<li><code>IsGeneralAutofillEnabled</code> (default <code>true</code>)</li>
+<li><code>RedactNavigationDetails</code> (default <code>false</code>)</li>
 </ul>
 <p>Use this event to configure profile, private-mode, and script-locale behavior where the backend supports it.</p>
+<h3 id="browser-policy-options-12049">Browser policy options (12.0.4.9)</h3>
+<table class="table">
+<thead>
+<tr>
+<th>Option</th>
+<th>Runtime mapping</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>IsJavaScriptEnabled</code></td>
+<td>Applied by Windows, Linux and embedded macOS. The macOS dialog backend rejects <code>false</code> with <code>NotSupportedException</code>.</td>
+</tr>
+<tr>
+<td><code>IsPasswordAutosaveEnabled</code></td>
+<td>Applied to WebView2 password saving on Windows; private profiles always disable password saving there.</td>
+</tr>
+<tr>
+<td><code>IsGeneralAutofillEnabled</code></td>
+<td>Applied to WebView2 general autofill on Windows. This is separate from application-provided autofill scripts.</td>
+</tr>
+<tr>
+<td><code>RedactNavigationDetails</code></td>
+<td>Omits navigation details from the embedded macOS host's diagnostics. It does not sanitize application logs or arbitrary native-engine output.</td>
+</tr>
+</tbody>
+</table>
+<p>These options are cloned with the instance configuration. The finalized JavaScript
+policy, including changes made in <code>CoreWebView2ControllerOptionsRequested</code>, is
+applied before navigation on supported embedded backends. Embedded macOS retains
+that policy when its presenter is replaced. Do not assume password-saving or general
+autofill toggles have native mappings on other platforms merely because the option
+properties exist.</p>
+<p>For a private embedded session, configure <code>IsInPrivateModeEnabled = true</code> before
+initialization or native attachment. Applications remain responsible for validating
+authentication redirects, limiting script execution to trusted origins and keeping
+credentials and authorization URLs out of their own logs.</p>
 <h2 id="per-instance-proxy-support-matrix">Per-Instance Proxy Support Matrix</h2>
 <table class="table">
 <thead>

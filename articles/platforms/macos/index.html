@@ -202,13 +202,25 @@
 </ul>
 <h2 id="authentication-notes">Authentication Notes</h2>
 <ul>
-<li>The current macOS <code>WebAuthenticationBroker</code> implementation uses a dedicated dialog-hosted <code>WKWebView</code> session and completes when navigation reaches the callback scheme/host/path.</li>
-<li><code>UseHttpPost</code> is not currently implemented on the macOS runtime path.</li>
+<li><p>Embedded <code>NativeWebView</code> supports synchronous navigation cancellation from 12.0.4.9. This capability is not advertised for the macOS dialog or authentication-broker instances.</p>
+</li>
+<li><p>Both WebKit action-policy callback variants honor cancellation. Register handlers before navigating, and decide synchronously.</p>
+</li>
+<li><p>The embedded host supports bidirectional <code>chrome.webview</code> messaging, native URL/history state, and context-menu enablement. Retaining a <code>NativeWebViewInstance</code> across presenter replacement preserves the current page.</p>
+</li>
+<li><p>Configure private storage and browser policies before native attachment. See <a href="/NativeWebView/articles/rendering/environment-and-controller-options">Controller Options</a> and <a href="/NativeWebView/articles/controls/nativewebview">NativeWebView</a> for platform-specific behavior and messaging requirements.</p>
+</li>
+<li><p>Deterministic policy and bridge tests do not establish native OAuth, MFA, federation or RDP authentication compatibility. Verify these flows in the consuming application with the packaged runtime.</p>
+</li>
+<li><p>The current macOS <code>WebAuthenticationBroker</code> implementation uses a dedicated dialog-hosted <code>WKWebView</code> session and completes when navigation reaches the callback scheme/host/path.</p>
+</li>
+<li><p><code>UseHttpPost</code> is not currently implemented on the macOS runtime path.</p>
+</li>
 </ul>
 <h2 id="download-notes">Download Notes</h2>
 <ul>
-<li>macOS does not advertise <code>NativeWebViewFeature.Downloads</code> in this iteration.</li>
-<li>A real <code>WKDownload</code> delegate bridge is required before macOS download queue, destination, progress, and completion events can be exposed truthfully.</li>
+<li>The embedded backend advertises <code>NativeWebViewFeature.Downloads</code> and provides a <code>WKDownload</code> delegate bridge with destination, progress, completion/failure and cancellation handling.</li>
+<li>Use the download manager's events to enforce application policy, including canceling downloads when they are not permitted. Verify native behavior on the deployed macOS/WebKit version.</li>
 </ul>
 
       </div>
