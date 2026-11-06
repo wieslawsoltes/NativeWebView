@@ -6,6 +6,7 @@ using NativeWebView.Interop;
 
 namespace NativeWebView.Core.Tests;
 
+[Collection(nameof(DirectSocksForwarderCollection))]
 public sealed class DirectSocksForwarderTests
 {
     internal static void AssertEndpointReserved(int port)
@@ -326,4 +327,10 @@ public sealed class DirectSocksForwarderTests
         await client.GetStream().WriteAsync(new byte[] { 42 });
         Assert.Equal(new byte[] { 42 }, await ReadAsync(peer.GetStream(), 1));
     }
+}
+
+// Keep socket deadlines independent of concurrent native stress and full-GC tests.
+[CollectionDefinition(nameof(DirectSocksForwarderCollection), DisableParallelization = true)]
+public sealed class DirectSocksForwarderCollection
+{
 }
