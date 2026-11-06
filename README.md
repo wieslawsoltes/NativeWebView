@@ -3,7 +3,7 @@
 Native webview stack for Avalonia that stays on top of platform-native engines instead of bundling Chromium.
 
 [![.NET SDK 10.0.200](https://img.shields.io/badge/.NET%20SDK-10.0.200-512BD4)](https://dotnet.microsoft.com)
-[![Avalonia](https://img.shields.io/badge/Avalonia-12.0.4-1f6feb)](https://avaloniaui.net)
+[![Avalonia](https://img.shields.io/badge/Avalonia-12.1.5-1f6feb)](https://avaloniaui.net)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ## NuGet Packages

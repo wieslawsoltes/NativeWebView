@@ -1722,7 +1722,7 @@ public class NativeWebView : NativeControlHost, IDisposable
         CopyFramePixels(frame, bitmap);
 
         await using var stream = File.Create(fullPath);
-        bitmap.Save(stream);
+        bitmap.Save(stream, PngBitmapEncoderOptions.Default);
     }
 
     private void RaiseRenderFrameCaptured(NativeWebViewRenderFrame frame)
