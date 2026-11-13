@@ -26,7 +26,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-cmd=(dotnet run --project samples/NativeWebView.Sample.MobileBrowser/NativeWebView.Sample.MobileBrowser.csproj -c "$configuration")
+cmd=(dotnet run --project samples/NativeWebView.Sample.MobileBrowser/NativeWebView.Sample.MobileBrowser.csproj -c "$configuration" --framework "${NATIVEWEBVIEW_FRAMEWORK:-net11.0}")
 if [[ "$no_build" == "true" ]]; then
   cmd+=(--no-build)
 fi

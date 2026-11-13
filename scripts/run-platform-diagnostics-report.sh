@@ -126,7 +126,7 @@ if [[ -n "$comparison_evaluation_markdown_output" ]]; then
   mkdir -p "$(dirname "$comparison_evaluation_markdown_output")"
 fi
 
-cmd=(dotnet run --project samples/NativeWebView.Sample.Diagnostics/NativeWebView.Sample.Diagnostics.csproj -c "$configuration")
+cmd=(dotnet run --project samples/NativeWebView.Sample.Diagnostics/NativeWebView.Sample.Diagnostics.csproj -c "$configuration" --framework "${NATIVEWEBVIEW_FRAMEWORK:-net11.0}")
 if [[ "$no_build" == "true" ]]; then
   cmd+=(--no-build)
 fi

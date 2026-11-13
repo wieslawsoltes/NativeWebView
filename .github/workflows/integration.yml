@@ -15,7 +15,9 @@ permissions:
   contents: read
 
 env:
-  DOTNET_VERSION: '10.0.x'
+  DOTNET_VERSION: |
+    10.0.x
+    11.0.x
   NODE_VERSION: '20'
   PYTHON_VERSION: '3.12'
   DOTNET_NOLOGO: true
@@ -114,7 +116,8 @@ jobs:
 
   browser:
     name: Browser Integration
-    runs-on: ubuntu-latest
+    # Playwright 1.58 does not support Ubuntu 26.04.
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout
@@ -126,7 +129,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Install WebAssembly workload
-        run: dotnet workload install wasm-tools
+        run: dotnet workload install wasm-tools wasm-tools-net10
 
       - name: Setup Python
         uses: actions/setup-python@v5

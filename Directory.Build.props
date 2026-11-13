@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>net10.0;net11.0</TargetFrameworks>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
@@ -17,7 +17,7 @@
     <Authors>Wieslaw Soltes</Authors>
     <Company>Wieslaw Soltes</Company>
     <Copyright>Copyright (c) 2026 Wieslaw Soltes</Copyright>
-    <VersionPrefix>12.1.5</VersionPrefix>
+    <VersionPrefix>12.1.5.1</VersionPrefix>
     <PackageProjectUrl>https://github.com/wieslawsoltes/NativeWebView</PackageProjectUrl>
     <PackageTags>Avalonia;WebView;NativeWebView;WebView2;WKWebView;WebKitGTK</PackageTags>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>

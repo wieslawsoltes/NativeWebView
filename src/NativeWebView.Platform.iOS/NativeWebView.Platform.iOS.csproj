@@ -1,13 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework />
+    <DotNetRootFromSdk>$([System.IO.Path]::GetFullPath('$(MSBuildSDKsPath)/../../..'))</DotNetRootFromSdk>
     <HasIosWorkload>false</HasIosWorkload>
     <HasIosWorkload Condition="Exists('/usr/local/share/dotnet/packs/Microsoft.iOS.Ref.net10.0_26.0')">true</HasIosWorkload>
     <HasIosWorkload Condition="Exists('/usr/share/dotnet/packs/Microsoft.iOS.Ref.net10.0_26.0')">true</HasIosWorkload>
-    <EnableIosRuntime Condition="'$(EnableIosRuntime)' == '' and '$(HasIosWorkload)' == 'true' and $([System.String]::Copy('$(NETCoreSdkVersion)').StartsWith('10.0.'))">true</EnableIosRuntime>
+    <!-- Visual Studio's Windows reference packs can belong to another SDK. Require an explicit runtime opt-in there. -->
+    <HasIosWorkload Condition="!$([MSBuild]::IsOSPlatform('Windows')) and Exists('$(DotNetRootFromSdk)/packs') and $([System.IO.Directory]::GetDirectories('$(DotNetRootFromSdk)/packs', 'Microsoft.iOS.Ref.*').Length) &gt; 0">true</HasIosWorkload>
+    <EnableIosRuntime Condition="'$(EnableIosRuntime)' == '' and '$(HasIosWorkload)' == 'true'">true</EnableIosRuntime>
     <EnableIosRuntime Condition="'$(EnableIosRuntime)' == ''">false</EnableIosRuntime>
-    <TargetFrameworks>net10.0</TargetFrameworks>
-    <TargetFrameworks Condition="'$(EnableIosRuntime)' == 'true'">net10.0;net10.0-ios26.0</TargetFrameworks>
+    <TargetFrameworks>net10.0;net11.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(EnableIosRuntime)' == 'true'">net10.0;net11.0;net10.0-ios26.0;net11.0-ios</TargetFrameworks>
     <AssemblyName>NativeWebView.Platform.iOS</AssemblyName>
     <RootNamespace>NativeWebView.Platform.iOS</RootNamespace>
     <PackageId>NativeWebView.Platform.iOS</PackageId>
@@ -19,7 +22,7 @@
     <AuthenticationBrokerRuntimeImplemented>false</AuthenticationBrokerRuntimeImplemented>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-ios26.0'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-ios26.0' or '$(TargetFramework)' == 'net11.0-ios'">
     <CheckEolTargetFramework>false</CheckEolTargetFramework>
     <CheckEolWorkloads>false</CheckEolWorkloads>
     <DefineConstants>$(DefineConstants);NATIVEWEBVIEW_IOS_RUNTIME</DefineConstants>
@@ -37,11 +40,11 @@
     <AssemblyMetadata Include="NativeWebView.AuthenticationBrokerRuntime" Value="$(AuthenticationBrokerRuntimeImplemented)" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-ios26.0'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-ios26.0' or '$(TargetFramework)' == 'net11.0-ios'">
     <Compile Remove="IOSNativeWebViewBackend.Stub.cs" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' != 'net10.0-ios26.0'">
+  <ItemGroup Condition="'$(TargetFramework)' != 'net10.0-ios26.0' and '$(TargetFramework)' != 'net11.0-ios'">
     <Compile Remove="IOSNativeWebViewBackend.iOS.cs" />
   </ItemGroup>
 </Project>

@@ -1,0 +1,5 @@
+<Project>
+  <PropertyGroup Condition="'$(TargetFramework)' != '' and $([System.String]::Copy('$(TargetFramework)').StartsWith('net11.0'))">
+    <Features>$(Features);runtime-async=on</Features>
+  </PropertyGroup>
+</Project>
