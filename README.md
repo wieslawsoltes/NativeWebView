@@ -2,7 +2,7 @@
 
 Native webview stack for Avalonia that stays on top of platform-native engines instead of bundling Chromium.
 
-[![.NET SDK 10.0.200](https://img.shields.io/badge/.NET%20SDK-10.0.200-512BD4)](https://dotnet.microsoft.com)
+[![.NET SDK 11.0.100](https://img.shields.io/badge/.NET%20SDK-11.0.100-512BD4)](https://dotnet.microsoft.com)
 [![Avalonia](https://img.shields.io/badge/Avalonia-12.1.5-1f6feb)](https://avaloniaui.net)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -148,13 +148,13 @@ Render sidecar metadata includes `FrameId`, `CapturedAtUtc`, `RenderMode`, `Orig
 Run the desktop feature explorer:
 
 ```bash
-dotnet run --project samples/NativeWebView.Sample.Desktop/NativeWebView.Sample.Desktop.csproj -c Debug
+dotnet run --project samples/NativeWebView.Sample.Desktop/NativeWebView.Sample.Desktop.csproj -c Debug --framework net11.0
 ```
 
 Run the deterministic smoke matrix used by CI:
 
 ```bash
-dotnet run --project samples/NativeWebView.Sample.Desktop/NativeWebView.Sample.Desktop.csproj -c Debug -- --smoke
+dotnet run --project samples/NativeWebView.Sample.Desktop/NativeWebView.Sample.Desktop.csproj -c Debug --framework net11.0 -- --smoke
 ```
 
 ## Diagnostics and Release Validation
@@ -214,6 +214,10 @@ GitHub Actions workflows:
 - `Extended Validation`: scheduled/manual Playwright, iOS simulator, and Android emulator validation.
 
 Local release dry run:
+
+Use the .NET 11 SDK (see `global.json`). Libraries, desktop samples, and core tests target both `net10.0` and `net11.0`; .NET 11 builds opt in to runtime async. Workload-enabled backends also include .NET 11 platform targets. Install the matching mobile or WebAssembly workloads before building those targets.
+
+Launch scripts select `net11.0` by default. Set `NATIVEWEBVIEW_FRAMEWORK=net10.0` to run the .NET 10 version.
 
 ```bash
 dotnet restore NativeWebView.sln

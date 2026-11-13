@@ -14,7 +14,9 @@ permissions:
   contents: read
 
 env:
-  DOTNET_VERSION: '10.0.x'
+  DOTNET_VERSION: |
+    10.0.x
+    11.0.x
   DOTNET_NOLOGO: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   CI: true
@@ -33,6 +35,7 @@ jobs:
         with:
           dotnet-version: |
             10.0.x
+            11.0.x
             8.0.x
 
       - name: Build docs
@@ -73,7 +76,7 @@ jobs:
         run: dotnet build NativeWebView.sln -c Release --no-restore -p:ContinuousIntegrationBuild=true
 
       - name: Test
-        run: dotnet test NativeWebView.sln -c Release --no-build --logger "trx;LogFileName=test-results.trx" --results-directory ./test-results
+        run: dotnet test NativeWebView.sln -c Release --no-build --logger "trx;LogFilePrefix=test-results" --results-directory ./test-results
 
       - name: Upload test results
         if: always()

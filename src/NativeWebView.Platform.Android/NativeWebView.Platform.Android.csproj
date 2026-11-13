@@ -1,13 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework />
+    <DotNetRootFromSdk>$([System.IO.Path]::GetFullPath('$(MSBuildSDKsPath)/../../..'))</DotNetRootFromSdk>
     <HasAndroidWorkload>false</HasAndroidWorkload>
     <HasAndroidWorkload Condition="Exists('/usr/local/share/dotnet/packs/Microsoft.Android.Ref.36')">true</HasAndroidWorkload>
     <HasAndroidWorkload Condition="Exists('/usr/share/dotnet/packs/Microsoft.Android.Ref.36')">true</HasAndroidWorkload>
-    <EnableAndroidRuntime Condition="'$(EnableAndroidRuntime)' == '' and '$(HasAndroidWorkload)' == 'true' and $([System.String]::Copy('$(NETCoreSdkVersion)').StartsWith('10.0.'))">true</EnableAndroidRuntime>
+    <HasAndroidWorkload Condition="Exists('$(DotNetRootFromSdk)/packs') and $([System.IO.Directory]::GetDirectories('$(DotNetRootFromSdk)/packs', 'Microsoft.Android.Ref.*').Length) &gt; 0">true</HasAndroidWorkload>
+    <EnableAndroidRuntime Condition="'$(EnableAndroidRuntime)' == '' and '$(HasAndroidWorkload)' == 'true'">true</EnableAndroidRuntime>
     <EnableAndroidRuntime Condition="'$(EnableAndroidRuntime)' == ''">false</EnableAndroidRuntime>
-    <TargetFrameworks>net10.0</TargetFrameworks>
-    <TargetFrameworks Condition="'$(EnableAndroidRuntime)' == 'true'">net10.0;net10.0-android36.0</TargetFrameworks>
+    <TargetFrameworks>net10.0;net11.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(EnableAndroidRuntime)' == 'true'">net10.0;net11.0;net10.0-android36.0;net11.0-android</TargetFrameworks>
     <AssemblyName>NativeWebView.Platform.Android</AssemblyName>
     <RootNamespace>NativeWebView.Platform.Android</RootNamespace>
     <PackageId>NativeWebView.Platform.Android</PackageId>
@@ -24,7 +26,7 @@
     <ProjectReference Include="../NativeWebView.Interop/NativeWebView.Interop.csproj" />
   </ItemGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-android36.0'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-android36.0' or '$(TargetFramework)' == 'net11.0-android'">
     <CheckEolTargetFramework>false</CheckEolTargetFramework>
     <CheckEolWorkloads>false</CheckEolWorkloads>
     <SupportedOSPlatformVersion>24.0</SupportedOSPlatformVersion>
@@ -38,11 +40,11 @@
     <AssemblyMetadata Include="NativeWebView.AuthenticationBrokerRuntime" Value="$(AuthenticationBrokerRuntimeImplemented)" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-android36.0'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-android36.0' or '$(TargetFramework)' == 'net11.0-android'">
     <Compile Remove="AndroidNativeWebViewBackend.Stub.cs" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' != 'net10.0-android36.0'">
+  <ItemGroup Condition="'$(TargetFramework)' != 'net10.0-android36.0' and '$(TargetFramework)' != 'net11.0-android'">
     <Compile Remove="AndroidNativeWebViewBackend.Android.cs" />
   </ItemGroup>
 </Project>

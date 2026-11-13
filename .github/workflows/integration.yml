@@ -15,7 +15,9 @@ permissions:
   contents: read
 
 env:
-  DOTNET_VERSION: '10.0.x'
+  DOTNET_VERSION: |
+    10.0.x
+    11.0.x
   NODE_VERSION: '20'
   PYTHON_VERSION: '3.12'
   DOTNET_NOLOGO: true
@@ -126,7 +128,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Install WebAssembly workload
-        run: dotnet workload install wasm-tools
+        run: dotnet workload install wasm-tools wasm-tools-net10
 
       - name: Setup Python
         uses: actions/setup-python@v5

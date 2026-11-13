@@ -6,8 +6,8 @@
     <HasBrowserRuntimeSdk Condition="Exists('$(DOTNET_ROOT)/packs/Microsoft.NET.Runtime.WebAssembly.Sdk') Or Exists('$(DOTNET_ROOT_X64)/packs/Microsoft.NET.Runtime.WebAssembly.Sdk') Or Exists('$(DotNetRootFromSdk)/packs/Microsoft.NET.Runtime.WebAssembly.Sdk')">true</HasBrowserRuntimeSdk>
     <EnableBrowserRuntime Condition="'$(EnableBrowserRuntime)' == '' and '$(HasBrowserRuntimeSdk)' == 'true'">true</EnableBrowserRuntime>
     <EnableBrowserRuntime Condition="'$(EnableBrowserRuntime)' == ''">false</EnableBrowserRuntime>
-    <TargetFrameworks>net10.0</TargetFrameworks>
-    <TargetFrameworks Condition="'$(EnableBrowserRuntime)' == 'true'">net10.0;net10.0-browser1.0</TargetFrameworks>
+    <TargetFrameworks>net10.0;net11.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(EnableBrowserRuntime)' == 'true'">net10.0;net11.0;net10.0-browser1.0;net11.0-browser1.0</TargetFrameworks>
     <AssemblyName>NativeWebView.Platform.Browser</AssemblyName>
     <RootNamespace>NativeWebView.Platform.Browser</RootNamespace>
     <PackageId>NativeWebView.Platform.Browser</PackageId>
@@ -19,7 +19,7 @@
     <AuthenticationBrokerRuntimeImplemented>false</AuthenticationBrokerRuntimeImplemented>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-browser1.0'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-browser1.0' or '$(TargetFramework)' == 'net11.0-browser1.0'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <CheckEolTargetFramework>false</CheckEolTargetFramework>
     <DefineConstants>$(DefineConstants);NATIVEWEBVIEW_BROWSER_RUNTIME</DefineConstants>
@@ -37,12 +37,12 @@
     <AssemblyMetadata Include="NativeWebView.AuthenticationBrokerRuntime" Value="$(AuthenticationBrokerRuntimeImplemented)" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-browser1.0'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-browser1.0' or '$(TargetFramework)' == 'net11.0-browser1.0'">
     <PackageReference Include="Avalonia.Browser" />
     <Compile Remove="BrowserNativeWebViewBackend.Stub.cs" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' != 'net10.0-browser1.0'">
+  <ItemGroup Condition="'$(TargetFramework)' != 'net10.0-browser1.0' and '$(TargetFramework)' != 'net11.0-browser1.0'">
     <Compile Remove="BrowserNativeWebViewBackend.Browser.cs" />
     <Compile Remove="BrowserNativeWebViewInterop.Browser.cs" />
   </ItemGroup>

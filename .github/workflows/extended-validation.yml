@@ -13,7 +13,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  DOTNET_VERSION: '10.0.x'
+  DOTNET_VERSION: |
+    10.0.x
+    11.0.x
   PYTHON_VERSION: '3.12'
   NODE_VERSION: '20'
   DOTNET_NOLOGO: true
@@ -34,6 +36,7 @@ jobs:
         with:
           dotnet-version: |
             10.0.x
+            11.0.x
             8.0.x
 
       - name: Setup Python

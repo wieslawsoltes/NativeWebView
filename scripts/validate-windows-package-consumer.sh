@@ -33,6 +33,10 @@ if [[ -z "$version" ]]; then
 fi
 
 package_dir="$(cd "$package_dir" && pwd)"
+package_source="$package_dir"
+if command -v cygpath >/dev/null 2>&1; then
+  package_source="$(cygpath -m "$package_dir")"
+fi
 work_dir="$(mktemp -d)"
 trap 'rm -rf "$work_dir"' EXIT
 
@@ -41,7 +45,7 @@ cat > "$work_dir/NuGet.Config" <<EOF
 <configuration>
   <packageSources>
     <clear />
-    <add key="NativeWebView packages" value="$package_dir" />
+    <add key="NativeWebView packages" value="$package_source" />
     <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
   </packageSources>
 </configuration>
@@ -51,7 +55,7 @@ cat > "$work_dir/PackageConsumer.csproj" <<EOF
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>net10.0;net11.0</TargetFrameworks>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -67,30 +71,34 @@ cat > "$work_dir/Program.cs" <<'EOF'
 Console.WriteLine(typeof(NativeWebView.Controls.NativeWebView).Assembly.FullName);
 EOF
 
-dotnet publish "$work_dir/PackageConsumer.csproj" \
-  --configuration Release \
-  --configfile "$work_dir/NuGet.Config" \
-  --output "$work_dir/publish" \
-  --nologo
+for framework in net10.0 net11.0; do
+  dotnet publish "$work_dir/PackageConsumer.csproj" \
+    --disable-build-servers \
+    --framework "$framework" \
+    --configuration Release \
+    --configfile "$work_dir/NuGet.Config" \
+    --output "$work_dir/publish/$framework" \
+    --nologo
 
-required_files=(
-  "NativeWebView.dll"
-  "NativeWebView.Platform.Windows.dll"
-  "Microsoft.Web.WebView2.Core.dll"
-  "WebView2Loader.dll"
-)
+  required_files=(
+    "NativeWebView.dll"
+    "NativeWebView.Platform.Windows.dll"
+    "Microsoft.Web.WebView2.Core.dll"
+    "WebView2Loader.dll"
+  )
 
-for required_file in "${required_files[@]}"; do
-  if ! find "$work_dir/publish" -type f -name "$required_file" -print -quit | grep -q .; then
-    echo "Published Windows consumer is missing $required_file." >&2
+  for required_file in "${required_files[@]}"; do
+    if ! find "$work_dir/publish/$framework" -type f -name "$required_file" -print -quit | grep -q .; then
+      echo "Published Windows consumer is missing $required_file." >&2
+      exit 1
+    fi
+  done
+
+  deps_file="$work_dir/publish/$framework/PackageConsumer.deps.json"
+  if [[ ! -f "$deps_file" ]] || ! grep -q 'Microsoft.Web.WebView2.Core.dll' "$deps_file"; then
+    echo "Published Windows consumer dependency manifest does not include Microsoft.Web.WebView2.Core.dll." >&2
     exit 1
   fi
 done
-
-deps_file="$work_dir/publish/PackageConsumer.deps.json"
-if [[ ! -f "$deps_file" ]] || ! grep -q 'Microsoft.Web.WebView2.Core.dll' "$deps_file"; then
-  echo "Published Windows consumer dependency manifest does not include Microsoft.Web.WebView2.Core.dll." >&2
-  exit 1
-fi
 
 echo "Windows package consumer validation passed for version ${version}."

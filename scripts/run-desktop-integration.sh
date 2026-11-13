@@ -33,7 +33,7 @@ fi
 
 mkdir -p "$artifacts_dir"
 
-cmd=(dotnet run --project tests/NativeWebView.Integration.Desktop/NativeWebView.Integration.Desktop.csproj -c "$configuration")
+cmd=(dotnet run --project tests/NativeWebView.Integration.Desktop/NativeWebView.Integration.Desktop.csproj -c "$configuration" --framework "${NATIVEWEBVIEW_FRAMEWORK:-net11.0}")
 if [[ "$no_build" == "true" ]]; then
   cmd+=(--no-build)
 fi

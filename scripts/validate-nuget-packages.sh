@@ -184,10 +184,12 @@ for package_id in "${packages[@]}"; do
     contents_ok="No"
   fi
 
-  if ! grep -qx "lib/net10.0/${package_id}.dll" <<< "$archive_listing"; then
-    record_failure "$package_id" "Managed assembly lib/net10.0/${package_id}.dll was not packed."
-    contents_ok="No"
-  fi
+  for framework in net10.0 net11.0; do
+    if ! grep -qx "lib/${framework}/${package_id}.dll" <<< "$archive_listing"; then
+      record_failure "$package_id" "Managed assembly lib/${framework}/${package_id}.dll was not packed."
+      contents_ok="No"
+    fi
+  done
 
   if ! nuspec_content="$(unzip -p "$package_path" "${package_id}.nuspec" 2>/dev/null)"; then
     record_failure "$package_id" "Package nuspec is missing or unreadable."
