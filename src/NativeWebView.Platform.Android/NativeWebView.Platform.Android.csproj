@@ -5,7 +5,8 @@
     <HasAndroidWorkload>false</HasAndroidWorkload>
     <HasAndroidWorkload Condition="Exists('/usr/local/share/dotnet/packs/Microsoft.Android.Ref.36')">true</HasAndroidWorkload>
     <HasAndroidWorkload Condition="Exists('/usr/share/dotnet/packs/Microsoft.Android.Ref.36')">true</HasAndroidWorkload>
-    <HasAndroidWorkload Condition="Exists('$(DotNetRootFromSdk)/packs') and $([System.IO.Directory]::GetDirectories('$(DotNetRootFromSdk)/packs', 'Microsoft.Android.Ref.*').Length) &gt; 0">true</HasAndroidWorkload>
+    <!-- Visual Studio's Windows reference packs can belong to another SDK. Require an explicit runtime opt-in there. -->
+    <HasAndroidWorkload Condition="!$([MSBuild]::IsOSPlatform('Windows')) and Exists('$(DotNetRootFromSdk)/packs') and $([System.IO.Directory]::GetDirectories('$(DotNetRootFromSdk)/packs', 'Microsoft.Android.Ref.*').Length) &gt; 0">true</HasAndroidWorkload>
     <EnableAndroidRuntime Condition="'$(EnableAndroidRuntime)' == '' and '$(HasAndroidWorkload)' == 'true'">true</EnableAndroidRuntime>
     <EnableAndroidRuntime Condition="'$(EnableAndroidRuntime)' == ''">false</EnableAndroidRuntime>
     <TargetFrameworks>net10.0;net11.0</TargetFrameworks>
