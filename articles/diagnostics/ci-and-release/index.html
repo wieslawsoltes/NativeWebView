@@ -201,18 +201,61 @@
 <p>Stages:</p>
 <ol>
 <li>Resolve version from <code>v*</code> tag.</li>
-<li>Validate changelog fragments.</li>
 <li>Restore, build, and test in <code>Release</code>.</li>
 <li>Run diagnostics exit-code contract validation and smoke checks.</li>
-<li>Generate diagnostics JSON and markdown reports.</li>
-<li>Compare blocking diagnostics against the checked-in baseline and enforce baseline sync.</li>
-<li>Pack all NuGet packages with symbol packages.</li>
-<li>Validate package archives.</li>
-<li>Build release notes and append diagnostics, regression, gate-evaluation, exit-code conformance, and package validation summaries.</li>
-<li>Upload package, release-note, docs, and diagnostics artifacts.</li>
-<li>Push packages to nuget.org when <code>NUGET_API_KEY</code> is configured.</li>
-<li>Create the GitHub release.</li>
+<li>Generate diagnostics reports and enforce baseline sync.</li>
+<li>Pack and validate NuGet packages, symbol packages, and the Windows package consumer.</li>
+<li>Upload package and diagnostics artifacts and publish the package validation summary.</li>
+<li>Exchange GitHub's OIDC token for a short-lived NuGet.org API key in the <code>nuget</code> environment, then push the packages and symbols.</li>
+<li>Create the GitHub release and attach the package archives.</li>
 </ol>
+<p>The <code>nuget</code> GitHub environment allows <code>v*</code> tags and sets <code>NUGET_USER</code> to the NuGet.org package owner's username. Before pushing a release tag, add a GitHub Actions policy on NuGet.org. <a href="https://learn.microsoft.com/en-us/nuget/nuget-org/trusted-publishing">NuGet Trusted Publishing</a></p>
+<table class="table">
+<thead>
+<tr>
+<th>NuGet.org field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Policy Name</td>
+<td><code>NativeWebView Release</code></td>
+</tr>
+<tr>
+<td>Package Owner</td>
+<td><code>wieslawsoltes</code></td>
+</tr>
+<tr>
+<td>CI/CD Provider</td>
+<td>GitHub Actions</td>
+</tr>
+<tr>
+<td>Repository owner</td>
+<td><code>wieslawsoltes</code></td>
+</tr>
+<tr>
+<td>Repository</td>
+<td><code>NativeWebView</code></td>
+</tr>
+<tr>
+<td>Workflow file</td>
+<td><code>release.yml</code></td>
+</tr>
+<tr>
+<td>Environment</td>
+<td><code>nuget</code></td>
+</tr>
+<tr>
+<td>Scope</td>
+<td>Push only new package versions</td>
+</tr>
+<tr>
+<td>Glob Patterns and Packages</td>
+<td><code>NativeWebView</code> and <code>NativeWebView.*</code> on separate lines</td>
+</tr>
+</tbody>
+</table>
 <h2 id="extended-validation-workflow">Extended Validation Workflow</h2>
 <p>Workflow: <code>.github/workflows/extended-validation.yml</code></p>
 <p>Trigger:</p>
