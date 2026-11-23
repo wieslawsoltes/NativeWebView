@@ -58,17 +58,27 @@ Trigger:
 Stages:
 
 1. Resolve version from `v*` tag.
-2. Validate changelog fragments.
-3. Restore, build, and test in `Release`.
-4. Run diagnostics exit-code contract validation and smoke checks.
-5. Generate diagnostics JSON and markdown reports.
-6. Compare blocking diagnostics against the checked-in baseline and enforce baseline sync.
-7. Pack all NuGet packages with symbol packages.
-8. Validate package archives.
-9. Build release notes and append diagnostics, regression, gate-evaluation, exit-code conformance, and package validation summaries.
-10. Upload package, release-note, docs, and diagnostics artifacts.
-11. Push packages to nuget.org when `NUGET_API_KEY` is configured.
-12. Create the GitHub release.
+2. Restore, build, and test in `Release`.
+3. Run diagnostics exit-code contract validation and smoke checks.
+4. Generate diagnostics reports and enforce baseline sync.
+5. Pack and validate NuGet packages, symbol packages, and the Windows package consumer.
+6. Upload package and diagnostics artifacts and publish the package validation summary.
+7. Exchange GitHub's OIDC token for a short-lived NuGet.org API key in the `nuget` environment, then push the packages and symbols.
+8. Create the GitHub release and attach the package archives.
+
+The `nuget` GitHub environment allows `v*` tags and sets `NUGET_USER` to the NuGet.org package owner's username. Before pushing a release tag, add a GitHub Actions policy on NuGet.org. [NuGet Trusted Publishing](https://learn.microsoft.com/en-us/nuget/nuget-org/trusted-publishing)
+
+| NuGet.org field | Value |
+| --- | --- |
+| Policy Name | `NativeWebView Release` |
+| Package Owner | `wieslawsoltes` |
+| CI/CD Provider | GitHub Actions |
+| Repository owner | `wieslawsoltes` |
+| Repository | `NativeWebView` |
+| Workflow file | `release.yml` |
+| Environment | `nuget` |
+| Scope | Push only new package versions |
+| Glob Patterns and Packages | `NativeWebView` and `NativeWebView.*` on separate lines |
 
 ## Extended Validation Workflow
 
