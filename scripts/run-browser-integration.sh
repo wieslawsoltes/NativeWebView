@@ -75,14 +75,6 @@ if [[ -z "$serve_dir" ]]; then
   exit 1
 fi
 
-if [[ -f "$serve_dir/avalonia.js" && ! -f "$serve_dir/_framework/avalonia.js" ]]; then
-  cp "$serve_dir/avalonia.js" "$serve_dir/_framework/avalonia.js"
-fi
-
-if [[ -f "$serve_dir/avalonia.js.map" && ! -f "$serve_dir/_framework/avalonia.js.map" ]]; then
-  cp "$serve_dir/avalonia.js.map" "$serve_dir/_framework/avalonia.js.map"
-fi
-
 if ! command -v "$python_bin" >/dev/null 2>&1 && [[ ! -x "$python_bin" ]]; then
   echo "Python runtime not found: $python_bin" >&2
   exit 1
