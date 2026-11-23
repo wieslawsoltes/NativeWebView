@@ -5,7 +5,7 @@ on:
     tags: ['v*']
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: release-${{ github.ref }}
@@ -20,9 +20,11 @@ env:
   CI: true
 
 jobs:
-  publish:
-    name: Pack, Publish, and Release
+  pack:
+    name: Build and validate packages
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
 
     steps:
       - name: Checkout
@@ -34,7 +36,11 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Resolve version from tag
-        run: echo "PACKAGE_VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+        id: version
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          printf 'PACKAGE_VERSION=%s\n' "$version" >> "$GITHUB_ENV"
+          printf 'version=%s\n' "$version" >> "$GITHUB_OUTPUT"
 
       - name: Restore
         run: dotnet restore NativeWebView.sln
@@ -46,7 +52,7 @@ jobs:
         run: dotnet test NativeWebView.sln -c Release --no-build
 
       - name: Validate diagnostics exit code contract
-        run: ./scripts/validate-diagnostics-exit-code-contract.sh --configuration Release --no-build --output-dir artifacts/diagnostics/exit-code-contract-${{ env.PACKAGE_VERSION }} --baseline ci/baselines/blocking-issues-baseline.txt --fingerprint-baseline ci/baselines/diagnostics-fingerprint-baseline.txt
+        run: ./scripts/validate-diagnostics-exit-code-contract.sh --configuration Release --no-build --output-dir "artifacts/diagnostics/exit-code-contract-$PACKAGE_VERSION" --baseline ci/baselines/blocking-issues-baseline.txt --fingerprint-baseline ci/baselines/diagnostics-fingerprint-baseline.txt
 
       - name: Desktop sample smoke
         run: ./scripts/run-desktop-sample-smoke.sh --configuration Release --no-build
@@ -55,16 +61,16 @@ jobs:
         run: ./scripts/run-mobile-browser-sample-smoke.sh --configuration Release --no-build --platform all
 
       - name: Platform diagnostics report
-        run: ./scripts/run-platform-diagnostics-report.sh --configuration Release --no-build --platform all --output artifacts/diagnostics/release-platform-diagnostics-${{ env.PACKAGE_VERSION }}.json --markdown-output artifacts/diagnostics/release-platform-diagnostics-${{ env.PACKAGE_VERSION }}.md --blocking-baseline ci/baselines/blocking-issues-baseline.txt --blocking-baseline-output artifacts/diagnostics/release-current-blocking-baseline-${{ env.PACKAGE_VERSION }}.txt --comparison-markdown-output artifacts/diagnostics/release-blocking-regression-${{ env.PACKAGE_VERSION }}.md --comparison-json-output artifacts/diagnostics/release-blocking-regression-${{ env.PACKAGE_VERSION }}.json --comparison-evaluation-markdown-output artifacts/diagnostics/release-gate-evaluation-${{ env.PACKAGE_VERSION }}.md --require-baseline-sync --allow-not-ready
+        run: ./scripts/run-platform-diagnostics-report.sh --configuration Release --no-build --platform all --output "artifacts/diagnostics/release-platform-diagnostics-$PACKAGE_VERSION.json" --markdown-output "artifacts/diagnostics/release-platform-diagnostics-$PACKAGE_VERSION.md" --blocking-baseline ci/baselines/blocking-issues-baseline.txt --blocking-baseline-output "artifacts/diagnostics/release-current-blocking-baseline-$PACKAGE_VERSION.txt" --comparison-markdown-output "artifacts/diagnostics/release-blocking-regression-$PACKAGE_VERSION.md" --comparison-json-output "artifacts/diagnostics/release-blocking-regression-$PACKAGE_VERSION.json" --comparison-evaluation-markdown-output "artifacts/diagnostics/release-gate-evaluation-$PACKAGE_VERSION.md" --require-baseline-sync --allow-not-ready
 
       - name: Pack release
-        run: dotnet pack NativeWebView.sln -c Release --no-build -o artifacts/packages -p:ContinuousIntegrationBuild=true -p:Version=${{ env.PACKAGE_VERSION }}
+        run: dotnet pack NativeWebView.sln -c Release --no-build -o artifacts/packages -p:ContinuousIntegrationBuild=true -p:Version="$PACKAGE_VERSION"
 
       - name: Validate package artifacts
-        run: bash ./scripts/validate-nuget-packages.sh --package-dir artifacts/packages --version "${{ env.PACKAGE_VERSION }}" --markdown-output artifacts/packages/package-validation.md
+        run: bash ./scripts/validate-nuget-packages.sh --package-dir artifacts/packages --version "$PACKAGE_VERSION" --markdown-output artifacts/packages/package-validation.md
 
       - name: Validate Windows package consumer
-        run: bash ./scripts/validate-windows-package-consumer.sh --package-dir artifacts/packages --version "${{ env.PACKAGE_VERSION }}"
+        run: bash ./scripts/validate-windows-package-consumer.sh --package-dir artifacts/packages --version "$PACKAGE_VERSION"
 
       - name: Upload package artifacts
         uses: actions/upload-artifact@v4
@@ -97,17 +103,53 @@ jobs:
             echo "Package validation summary was not generated." >> "$GITHUB_STEP_SUMMARY"
           fi
 
-      - name: Push .nupkg to NuGet
-        if: ${{ env.NUGET_API_KEY != '' }}
-        env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-        run: dotnet nuget push "artifacts/packages/*.nupkg" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
+  publish:
+    name: Publish to NuGet.org
+    needs: pack
+    runs-on: ubuntu-latest
+    environment: nuget
+    permissions:
+      id-token: write
 
-      - name: Push .snupkg to NuGet
-        if: ${{ env.NUGET_API_KEY != '' }}
+    steps:
+      - name: Setup .NET
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          dotnet-version: 11.0.x
+
+      - name: Download validated packages
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: packages-${{ needs.pack.outputs.version }}
+          path: artifacts/packages
+
+      - name: Sign in to NuGet.org with OIDC
+        id: login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: ${{ vars.NUGET_USER }}
+
+      - name: Push packages and symbols
         env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-        run: dotnet nuget push "artifacts/packages/*.snupkg" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+          NUGET_SYMBOL_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+        run: |
+          dotnet nuget push "artifacts/packages/*.nupkg" --source https://api.nuget.org/v3/index.json --skip-duplicate --no-symbols
+          dotnet nuget push "artifacts/packages/*.snupkg" --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+  release:
+    name: Create GitHub release
+    needs: [pack, publish]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download validated packages
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: packages-${{ needs.pack.outputs.version }}
+          path: artifacts/packages
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
